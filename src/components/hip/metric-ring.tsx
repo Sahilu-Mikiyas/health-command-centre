@@ -18,8 +18,8 @@ export function MetricRing({
   label,
   caption,
   tone = "accent",
-  size = 104,
-  thickness = 8,
+  size = 76,
+  thickness = 7,
   className,
 }: {
   value: number;
@@ -43,7 +43,7 @@ export function MetricRing({
   const percentText = `${Math.round(pct * 100)}%`;
 
   return (
-    <div className={cn("inline-flex items-center gap-3", className)}>
+    <div className={cn("inline-flex items-center gap-2.5 min-w-0 max-w-full", className)}>
       <div className="relative grid place-items-center shrink-0" style={{ width: size, height: size }}>
         <svg width={size} height={size} className="-rotate-90">
           <circle
@@ -67,11 +67,11 @@ export function MetricRing({
           />
         </svg>
         <div className="absolute flex flex-col items-center justify-center leading-none text-center px-1">
-          <span className="numeric text-2xl font-black text-black">{percentText}</span>
+          <span className="numeric text-base font-black text-black">{percentText}</span>
         </div>
       </div>
       {label || caption ? (
-        <div className="flex flex-col justify-center min-w-0">
+        <div className="flex flex-col justify-center min-w-0 flex-1">
           {label ? <span className="text-xs font-black uppercase tracking-wider text-black truncate">{label}</span> : null}
           {caption ? <span className="text-[11px] font-semibold text-[#86868B] truncate mt-0.5">{caption}</span> : null}
         </div>

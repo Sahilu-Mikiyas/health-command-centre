@@ -49,19 +49,20 @@ function CommandCentre() {
       subtitle={hospital.data ? `${hospital.data.name} · live digital twin` : "Loading hospital…"}
     >
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="space-y-6">
+        <div className="space-y-6 min-w-0">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <Panel>
-              <div className="flex items-center gap-3">
-                <MetricRing value={Math.round(occupancy * 100)} label="Occupancy" size={92} />
-                <div className="space-y-1 text-xs font-semibold text-[#86868B]">
-                  <p className="numeric text-black font-extrabold">{beds.data?.occupied ?? 0} occupied</p>
-                  <p className="text-[#34C759] font-bold">{beds.data?.available ?? 0} available</p>
-                  <p>{beds.data?.cleaning ?? 0} in cleaning</p>
+            <Panel className="min-w-0">
+              <div className="flex items-center justify-between gap-3 min-w-0">
+                <MetricRing value={Math.round(occupancy * 100)} size={72} thickness={7} />
+                <div className="space-y-0.5 text-xs font-semibold min-w-0 text-right">
+                  <p className="text-[10px] font-black uppercase tracking-wider text-[#86868B]">Occupancy</p>
+                  <p className="numeric text-[#1D1D1F] font-black text-sm">{beds.data?.occupied ?? 0} occupied</p>
+                  <p className="text-[#34C759] font-bold text-[11px]">{beds.data?.available ?? 0} available</p>
+                  <p className="text-[#86868B] text-[10px]">{beds.data?.cleaning ?? 0} cleaning</p>
                 </div>
               </div>
             </Panel>
-            <Panel>
+            <Panel className="min-w-0">
               <Stat
                 label="Patients in flow"
                 value={flow.data?.total ?? 0}
@@ -69,14 +70,14 @@ function CommandCentre() {
                 tone={(flow.data?.critical ?? 0) > 0 ? "warn" : "ok"}
               />
             </Panel>
-            <Panel>
+            <Panel className="min-w-0">
               <Stat
                 label="Staff on shift"
                 value={staff.data?.active ?? 0}
                 hint={`${staff.data?.doctors ?? 0} doctors · ${staff.data?.nurses ?? 0} nurses`}
               />
             </Panel>
-            <Panel>
+            <Panel className="min-w-0">
               <Stat
                 label="Departments critical"
                 value={criticalDepartments.length}
@@ -87,11 +88,11 @@ function CommandCentre() {
           </div>
 
           <Panel title="Patient flow" subtitle="Live stage distribution">
-            <div className="grid gap-3 sm:grid-cols-4 lg:grid-cols-8">
+            <div className="grid gap-2.5 grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
               {(flow.data?.stages ?? []).map((stage) => (
-                <div key={stage.stage} className="rounded-2xl border border-black/5 bg-[#F5F5F7] p-3 text-center">
-                  <p className="numeric text-xl font-black text-black">{stage.count}</p>
-                  <p className="mt-1 text-[10px] uppercase font-bold tracking-wider text-[#86868B] truncate">
+                <div key={stage.stage} className="rounded-2xl border border-black/5 bg-[#F5F5F7] p-2.5 text-center min-w-0">
+                  <p className="numeric text-lg font-black text-black">{stage.count}</p>
+                  <p className="mt-0.5 text-[9px] font-bold uppercase tracking-tight text-[#86868B] truncate" title={stage.stage}>
                     {stage.stage}
                   </p>
                 </div>
@@ -108,7 +109,7 @@ function CommandCentre() {
               {(departments.data ?? []).map((department) => (
                 <div
                   key={department.id}
-                  className="flex items-center justify-between gap-3 rounded-2xl border border-black/5 bg-[#F5F5F7] p-3.5"
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-black/5 bg-[#F5F5F7] p-3.5 min-w-0"
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-bold text-black">{department.name}</p>
@@ -123,7 +124,7 @@ function CommandCentre() {
           </Panel>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 min-w-0">
           <HospitalBrainPanel />
 
           {criticalDepartments.length > 0 ? (
