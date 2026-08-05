@@ -35,10 +35,10 @@ function DigitalTwinWorkspace() {
   const [selectedWard, setSelectedWard] = useState("ICU");
 
   const wards = [
-    { name: "Emergency Department", code: "ED", occupied: 42, total: 50, status: "busy", tone: "amber" },
-    { name: "Intensive Care Unit", code: "ICU", occupied: 18, total: 20, status: "critical", tone: "rose" },
-    { name: "General Medical Ward A", code: "WARD-A", occupied: 85, total: 100, status: "healthy", tone: "emerald" },
-    { name: "Surgical Suite & OT", code: "OT", occupied: 6, total: 8, status: "busy", tone: "amber" },
+    { name: "Emergency Department", code: "ED", occupied: 42, total: 50, status: "busy", barColor: "bg-[#FF9500]" },
+    { name: "Intensive Care Unit", code: "ICU", occupied: 18, total: 20, status: "critical", barColor: "bg-[#FF3B30]" },
+    { name: "General Medical Ward A", code: "WARD-A", occupied: 85, total: 100, status: "healthy", barColor: "bg-[#34C759]" },
+    { name: "Surgical Suite & OT", code: "OT", occupied: 6, total: 8, status: "busy", barColor: "bg-[#FF9500]" },
   ];
 
   const icuBeds = [
@@ -51,60 +51,57 @@ function DigitalTwinWorkspace() {
   return (
     <AppShell
       title="Hospital Isometric Digital Twin"
-      subtitle="3D floorplan telemetry · Ward occupancy · Real-time bed allocation grid"
+      subtitle="Spatial floorplan telemetry · Ward occupancy · Real-time bed allocation grid"
       actions={
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold text-indigo-700 border border-indigo-200">
-            <Cpu className="size-3.5" /> 520 Sensor Nodes Active
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E8E8ED] border border-black/10 px-3.5 py-1 text-xs font-bold text-black shadow-2xs">
+            <Cpu className="size-3.5 text-black" /> 520 Sensor Nodes Active
           </span>
         </div>
       }
     >
       <div className="grid gap-6 xl:grid-cols-[1fr_380px]">
-        {/* Central 3D Digital Twin Visual Floorplan Grid */}
+        {/* Central Spatial Digital Twin Visual Floorplan Grid */}
         <div className="space-y-6">
-          <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-b from-slate-900 via-slate-900 to-indigo-950 p-8 text-white shadow-xl min-h-[460px]">
-            {/* Grid canvas overlay */}
-            <div className="absolute inset-0 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:24px_24px] opacity-20" />
-            
-            <div className="relative z-10 flex items-center justify-between border-b border-slate-800 pb-4">
+          <div className="apple-card p-8">
+            <div className="flex items-center justify-between border-b border-black/5 pb-4">
               <div>
-                <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">Live Spatial Digital Twin</span>
-                <h3 className="text-2xl font-black tracking-tight">Meridian Hospital Tower 1</h3>
+                <span className="text-xs font-bold uppercase tracking-wider text-[#86868B]">Live Spatial Digital Twin</span>
+                <h3 className="text-2xl font-black tracking-tight text-black">Meridian Hospital Tower 1</h3>
               </div>
               <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-400 border border-emerald-500/30">
-                  <span className="size-2 rounded-full bg-emerald-400 animate-pulse" /> Live Telemetry
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E8F8EC] border border-[#B6ECC3] px-3.5 py-1 text-xs font-bold text-[#1D8A39]">
+                  <span className="size-2 rounded-full bg-[#34C759] animate-pulse" /> Live Telemetry
                 </span>
               </div>
             </div>
 
-            {/* 3D-styled Ward Grid Cards */}
-            <div className="relative z-10 mt-8 grid gap-4 sm:grid-cols-2">
+            {/* Pure Apple Light Ward Grid Cards */}
+            <div className="mt-8 grid gap-4 sm:grid-cols-2">
               {wards.map((ward) => (
                 <div
                   key={ward.code}
                   onClick={() => setSelectedWard(ward.code)}
                   className={`group cursor-pointer rounded-2xl border p-5 transition-all duration-200 ${
                     selectedWard === ward.code
-                      ? "border-cyan-400 bg-cyan-950/60 shadow-lg shadow-cyan-500/10 scale-[1.02]"
-                      : "border-slate-800 bg-slate-800/60 hover:border-slate-700 hover:bg-slate-800"
+                      ? "border-black bg-white shadow-md scale-[1.02]"
+                      : "border-black/5 bg-[#F5F5F7] hover:border-black/20 hover:bg-white"
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="rounded-md bg-slate-700/80 px-2 py-0.5 text-[10px] font-bold text-cyan-300 uppercase">
+                    <span className="rounded-full bg-white border border-black/10 px-2.5 py-0.5 text-[10px] font-bold text-black uppercase shadow-2xs">
                       {ward.code}
                     </span>
-                    <span className={`size-2.5 rounded-full ${ward.status === "critical" ? "bg-rose-500" : ward.status === "busy" ? "bg-amber-400" : "bg-emerald-400"} animate-pulse`} />
+                    <span className={`size-2.5 rounded-full ${ward.status === "critical" ? "bg-[#FF3B30]" : ward.status === "busy" ? "bg-[#FF9500]" : "bg-[#34C759]"} animate-pulse`} />
                   </div>
-                  <h4 className="mt-3 text-lg font-bold">{ward.name}</h4>
-                  <div className="mt-4 flex items-center justify-between text-xs font-semibold text-slate-300">
+                  <h4 className="mt-3 text-lg font-black text-black">{ward.name}</h4>
+                  <div className="mt-4 flex items-center justify-between text-xs font-semibold text-[#515154]">
                     <span>Occupancy: {ward.occupied}/{ward.total} Beds</span>
-                    <span className="text-cyan-400">{Math.round((ward.occupied / ward.total) * 100)}%</span>
+                    <span className="text-black font-extrabold">{Math.round((ward.occupied / ward.total) * 100)}%</span>
                   </div>
-                  <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-700">
+                  <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-[#E8E8ED]">
                     <div
-                      className={`h-full ${ward.status === "critical" ? "bg-rose-500" : ward.status === "busy" ? "bg-amber-400" : "bg-emerald-400"}`}
+                      className={`h-full ${ward.barColor}`}
                       style={{ width: `${(ward.occupied / ward.total) * 100}%` }}
                     />
                   </div>
@@ -117,19 +114,19 @@ function DigitalTwinWorkspace() {
           <Panel title={`Bed Level Matrix — ${selectedWard} Ward`} subtitle="Click bed cell for patient CV profile link">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {icuBeds.map((bed) => (
-                <div key={bed.id} className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-2xs">
+                <div key={bed.id} className="rounded-2xl border border-black/5 bg-[#F5F5F7] p-4 shadow-2xs">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-900">{bed.id}</span>
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${bed.status === "Occupied" ? "bg-indigo-100 text-indigo-800" : bed.status === "Cleaning" ? "bg-amber-100 text-amber-800" : "bg-emerald-100 text-emerald-800"}`}>
+                    <span className="text-xs font-bold text-black">{bed.id}</span>
+                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ${bed.status === "Occupied" ? "bg-[#E5F1FF] text-[#0066CC] border border-[#B8DAFF]" : bed.status === "Cleaning" ? "bg-[#FFF4E5] text-[#B86200] border border-[#FFE0B2]" : "bg-[#E8F8EC] text-[#1D8A39] border border-[#B6ECC3]"}`}>
                       {bed.status}
                     </span>
                   </div>
-                  <h4 className="mt-2 font-bold text-slate-900">{bed.patient}</h4>
-                  <p className="text-[11px] font-medium text-slate-500 mt-1">{bed.vitals}</p>
+                  <h4 className="mt-2 font-bold text-black">{bed.patient}</h4>
+                  <p className="text-[11px] font-semibold text-[#86868B] mt-1">{bed.vitals}</p>
                   {bed.status === "Occupied" ? (
                     <Link
                       to="/patients/pat-1"
-                      className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:underline"
+                      className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-black hover:underline"
                     >
                       <Eye className="size-3" /> View Patient Record
                     </Link>
@@ -144,21 +141,21 @@ function DigitalTwinWorkspace() {
         <div className="space-y-4">
           <Panel title="Capacity Summary" subtitle="Total hospital bed metrics">
             <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <span className="text-xs font-bold text-slate-600">Total Monitored Beds</span>
-                <span className="text-xl font-black text-slate-900 numeric">520</span>
+              <div className="flex items-center justify-between border-b border-black/5 pb-3">
+                <span className="text-xs font-bold text-[#86868B]">Total Monitored Beds</span>
+                <span className="text-xl font-black text-black numeric">520</span>
               </div>
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <span className="text-xs font-bold text-slate-600">Occupied</span>
-                <span className="text-xl font-black text-indigo-600 numeric">412</span>
+              <div className="flex items-center justify-between border-b border-black/5 pb-3">
+                <span className="text-xs font-bold text-[#86868B]">Occupied</span>
+                <span className="text-xl font-black text-black numeric">412</span>
               </div>
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <span className="text-xs font-bold text-slate-600">Available</span>
-                <span className="text-xl font-black text-emerald-600 numeric">88</span>
+              <div className="flex items-center justify-between border-b border-black/5 pb-3">
+                <span className="text-xs font-bold text-[#86868B]">Available</span>
+                <span className="text-xl font-black text-[#34C759] numeric">88</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-600">In Cleaning / Prep</span>
-                <span className="text-xl font-black text-amber-600 numeric">20</span>
+                <span className="text-xs font-bold text-[#86868B]">In Cleaning / Prep</span>
+                <span className="text-xl font-black text-[#FF9500] numeric">20</span>
               </div>
             </div>
           </Panel>
