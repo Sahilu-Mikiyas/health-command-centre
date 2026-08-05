@@ -57,6 +57,7 @@ export const ROUTE_PERMISSIONS: Record<string, AppRole[]> = {
     "billing_clerk",
   ],
   "/reception": ["super_admin", "ceo", "medical_director", "nurse", "receptionist"],
+  "/nurse": ["super_admin", "ceo", "medical_director", "nurse", "doctor"],
   "/doctor": ["super_admin", "ceo", "medical_director", "doctor", "nurse"],
   "/laboratory": ["super_admin", "ceo", "medical_director", "doctor", "lab_tech"],
   "/pharmacy": ["super_admin", "ceo", "medical_director", "doctor", "pharmacist"],
@@ -88,6 +89,7 @@ export function getDefaultRedirect(roles: string[] | undefined): string {
     return "/command-centre";
   }
   if (effectiveRoles.includes("doctor")) return "/doctor";
+  if (effectiveRoles.includes("nurse")) return "/nurse";
   if (effectiveRoles.includes("pharmacist")) return "/pharmacy";
   if (effectiveRoles.includes("lab_tech")) return "/laboratory";
   if (effectiveRoles.includes("receptionist")) return "/reception";

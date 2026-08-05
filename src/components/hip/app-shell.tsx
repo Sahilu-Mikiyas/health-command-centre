@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useRouter } from "@tanstack/react-router";
-import { LogOut, Menu, Search, X } from "lucide-react";
+import { LogOut, Menu, RefreshCw, Search, ShieldAlert, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { toast } from "sonner";
 
 import { CommandPalette } from "@/components/hip/command-palette";
 import { AppSidebar } from "@/components/shell/app-sidebar";
@@ -22,12 +23,22 @@ export function AppShell({
   children: ReactNode;
 }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const { data: me } = useQuery(myProfileQuery);
 
   const primaryRole = (me?.roles?.[0] ?? "super_admin") as AppRole;
   const roleDisplay = ROLE_LABELS[primaryRole] ?? "Super Admin";
+
+  const activeOverride = typeof window !== "undefined" ? localStorage.getItem("furii_active_role_override") : null;
+
+  const resetTestingRole = () => {
+    localStorage.removeItem("furii_active_role_override");
+    toast.success("Exited testing perspective. Reset to Super Admin.");
+    queryClient.invalidateQueries();
+    void router.navigate({ to: "/admin" });
+  };
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -84,6 +95,24 @@ export function AppShell({
       ) : null}
 
       <div className="flex min-w-0 flex-1 flex-col">
+        {/* Active Role Testing Banner (if override active) */}
+        {activeOverride && (
+          <div className="sticky top-0 z-40 flex items-center justify-between gap-4 border-b border-[#FFE0B2] bg-[#FFF4E5] px-6 py-2 text-xs font-bold text-[#B86200]">
+            <div className="flex items-center gap-2 min-w-0">
+              <ShieldAlert className="size-4 shrink-0 text-[#FF9500]" />
+              <span className="truncate">
+                Testing Role Perspective: <strong>{ROLE_LABELS[activeOverride as AppRole] ?? activeOverride}</strong>
+              </span>
+            </div>
+            <button
+              onClick={resetTestingRole}
+              className="inline-flex items-center gap-1.5 rounded-full bg-black px-3.5 py-1 text-[11px] font-black text-white hover:bg-slate-800 transition-all cursor-pointer shrink-0 shadow-2xs"
+            >
+              <RefreshCw className="size-3" /> Exit & Return to Admin
+            </button>
+          </div>
+        )}
+
         {/* Translucent Glass Header */}
         <header className="sticky top-0 z-30 border-b border-black/5 bg-white/80 backdrop-blur-xl px-6 py-4">
           <div className="flex items-center justify-between gap-4">

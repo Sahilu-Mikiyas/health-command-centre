@@ -37,6 +37,7 @@ export const navGroups: NavGroup[] = [
     label: "Clinical Operations",
     items: [
       { label: "Reception & Triage", to: "/reception", icon: Building2, phase: 1 },
+      { label: "Nurse Workspace", to: "/nurse", icon: HeartPulse, phase: 1 },
       { label: "Doctor Workspace", to: "/doctor", icon: Stethoscope, phase: 1 },
       { label: "Laboratory", to: "/laboratory", icon: FlaskConical, phase: 1 },
       { label: "AI Pharmacy", to: "/pharmacy", icon: Boxes, phase: 1 },

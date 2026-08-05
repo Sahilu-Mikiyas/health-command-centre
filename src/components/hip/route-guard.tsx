@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
-import { Lock, ShieldAlert } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, useRouter } from "@tanstack/react-router";
+import { Lock, RefreshCw, ShieldAlert } from "lucide-react";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 
 import { myProfileQuery } from "@/lib/hip/queries";
 import { getDefaultRedirect, hasRouteAccess, ROLE_LABELS, type AppRole } from "@/lib/hip/rbac";
@@ -13,10 +14,21 @@ export function RouteGuard({
   route: string;
   children: ReactNode;
 }) {
+  const queryClient = useQueryClient();
+  const router = useRouter();
   const { data: me, isLoading } = useQuery(myProfileQuery);
   const roles = me?.roles ?? ["super_admin"];
   const primaryRole = (roles[0] ?? "super_admin") as AppRole;
   const isAllowed = hasRouteAccess(roles, route);
+
+  const activeOverride = typeof window !== "undefined" ? localStorage.getItem("furii_active_role_override") : null;
+
+  const resetToAdmin = () => {
+    localStorage.removeItem("furii_active_role_override");
+    toast.success("Exited testing mode. Reset to Super Admin.");
+    queryClient.invalidateQueries();
+    void router.navigate({ to: "/admin" });
+  };
 
   if (isLoading) {
     return (
@@ -42,16 +54,25 @@ export function RouteGuard({
             </span>
             <h2 className="text-2xl font-black text-black">Access Restricted</h2>
             <p className="text-xs font-medium text-[#86868B] leading-relaxed max-w-md mx-auto">
-              Your assigned staff role (<strong className="text-black">{ROLE_LABELS[primaryRole]}</strong>) does not have authorization to access the <code className="bg-[#F5F5F7] px-2 py-0.5 rounded text-black font-mono">{route}</code> workspace module.
+              Your active perspective (<strong className="text-black">{ROLE_LABELS[primaryRole]}</strong>) does not have permission to access the <code className="bg-[#F5F5F7] px-2 py-0.5 rounded text-black font-mono">{route}</code> module.
             </p>
           </div>
 
-          <div className="pt-2">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            {activeOverride && (
+              <button
+                onClick={resetToAdmin}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-black px-6 py-3 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer scale-105"
+              >
+                <RefreshCw className="size-3.5" /> Exit Testing Mode & Open Admin
+              </button>
+            )}
+
             <Link
               to={defaultPage}
-              className="inline-flex items-center gap-2 rounded-full bg-black px-6 py-3 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all scale-105"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-[#F5F5F7] border border-black/10 px-6 py-3 text-xs font-bold text-black hover:bg-white transition-all cursor-pointer"
             >
-              Return to Authorized Workspace
+              Go to Authorized Workspace
             </Link>
           </div>
         </div>
