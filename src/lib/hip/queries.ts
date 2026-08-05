@@ -204,7 +204,11 @@ export const myProfileQuery = queryOptions({
     ]);
 
     const fetchedRoles = (roles.data ?? []).map((row) => row.role as string);
-    const effectiveRoles = fetchedRoles.length > 0 ? fetchedRoles : ["super_admin"];
+    const defaultRoles = fetchedRoles.length > 0 ? fetchedRoles : ["super_admin"];
+
+    // Check for testing role override in localStorage
+    const activeOverride = typeof window !== "undefined" ? localStorage.getItem("furii_active_role_override") : null;
+    const effectiveRoles = activeOverride ? [activeOverride] : defaultRoles;
 
     return {
       email: auth.user.email ?? "",
