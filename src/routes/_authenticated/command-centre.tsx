@@ -147,7 +147,7 @@ function CommandCentre() {
           <Panel
             title="Event stream"
             subtitle="Append-only hospital ledger"
-            action={<DrillDownLink to="/events" label="All events" />}
+            action={<DrillDownLink to="/events">All events</DrillDownLink>}
           >
             <Timeline
               items={(events.data ?? []).slice(0, 12).map((event) => ({
