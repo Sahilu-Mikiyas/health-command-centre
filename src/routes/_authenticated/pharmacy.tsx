@@ -20,6 +20,7 @@ import {
 
 import { AppShell } from "@/components/hip/app-shell";
 import { Panel } from "@/components/hip/panel";
+import { RouteGuard } from "@/components/hip/route-guard";
 import { StatusPill } from "@/components/hip/status-pill";
 
 export const Route = createFileRoute("/_authenticated/pharmacy")({
@@ -38,6 +39,14 @@ export const Route = createFileRoute("/_authenticated/pharmacy")({
 type Step = "idle" | "scanning" | "verified" | "dispensed";
 
 function PharmacyWorkspace() {
+  return (
+    <RouteGuard route="/pharmacy">
+      <PharmacyContent />
+    </RouteGuard>
+  );
+}
+
+function PharmacyContent() {
   const [selectedRx, setSelectedRx] = useState({
     id: "rx-101",
     patientName: "Elena Rostova",

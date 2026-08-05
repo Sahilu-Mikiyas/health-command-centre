@@ -13,6 +13,7 @@ import {
 
 import { AppShell } from "@/components/hip/app-shell";
 import { Panel } from "@/components/hip/panel";
+import { RouteGuard } from "@/components/hip/route-guard";
 import { StatusPill } from "@/components/hip/status-pill";
 
 export const Route = createFileRoute("/_authenticated/billing")({
@@ -29,6 +30,14 @@ export const Route = createFileRoute("/_authenticated/billing")({
 });
 
 function BillingWorkspace() {
+  return (
+    <RouteGuard route="/billing">
+      <BillingContent />
+    </RouteGuard>
+  );
+}
+
+function BillingContent() {
   return (
     <AppShell
       title="Event-Driven Financial Ledger & Billing"

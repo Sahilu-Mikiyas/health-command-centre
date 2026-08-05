@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { AppShell } from "@/components/hip/app-shell";
 import { Panel, Stat } from "@/components/hip/panel";
+import { RouteGuard } from "@/components/hip/route-guard";
 import { StatusPill } from "@/components/hip/status-pill";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,12 +49,20 @@ export const Route = createFileRoute("/_authenticated/reception")({
   component: Reception,
 });
 
+function Reception() {
+  return (
+    <RouteGuard route="/reception">
+      <ReceptionContent />
+    </RouteGuard>
+  );
+}
+
 function todayISO() {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 }
 
-function Reception() {
+function ReceptionContent() {
   const queryClient = useQueryClient();
   const [day, setDay] = useState(todayISO());
   const [search, setSearch] = useState("");

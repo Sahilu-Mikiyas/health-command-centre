@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { AppShell } from "@/components/hip/app-shell";
 import { Panel, Stat } from "@/components/hip/panel";
+import { RouteGuard } from "@/components/hip/route-guard";
 import { StatusPill } from "@/components/hip/status-pill";
 import { Timeline } from "@/components/hip/timeline";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,14 @@ export const Route = createFileRoute("/_authenticated/doctor")({
 });
 
 function DoctorWorkspace() {
+  return (
+    <RouteGuard route="/doctor">
+      <DoctorContent />
+    </RouteGuard>
+  );
+}
+
+function DoctorContent() {
   const queryClient = useQueryClient();
   const encounters = useQuery({ ...activeEncountersQuery, refetchInterval: 20000 });
   const [selectedId, setSelectedId] = useState<string | null>(null);

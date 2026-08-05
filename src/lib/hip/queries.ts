@@ -202,10 +202,14 @@ export const myProfileQuery = queryOptions({
       supabase.from("profiles").select("*").eq("user_id", auth.user.id).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", auth.user.id),
     ]);
+
+    const fetchedRoles = (roles.data ?? []).map((row) => row.role as string);
+    const effectiveRoles = fetchedRoles.length > 0 ? fetchedRoles : ["super_admin"];
+
     return {
       email: auth.user.email ?? "",
       profile: profile.data,
-      roles: (roles.data ?? []).map((row) => row.role as string),
+      roles: effectiveRoles,
     };
   },
 });

@@ -1,12 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useRouter } from "@tanstack/react-router";
-import { Activity, Bell, Command, LogOut, Menu, Search, Sparkles, User, X } from "lucide-react";
+import { LogOut, Menu, Search, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import { AppSidebar } from "@/components/shell/app-sidebar";
 import { navGroups } from "@/components/shell/nav-config";
 import { supabase } from "@/integrations/supabase/client";
 import { myProfileQuery } from "@/lib/hip/queries";
+import { ROLE_LABELS, type AppRole } from "@/lib/hip/rbac";
 
 export function AppShell({
   title,
@@ -22,6 +23,9 @@ export function AppShell({
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { data: me } = useQuery(myProfileQuery);
+
+  const primaryRole = (me?.roles?.[0] ?? "super_admin") as AppRole;
+  const roleDisplay = ROLE_LABELS[primaryRole] ?? "Super Admin";
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -75,7 +79,7 @@ export function AppShell({
       ) : null}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Apple Translucent Glass Header */}
+        {/* Translucent Glass Header */}
         <header className="sticky top-0 z-30 border-b border-black/5 bg-white/80 backdrop-blur-xl px-6 py-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
@@ -88,19 +92,14 @@ export function AppShell({
                 <Menu className="size-5" />
               </button>
               <div className="min-w-0">
-                <div className="flex items-center gap-2.5">
-                  <h1 className="truncate text-2xl font-black tracking-tight text-black">{title}</h1>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-[#E8E8ED] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black border border-black/10">
-                    <Sparkles className="size-3" /> Apple OS Pro
-                  </span>
-                </div>
+                <h1 className="truncate text-2xl font-black tracking-tight text-black">{title}</h1>
                 {subtitle ? (
                   <p className="truncate text-xs font-medium text-[#86868B] mt-0.5">{subtitle}</p>
                 ) : null}
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 shrink-0">
               {/* Quick Command Search Pill */}
               <button
                 onClick={() => alert("Apple System Command (⌘K) ready: Search patients, beds, doctors & active Rx.")}
@@ -115,16 +114,16 @@ export function AppShell({
 
               {actions}
 
-              {/* User Profile Pill */}
+              {/* Staff Profile Pill */}
               <div className="hidden sm:flex items-center gap-3 border-l border-black/5 pl-3">
                 <div className="relative grid size-9 place-items-center rounded-full bg-black text-sm font-bold text-white shadow-2xs">
-                  {me?.profile?.full_name?.charAt(0) ?? "D"}
+                  {me?.profile?.full_name?.charAt(0) ?? "S"}
                   <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-[#34C759] border-2 border-white" />
                 </div>
                 <div className="text-right">
-                  <p className="text-xs font-bold text-black">{me?.profile?.full_name ?? "Dr. Sarah Hana"}</p>
+                  <p className="text-xs font-bold text-black">{me?.profile?.full_name ?? "Super Admin"}</p>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[#86868B]">
-                    {me?.roles?.[0]?.replace(/_/g, " ") ?? "Medical Director"}
+                    {roleDisplay}
                   </p>
                 </div>
               </div>

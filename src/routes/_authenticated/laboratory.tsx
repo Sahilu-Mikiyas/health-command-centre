@@ -14,6 +14,7 @@ import {
 
 import { AppShell } from "@/components/hip/app-shell";
 import { Panel } from "@/components/hip/panel";
+import { RouteGuard } from "@/components/hip/route-guard";
 import { StatusPill } from "@/components/hip/status-pill";
 
 export const Route = createFileRoute("/_authenticated/laboratory")({
@@ -30,6 +31,14 @@ export const Route = createFileRoute("/_authenticated/laboratory")({
 });
 
 function LaboratoryWorkspace() {
+  return (
+    <RouteGuard route="/laboratory">
+      <LaboratoryContent />
+    </RouteGuard>
+  );
+}
+
+function LaboratoryContent() {
   const [samples, setSamples] = useState([
     {
       id: "SMP-9021",

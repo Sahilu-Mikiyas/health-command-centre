@@ -16,6 +16,7 @@ import {
 
 import { AppShell } from "@/components/hip/app-shell";
 import { Panel } from "@/components/hip/panel";
+import { RouteGuard } from "@/components/hip/route-guard";
 import { StatusPill } from "@/components/hip/status-pill";
 
 export const Route = createFileRoute("/_authenticated/digital-twin")({
@@ -32,6 +33,14 @@ export const Route = createFileRoute("/_authenticated/digital-twin")({
 });
 
 function DigitalTwinWorkspace() {
+  return (
+    <RouteGuard route="/digital-twin">
+      <DigitalTwinContent />
+    </RouteGuard>
+  );
+}
+
+function DigitalTwinContent() {
   const [selectedWard, setSelectedWard] = useState("ICU");
 
   const wards = [
