@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedCommandCentreRouteImport } from './routes/_authenticated/command-centre'
+import { Route as AuthenticatedEventsRouteImport } from './routes/_authenticated/events'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,16 +35,23 @@ const AuthenticatedCommandCentreRoute =
     path: '/command-centre',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedEventsRoute = AuthenticatedEventsRouteImport.update({
+  id: '/events',
+  path: '/events',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/command-centre': typeof AuthenticatedCommandCentreRoute
+  '/events': typeof AuthenticatedEventsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/command-centre': typeof AuthenticatedCommandCentreRoute
+  '/events': typeof AuthenticatedEventsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -51,18 +59,20 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/command-centre': typeof AuthenticatedCommandCentreRoute
+  '/_authenticated/events': typeof AuthenticatedEventsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/command-centre'
+  fullPaths: '/' | '/auth' | '/command-centre' | '/events'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/command-centre'
+  to: '/' | '/auth' | '/command-centre' | '/events'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/command-centre'
+    | '/_authenticated/events'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -101,15 +111,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommandCentreRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/events': {
+      id: '/_authenticated/events'
+      path: '/events'
+      fullPath: '/events'
+      preLoaderRoute: typeof AuthenticatedEventsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCommandCentreRoute: typeof AuthenticatedCommandCentreRoute
+  AuthenticatedEventsRoute: typeof AuthenticatedEventsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCommandCentreRoute: AuthenticatedCommandCentreRoute,
+  AuthenticatedEventsRoute: AuthenticatedEventsRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
