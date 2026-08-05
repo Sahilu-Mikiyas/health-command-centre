@@ -49,9 +49,9 @@ function PharmacyWorkspace() {
 function PharmacyContent() {
   const [selectedRx, setSelectedRx] = useState({
     id: "rx-101",
-    patientName: "Elena Rostova",
+    patientName: "Abebech Tadesse",
     mrn: "MRN-8829",
-    doctor: "Dr. Sarah Hana",
+    doctor: "Dr. Bethlehem Tadesse",
     medication: "Sumatriptan 50mg Oral Tablets",
     dosage: "50mg once at onset of severe migraine",
     quantity: "6 Tablets",
@@ -102,9 +102,9 @@ function PharmacyContent() {
               <div
                 onClick={() => setSelectedRx({
                   id: "rx-101",
-                  patientName: "Elena Rostova",
+                  patientName: "Abebech Tadesse",
                   mrn: "MRN-8829",
-                  doctor: "Dr. Sarah Hana",
+                  doctor: "Dr. Bethlehem Tadesse",
                   medication: "Sumatriptan 50mg Oral Tablets",
                   dosage: "50mg once at onset of severe migraine",
                   quantity: "6 Tablets",
@@ -122,7 +122,7 @@ function PharmacyContent() {
                   <p className="font-extrabold text-black">{selectedRx.patientName}</p>
                   <StatusPill status="busy" label="Urgent" />
                 </div>
-                <p className="mt-1 text-xs font-semibold text-[#515154]">Sumatriptan 50mg · Dr. Sarah Hana</p>
+                <p className="mt-1 text-xs font-semibold text-[#515154]">Sumatriptan 50mg · Dr. Bethlehem Tadesse</p>
                 <div className="mt-3 flex items-center justify-between text-[11px] font-bold border-t border-black/5 pt-2">
                   <span className="text-[#86868B]">MRN-8829</span>
                   <span className="text-[#B86200]">⚠️ eGFR 42 Alert</span>
@@ -131,10 +131,10 @@ function PharmacyContent() {
 
               <div className="rounded-2xl border border-black/5 bg-white p-4 transition-all hover:border-black/10 opacity-80 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <p className="font-bold text-[#1D1D1F]">Marcus Vance</p>
+                  <p className="font-bold text-[#1D1D1F]">Dawit Yohannes</p>
                   <StatusPill status="healthy" label="Routine" />
                 </div>
-                <p className="mt-1 text-xs font-semibold text-[#86868B]">Amoxicillin 500mg · Dr. K. Miller</p>
+                <p className="mt-1 text-xs font-semibold text-[#86868B]">Amoxicillin 500mg · Dr. Getachew Reda</p>
                 <div className="mt-3 flex items-center justify-between text-[11px] font-semibold text-[#86868B] border-t border-black/5 pt-2">
                   <span>MRN-4410</span>
                   <span className="text-[#1D8A39]">✓ Safety Cleared</span>
@@ -143,10 +143,10 @@ function PharmacyContent() {
 
               <div className="rounded-2xl border border-black/5 bg-white p-4 transition-all hover:border-black/10 opacity-80 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <p className="font-bold text-[#1D1D1F]">Sophia Chen</p>
+                  <p className="font-bold text-[#1D1D1F]">Tigist Alemu</p>
                   <StatusPill status="healthy" label="Routine" />
                 </div>
-                <p className="mt-1 text-xs font-semibold text-[#86868B]">Metformin 500mg ER · Dr. H. Vance</p>
+                <p className="mt-1 text-xs font-semibold text-[#86868B]">Metformin 500mg ER · Dr. Almaz Tefera</p>
                 <div className="mt-3 flex items-center justify-between text-[11px] font-semibold text-[#86868B] border-t border-black/5 pt-2">
                   <span>MRN-9021</span>
                   <span className="text-[#1D8A39]">✓ In Stock</span>

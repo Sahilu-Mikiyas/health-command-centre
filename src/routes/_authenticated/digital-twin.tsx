@@ -51,8 +51,8 @@ function DigitalTwinContent() {
   ];
 
   const icuBeds = [
-    { id: "ICU-01", patient: "Elena Rostova", status: "Occupied", vitals: "HR 74 · BP 124/82 · NEWS2 1", mrn: "MRN-8829" },
-    { id: "ICU-02", patient: "Marcus Vance", status: "Occupied", vitals: "HR 88 · BP 138/90 · NEWS2 3", mrn: "MRN-4410" },
+    { id: "ICU-01", patient: "Abebech Tadesse", status: "Occupied", vitals: "HR 74 · BP 124/82 · NEWS2 1", mrn: "MRN-8829" },
+    { id: "ICU-02", patient: "Dawit Yohannes", status: "Occupied", vitals: "HR 88 · BP 138/90 · NEWS2 3", mrn: "MRN-4410" },
     { id: "ICU-03", patient: "Available", status: "Cleaning", vitals: "Sterilization in progress", mrn: "—" },
     { id: "ICU-04", patient: "Available", status: "Vacant", vitals: "Ready for admission", mrn: "—" },
   ];

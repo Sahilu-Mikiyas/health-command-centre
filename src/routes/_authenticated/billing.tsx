@@ -59,7 +59,7 @@ function BillingContent() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-black/5 pb-3 gap-2 min-w-0">
                   <div className="min-w-0">
                     <span className="text-xs font-extrabold text-black block truncate">INV-2026-9041</span>
-                    <h3 className="text-lg font-bold text-black truncate">Elena Rostova (MRN-8829)</h3>
+                    <h3 className="text-lg font-bold text-black truncate">Abebech Tadesse (MRN-8829)</h3>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="rounded-full bg-[#E8F8EC] text-[#1D8A39] px-3 py-1 text-xs font-bold border border-[#B6ECC3] truncate">
@@ -71,7 +71,7 @@ function BillingContent() {
 
                 <div className="mt-4 space-y-2 text-xs min-w-0">
                   <div className="flex justify-between py-1.5 border-b border-black/5 font-medium gap-2 min-w-0">
-                    <span className="text-[#515154] truncate">Emergency Consultation & Triage (Dr. Sarah Hana)</span>
+                    <span className="text-[#515154] truncate">Emergency Consultation & Triage (Dr. Bethlehem Tadesse)</span>
                     <span className="font-bold text-black numeric shrink-0">$250.00</span>
                   </div>
                   <div className="flex justify-between py-1.5 border-b border-black/5 font-medium gap-2 min-w-0">

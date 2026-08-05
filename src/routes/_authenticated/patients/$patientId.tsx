@@ -72,7 +72,7 @@ function PatientRecordCV() {
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center gap-3">
                   <h1 className="text-3xl font-black tracking-tight text-black">
-                    {patient?.full_name ?? "Elena Rostova"}
+                    {patient?.full_name ?? "Abebech Tadesse"}
                   </h1>
                   <span className="rounded-full bg-[#E8E8ED] border border-black/10 px-3 py-1 text-xs font-bold text-black">
                     MRN: {patient?.mrn ?? "MRN-8829"}
@@ -85,7 +85,7 @@ function PatientRecordCV() {
                   <span className="text-[#86868B]">•</span>
                   <span className="text-black font-bold">Blood Group: O+</span>
                   <span className="text-[#86868B]">•</span>
-                  <span>Primary: Dr. Sarah Hana</span>
+                  <span>Primary: Dr. Bethlehem Tadesse</span>
                 </p>
 
                 <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -176,7 +176,7 @@ function PatientRecordCV() {
             <Panel title="Executive Medical Summary" subtitle="Core history & active clinical overview">
               <div className="space-y-5">
                 <p className="text-sm leading-relaxed text-[#1D1D1F] font-semibold">
-                  Patient presents with acute migraine exacerbation with a background history of mild hypertension and Stage 3a Chronic Kidney Disease (eGFR 42). Currently undergoing clinical evaluation under Dr. Sarah Hana. All diagnostic orders and AI medication safety verifications are logged to the immutable event ledger.
+                  Patient presents with acute migraine exacerbation with a background history of mild hypertension and Stage 3a Chronic Kidney Disease (eGFR 42). Currently undergoing clinical evaluation under Dr. Bethlehem Tadesse. All diagnostic orders and AI medication safety verifications are logged to the immutable event ledger.
                 </p>
 
                 <div className="grid gap-4 sm:grid-cols-2 pt-4 border-t border-black/5">
@@ -218,7 +218,7 @@ function PatientRecordCV() {
                   <header className="flex items-center justify-between border-b border-black/5 pb-3 mb-3">
                     <div className="flex items-center gap-2 text-xs font-semibold text-[#86868B]">
                       <User className="size-4 text-black" />
-                      <span>Dr. Sarah Hana (Attending Physician)</span>
+                      <span>Dr. Bethlehem Tadesse (Attending Physician)</span>
                       <span className="text-[#86868B]">•</span>
                       <Clock className="size-3.5 text-[#86868B]" />
                       <span>Today at 09:43 AM</span>

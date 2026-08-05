@@ -178,7 +178,7 @@ function AdminWorkspace() {
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  placeholder="e.g. Dr. Marcus Vance"
+                  placeholder="e.g. Dr. Dawit Yohannes"
                   className="w-full rounded-2xl border border-black/10 bg-[#F5F5F7] p-3 text-xs font-bold text-black focus:bg-white focus:outline-none focus:ring-2 focus:ring-black"
                 />
               </div>

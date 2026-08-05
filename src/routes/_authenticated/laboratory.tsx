@@ -42,7 +42,7 @@ function LaboratoryContent() {
   const [samples, setSamples] = useState([
     {
       id: "SMP-9021",
-      patientName: "Elena Rostova",
+      patientName: "Abebech Tadesse",
       mrn: "MRN-8829",
       test: "Comprehensive Metabolic Panel + Renal Panel",
       status: "Resulted",
@@ -53,7 +53,7 @@ function LaboratoryContent() {
     },
     {
       id: "SMP-9022",
-      patientName: "Marcus Vance",
+      patientName: "Dawit Yohannes",
       mrn: "MRN-4410",
       test: "Complete Blood Count (CBC) with Differential",
       status: "Processing",
@@ -64,7 +64,7 @@ function LaboratoryContent() {
     },
     {
       id: "SMP-9023",
-      patientName: "Sophia Chen",
+      patientName: "Tigist Alemu",
       mrn: "MRN-9021",
       test: "HbA1c Glycated Hemoglobin",
       status: "Received",
@@ -226,7 +226,7 @@ function LaboratoryContent() {
             <div className="space-y-3 text-xs font-medium min-w-0">
               <div className="rounded-2xl border border-[#FFE0B2] bg-[#FFF4E5] p-4 min-w-0">
                 <p className="font-bold text-[#B86200] truncate">eGFR 42 Notification Sent</p>
-                <p className="text-[#B86200] mt-1">Notified attending physician (Dr. Sarah Hana) at 10:28 AM.</p>
+                <p className="text-[#B86200] mt-1">Notified attending physician (Dr. Bethlehem Tadesse) at 10:28 AM.</p>
                 <span className="mt-3 inline-flex items-center gap-1 rounded bg-[#FFE0B2]/80 text-[#B86200] px-2 py-0.5 font-bold text-[10px] truncate">
                   Acknowledged by Doctor
                 </span>
