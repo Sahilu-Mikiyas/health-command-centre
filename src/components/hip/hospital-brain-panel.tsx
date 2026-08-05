@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Brain, RefreshCw, Send } from "lucide-react";
+import { RefreshCw, Send } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 
 import { Panel } from "@/components/hip/panel";
