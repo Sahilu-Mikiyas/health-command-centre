@@ -107,14 +107,14 @@ function PharmacyWorkspace() {
                   interactionScore: "Low Risk",
                   diagnosis: "Acute Migraine Exacerbation",
                 })}
-                className="group cursor-pointer rounded-2xl border border-[#0071E3]/30 bg-[#E5F1FF]/60 p-4 transition-all hover:bg-[#E5F1FF] shadow-xs"
+                className="group cursor-pointer rounded-2xl border border-black/15 bg-white p-4 transition-all shadow-xs"
               >
                 <div className="flex items-center justify-between">
-                  <p className="font-bold text-[#1D1D1F]">Elena Rostova</p>
+                  <p className="font-extrabold text-black">{selectedRx.patientName}</p>
                   <StatusPill status="busy" label="Urgent" />
                 </div>
                 <p className="mt-1 text-xs font-semibold text-[#515154]">Sumatriptan 50mg · Dr. Sarah Hana</p>
-                <div className="mt-3 flex items-center justify-between text-[11px] font-bold border-t border-[#0071E3]/15 pt-2">
+                <div className="mt-3 flex items-center justify-between text-[11px] font-bold border-t border-black/5 pt-2">
                   <span className="text-[#86868B]">MRN-8829</span>
                   <span className="text-[#B86200]">⚠️ eGFR 42 Alert</span>
                 </div>
@@ -187,27 +187,27 @@ function PharmacyWorkspace() {
           <div className="apple-card p-6">
             <div className="flex items-center justify-between border-b border-black/5 pb-4">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-[#0071E3]">Active Dispensing Workspace</span>
-                <h2 className="text-2xl font-extrabold text-[#1D1D1F]">{selectedRx.patientName}</h2>
+                <span className="text-xs font-bold uppercase tracking-wider text-black">Active Dispensing Workspace</span>
+                <h2 className="text-2xl font-extrabold text-black">{selectedRx.patientName}</h2>
                 <p className="text-xs font-semibold text-[#86868B]">{selectedRx.diagnosis} · Prescribed by {selectedRx.doctor}</p>
               </div>
               <Link
                 to="/patients/pat-1"
-                className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3.5 py-1.5 text-xs font-bold text-[#1D1D1F] hover:bg-[#F5F5F7] shadow-2xs transition-all"
+                className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3.5 py-1.5 text-xs font-bold text-black hover:bg-[#F5F5F7] shadow-2xs transition-all"
               >
                 <Eye className="size-3.5" /> View Executive CV
               </Link>
             </div>
 
             {/* Smart Medication Card */}
-            <div className="mt-6 rounded-2xl border border-[#0071E3]/20 bg-[#E5F1FF]/40 p-5 shadow-2xs">
+            <div className="mt-6 rounded-2xl border border-black/10 bg-[#F5F5F7] p-5 shadow-2xs">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                  <div className="grid size-12 place-items-center rounded-2xl bg-[#0071E3] text-white shadow-md shadow-[#0071E3]/20">
+                  <div className="grid size-12 place-items-center rounded-2xl bg-black text-white shadow-md">
                     <Pill className="size-6" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-[#1D1D1F]">{selectedRx.medication}</h3>
+                    <h3 className="text-lg font-bold text-black">{selectedRx.medication}</h3>
                     <p className="text-xs font-semibold text-[#515154]">Dosage: {selectedRx.dosage}</p>
                   </div>
                 </div>
@@ -222,18 +222,18 @@ function PharmacyWorkspace() {
 
             {/* Scan and Verify Workflow Ring */}
             <div className="mt-6 rounded-2xl border border-black/5 bg-[#F5F5F7] p-6 text-center shadow-inner">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#0071E3] mb-1">5-Point Scan & Verification Ring</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-black mb-1">5-Point Scan & Verification Ring</h4>
               <p className="text-xs font-semibold text-[#86868B] mb-6">Barcoding · Batch Verification · Expiry Check · Dose Safety</p>
 
               <div className="flex flex-col items-center justify-center">
                 {scanStep === "idle" && (
                   <div className="space-y-4">
-                    <div className="grid size-28 place-items-center rounded-full bg-white border-4 border-[#0071E3]/30 shadow-md">
-                      <QrCode className="size-12 text-[#0071E3]" />
+                    <div className="grid size-28 place-items-center rounded-full bg-white border-4 border-black/20 shadow-md">
+                      <QrCode className="size-12 text-black" />
                     </div>
                     <button
                       onClick={startScanAndVerify}
-                      className="inline-flex items-center gap-2 rounded-full bg-[#0071E3] px-6 py-3 text-sm font-bold text-white shadow-md hover:bg-[#005bb5] transition-all scale-105 cursor-pointer"
+                      className="inline-flex items-center gap-2 rounded-full bg-black px-6 py-3 text-sm font-bold text-white shadow-md hover:bg-slate-800 transition-all scale-105 cursor-pointer"
                     >
                       <Scan className="size-4" /> Start Barcode Scan & Verification
                     </button>
@@ -242,10 +242,10 @@ function PharmacyWorkspace() {
 
                 {scanStep === "scanning" && (
                   <div className="space-y-4">
-                    <div className="relative grid size-28 place-items-center rounded-full bg-white border-4 border-[#0071E3] animate-spin shadow-md">
-                      <RotateCw className="size-10 text-[#0071E3]" />
+                    <div className="relative grid size-28 place-items-center rounded-full bg-white border-4 border-black animate-spin shadow-md">
+                      <RotateCw className="size-10 text-black" />
                     </div>
-                    <p className="text-xs font-bold text-[#0071E3] animate-pulse">
+                    <p className="text-xs font-bold text-black animate-pulse">
                       Verifying barcode, batch #{selectedRx.batch} & expiry date... ({scanProgress}%)
                     </p>
                   </div>
@@ -271,18 +271,18 @@ function PharmacyWorkspace() {
 
                 {scanStep === "dispensed" && (
                   <div className="space-y-4">
-                    <div className="grid size-28 place-items-center rounded-full bg-[#1D1D1F] text-white shadow-xl">
+                    <div className="grid size-28 place-items-center rounded-full bg-black text-white shadow-xl">
                       <Boxes className="size-12" />
                     </div>
                     <div>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-[#1D1D1F] text-white px-3.5 py-1 text-xs font-bold uppercase tracking-wider">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-black text-white px-3.5 py-1 text-xs font-bold uppercase tracking-wider">
                         Dispensed & Logged to Ledger
                       </span>
                       <p className="text-xs font-semibold text-[#515154] mt-2">Rx task complete. Event emitted to Command Centre.</p>
                     </div>
                     <button
                       onClick={() => setScanStep("idle")}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0071E3] hover:underline cursor-pointer"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-black hover:underline cursor-pointer"
                     >
                       Reset Workspace for Next Rx
                     </button>
@@ -313,7 +313,7 @@ function PharmacyWorkspace() {
 
               <div className="rounded-2xl border border-black/5 bg-white p-4">
                 <div className="flex items-center justify-between border-b border-black/5 pb-2.5 mb-2.5">
-                  <span className="text-xs font-bold text-[#1D1D1F] flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-black flex items-center gap-1.5">
                     <ShieldCheck className="size-4 text-[#34C759]" /> Allergy Cross-Check
                   </span>
                   <span className="rounded-full bg-[#E8F8EC] text-[#1D8A39] border border-[#B6ECC3] px-2 py-0.5 text-[10px] font-bold">Passed</span>
@@ -323,10 +323,10 @@ function PharmacyWorkspace() {
 
               <div className="rounded-2xl border border-black/5 bg-white p-4">
                 <div className="flex items-center justify-between border-b border-black/5 pb-2.5 mb-2.5">
-                  <span className="text-xs font-bold text-[#1D1D1F] flex items-center gap-1.5">
-                    <Info className="size-4 text-[#0071E3]" /> Drug Interaction Score
+                  <span className="text-xs font-bold text-black flex items-center gap-1.5">
+                    <Info className="size-4 text-black" /> Drug Interaction Score
                   </span>
-                  <span className="rounded-full bg-[#E5F1FF] text-[#0066CC] border border-[#B8DAFF] px-2 py-0.5 text-[10px] font-bold">Low Risk</span>
+                  <span className="rounded-full bg-[#E8E8ED] text-black border border-black/10 px-2 py-0.5 text-[10px] font-bold">Low Risk</span>
                 </div>
                 <p className="text-xs font-medium text-[#86868B]">Zero moderate or severe interactions with active outpatient regimens.</p>
               </div>
@@ -339,10 +339,10 @@ function PharmacyWorkspace() {
                 "Take one 50mg tablet with water at the first sign of migraine. Rest in a quiet, dark room."
               </p>
               <div className="flex gap-2">
-                <button className="flex-1 rounded-full bg-[#0071E3] py-2.5 text-[11px] font-bold text-white hover:bg-[#005bb5] transition-colors shadow-2xs">
+                <button className="flex-1 rounded-full bg-black py-2.5 text-[11px] font-bold text-white hover:bg-slate-800 transition-colors shadow-2xs">
                   Print Instructions
                 </button>
-                <button className="flex-1 rounded-full border border-black/10 bg-white py-2.5 text-[11px] font-bold text-[#1D1D1F] hover:bg-[#F5F5F7] shadow-2xs">
+                <button className="flex-1 rounded-full border border-black/10 bg-white py-2.5 text-[11px] font-bold text-black hover:bg-[#F5F5F7] shadow-2xs">
                   Send SMS / Email
                 </button>
               </div>

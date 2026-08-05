@@ -22,7 +22,7 @@ export function Panel({
       {title ? (
         <header className="flex items-center justify-between gap-3 border-b border-black/5 px-6 py-4 bg-[#FAFAFC]">
           <div>
-            <h2 className="text-xs font-bold uppercase tracking-wider text-[#0071E3]">
+            <h2 className="text-xs font-black uppercase tracking-wider text-black">
               {title}
             </h2>
             {subtitle ? <p className="mt-0.5 text-xs text-[#86868B] font-medium">{subtitle}</p> : null}
@@ -47,7 +47,7 @@ export function Stat({
   tone?: "default" | "ok" | "warn" | "crit";
 }) {
   const toneClass = {
-    default: "text-[#1D1D1F]",
+    default: "text-black",
     ok: "text-[#34C759]",
     warn: "text-[#FF9500]",
     crit: "text-[#FF3B30]",

@@ -53,7 +53,7 @@ function PatientRecordCV() {
       actions={
         <Link
           to="/patients"
-          className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-bold text-[#1D1D1F] hover:bg-[#F5F5F7] shadow-2xs transition-all"
+          className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-bold text-black hover:bg-[#F5F5F7] shadow-2xs transition-all"
         >
           <ArrowLeft className="size-3.5" /> Back to Index
         </Link>
@@ -64,26 +64,26 @@ function PatientRecordCV() {
         <div className="apple-card relative overflow-hidden p-8">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div className="flex items-start gap-6">
-              <div className="relative grid size-24 shrink-0 place-items-center rounded-3xl bg-[#0071E3] text-4xl font-black text-white shadow-lg shadow-[#0071E3]/20">
+              <div className="relative grid size-24 shrink-0 place-items-center rounded-3xl bg-black text-4xl font-black text-white shadow-lg">
                 {patient?.full_name?.charAt(0) ?? "E"}
                 <span className="absolute -bottom-1 -right-1 size-5 rounded-full bg-[#34C759] border-2 border-white shadow-xs" />
               </div>
 
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center gap-3">
-                  <h1 className="text-3xl font-extrabold tracking-tight text-[#1D1D1F]">
+                  <h1 className="text-3xl font-black tracking-tight text-black">
                     {patient?.full_name ?? "Elena Rostova"}
                   </h1>
-                  <span className="rounded-full bg-[#E5F1FF] border border-[#B8DAFF] px-3 py-1 text-xs font-bold text-[#0066CC]">
+                  <span className="rounded-full bg-[#E8E8ED] border border-black/10 px-3 py-1 text-xs font-bold text-black">
                     MRN: {patient?.mrn ?? "MRN-8829"}
                   </span>
                   <StatusPill status="healthy" label="Triage: Stable (NEWS2 1)" />
                 </div>
 
-                <p className="text-sm font-medium text-[#515154] flex flex-wrap items-center gap-3">
+                <p className="text-sm font-semibold text-[#1D1D1F] flex flex-wrap items-center gap-3">
                   <span>{patient?.sex === "F" ? "Female" : "Male"} · Born 1988-04-12 (Age 38)</span>
                   <span className="text-[#86868B]">•</span>
-                  <span className="text-[#0071E3] font-bold">Blood Group: O+</span>
+                  <span className="text-black font-bold">Blood Group: O+</span>
                   <span className="text-[#86868B]">•</span>
                   <span>Primary: Dr. Sarah Hana</span>
                 </p>
@@ -102,15 +102,15 @@ function PatientRecordCV() {
             <div className="flex flex-wrap gap-3 md:flex-col md:items-end">
               <Link
                 to="/doctor"
-                className="inline-flex items-center gap-2 rounded-full bg-[#0071E3] px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-[#005bb5] transition-all scale-105"
+                className="inline-flex items-center gap-2 rounded-full bg-black px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all scale-105"
               >
                 <Stethoscope className="size-4" /> Open Doctor Workspace
               </Link>
               <Link
                 to="/pharmacy"
-                className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-[#F5F5F7] px-5 py-2.5 text-xs font-bold text-[#1D1D1F] hover:bg-white transition-all shadow-2xs"
+                className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-[#F5F5F7] px-5 py-2.5 text-xs font-bold text-black hover:bg-white transition-all shadow-2xs"
               >
-                <Pill className="size-4 text-[#AF52DE]" /> Dispense In AI Pharmacy
+                <Pill className="size-4 text-[#8922C7]" /> Dispense In AI Pharmacy
               </Link>
             </div>
           </div>
@@ -121,9 +121,9 @@ function PatientRecordCV() {
           <div className="apple-card p-5">
             <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#86868B]">
               <span>NEWS2 Score</span>
-              <Activity className="size-4 text-[#0071E3]" />
+              <Activity className="size-4 text-black" />
             </div>
-            <p className="mt-3 text-4xl font-extrabold text-[#1D1D1F] numeric">{latestVitals?.news2 ?? 1}</p>
+            <p className="mt-3 text-4xl font-black text-black numeric">{latestVitals?.news2 ?? 1}</p>
             <p className="mt-1 text-xs font-bold text-[#34C759]">Low Risk Clinical Status</p>
           </div>
 
@@ -132,7 +132,7 @@ function PatientRecordCV() {
               <span>Blood Pressure</span>
               <Heart className="size-4 text-[#FF3B30]" />
             </div>
-            <p className="mt-3 text-4xl font-extrabold text-[#1D1D1F] numeric">
+            <p className="mt-3 text-4xl font-black text-black numeric">
               {latestVitals?.systolic ? `${latestVitals.systolic}/${latestVitals.diastolic ?? 80}` : "124/82"}
             </p>
             <p className="mt-1 text-xs font-semibold text-[#86868B]">mmHg · Normal Baseline</p>
@@ -141,9 +141,9 @@ function PatientRecordCV() {
           <div className="apple-card p-5">
             <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#86868B]">
               <span>Oxygen SpO₂</span>
-              <Activity className="size-4 text-[#0071E3]" />
+              <Activity className="size-4 text-black" />
             </div>
-            <p className="mt-3 text-4xl font-extrabold text-[#1D1D1F] numeric">
+            <p className="mt-3 text-4xl font-black text-black numeric">
               {latestVitals?.spo2 ? `${latestVitals.spo2}%` : "98%"}
             </p>
             <p className="mt-1 text-xs font-bold text-[#34C759]">Optimal Airway Flow</p>
@@ -154,7 +154,7 @@ function PatientRecordCV() {
               <span>Heart Rate</span>
               <Activity className="size-4 text-[#FF9500]" />
             </div>
-            <p className="mt-3 text-4xl font-extrabold text-[#1D1D1F] numeric">
+            <p className="mt-3 text-4xl font-black text-black numeric">
               {latestVitals?.heart_rate ? `${latestVitals.heart_rate} bpm` : "74 bpm"}
             </p>
             <p className="mt-1 text-xs font-semibold text-[#86868B]">Regular Sinus Rhythm</p>
@@ -163,9 +163,9 @@ function PatientRecordCV() {
           <div className="apple-card p-5">
             <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#86868B]">
               <span>eGFR Clearance</span>
-              <Zap className="size-4 text-[#AF52DE]" />
+              <Zap className="size-4 text-[#8922C7]" />
             </div>
-            <p className="mt-3 text-4xl font-extrabold text-[#AF52DE] numeric">42</p>
+            <p className="mt-3 text-4xl font-black text-[#8922C7] numeric">42</p>
             <p className="mt-1 text-xs font-bold text-[#FF9500]">Kidney Dose Warning</p>
           </div>
         </div>
@@ -175,7 +175,7 @@ function PatientRecordCV() {
           <div className="space-y-6">
             <Panel title="Executive Medical Summary" subtitle="Core history & active clinical overview">
               <div className="space-y-5">
-                <p className="text-sm leading-relaxed text-[#515154] font-medium">
+                <p className="text-sm leading-relaxed text-[#1D1D1F] font-semibold">
                   Patient presents with acute migraine exacerbation with a background history of mild hypertension and Stage 3a Chronic Kidney Disease (eGFR 42). Currently undergoing clinical evaluation under Dr. Sarah Hana. All diagnostic orders and AI medication safety verifications are logged to the immutable event ledger.
                 </p>
 
@@ -184,7 +184,7 @@ function PatientRecordCV() {
                     <p className="text-xs font-bold uppercase tracking-wider text-[#D70015] flex items-center gap-2 mb-2">
                       <ShieldAlert className="size-4" /> Allergies & Hypersensitivities
                     </p>
-                    <ul className="space-y-2 text-xs font-semibold text-[#1D1D1F]">
+                    <ul className="space-y-2 text-xs font-semibold text-black">
                       <li className="flex items-center justify-between">
                         <span className="font-bold text-[#D70015]">Penicillin</span>
                         <span className="rounded-full bg-white px-2 py-0.5 text-[10px] text-[#D70015] font-bold border border-[#F9BDBD]">Severe Anaphylaxis</span>
@@ -193,10 +193,10 @@ function PatientRecordCV() {
                   </div>
 
                   <div className="rounded-2xl border border-black/5 bg-[#F5F5F7] p-4">
-                    <p className="text-xs font-bold uppercase tracking-wider text-[#1D1D1F] flex items-center gap-2 mb-2">
-                      <FileText className="size-4 text-[#0071E3]" /> Active Diagnoses & Chronic Conditions
+                    <p className="text-xs font-bold uppercase tracking-wider text-black flex items-center gap-2 mb-2">
+                      <FileText className="size-4 text-black" /> Active Diagnoses & Chronic Conditions
                     </p>
-                    <ul className="space-y-2 text-xs font-semibold text-[#1D1D1F]">
+                    <ul className="space-y-2 text-xs font-semibold text-black">
                       <li className="flex items-center justify-between">
                         <span>Stage 3a Chronic Kidney Disease</span>
                         <span className="rounded-full bg-[#FFF4E5] text-[#B86200] border border-[#FFE0B2] px-2 py-0.5 text-[10px]">eGFR 42</span>
@@ -217,7 +217,7 @@ function PatientRecordCV() {
                 <article className="apple-card p-5">
                   <header className="flex items-center justify-between border-b border-black/5 pb-3 mb-3">
                     <div className="flex items-center gap-2 text-xs font-semibold text-[#86868B]">
-                      <User className="size-4 text-[#0071E3]" />
+                      <User className="size-4 text-black" />
                       <span>Dr. Sarah Hana (Attending Physician)</span>
                       <span className="text-[#86868B]">•</span>
                       <Clock className="size-3.5 text-[#86868B]" />
@@ -227,9 +227,9 @@ function PatientRecordCV() {
                       <CheckCircle2 className="size-3" /> Signed & Locked
                     </span>
                   </header>
-                  <div className="space-y-2 text-xs leading-relaxed text-[#515154]">
-                    <p><strong className="text-[#1D1D1F]">Subjective:</strong> Patient reports severe throbbing headache onset 4h ago, accompanied by mild photophobia.</p>
-                    <p><strong className="text-[#0071E3]">Assessment & Plan:</strong> Acute Migraine Exacerbation. Order Sumatriptan 50mg, monitor eGFR clearance, schedule non-contrast head CT scan.</p>
+                  <div className="space-y-2 text-xs leading-relaxed text-[#1D1D1F] font-medium">
+                    <p><strong className="text-black">Subjective:</strong> Patient reports severe throbbing headache onset 4h ago, accompanied by mild photophobia.</p>
+                    <p><strong className="text-black">Assessment & Plan:</strong> Acute Migraine Exacerbation. Order Sumatriptan 50mg, monitor eGFR clearance, schedule non-contrast head CT scan.</p>
                   </div>
                 </article>
               </div>
@@ -242,7 +242,7 @@ function PatientRecordCV() {
               <ul className="space-y-3 text-xs">
                 <li className="apple-card p-4">
                   <div className="flex items-center justify-between mb-1.5">
-                    <p className="font-bold text-[#1D1D1F]">Sumatriptan 50mg Oral</p>
+                    <p className="font-bold text-black">Sumatriptan 50mg Oral</p>
                     <span className="rounded-full bg-[#FFF4E5] text-[#B86200] border border-[#FFE0B2] px-2.5 py-0.5 text-[10px] font-bold uppercase">
                       Pharmacy Dispensing
                     </span>
@@ -252,7 +252,7 @@ function PatientRecordCV() {
 
                 <li className="apple-card p-4">
                   <div className="flex items-center justify-between mb-1.5">
-                    <p className="font-bold text-[#1D1D1F]">Head Non-Contrast CT Scan</p>
+                    <p className="font-bold text-black">Head Non-Contrast CT Scan</p>
                     <span className="rounded-full bg-[#E8F8EC] text-[#1D8A39] border border-[#B6ECC3] px-2.5 py-0.5 text-[10px] font-bold uppercase">
                       Completed
                     </span>

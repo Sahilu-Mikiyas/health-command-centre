@@ -29,7 +29,7 @@ export function AppShell({
   };
 
   return (
-    <div className="flex min-h-screen bg-[#F5F5F7] text-[#1D1D1F] selection:bg-[#0071E3] selection:text-white">
+    <div className="flex min-h-screen bg-[#F5F5F7] text-black selection:bg-black selection:text-white">
       <AppSidebar />
 
       {mobileOpen ? (
@@ -44,7 +44,7 @@ export function AppShell({
             <button
               type="button"
               onClick={() => setMobileOpen(false)}
-              className="self-end text-[#86868B] hover:text-[#1D1D1F]"
+              className="self-end text-[#86868B] hover:text-black"
               aria-label="Close navigation"
             >
               <X className="size-5" />
@@ -60,9 +60,9 @@ export function AppShell({
                       <Link
                         to={item.to}
                         onClick={() => setMobileOpen(false)}
-                        className="flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold text-[#1D1D1F] hover:bg-white hover:text-[#0071E3] hover:shadow-xs transition-all"
+                        className="flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold text-black hover:bg-white transition-all"
                       >
-                        <item.icon className="size-4 text-[#0071E3]" />
+                        <item.icon className="size-4 text-black" />
                         {item.label}
                       </Link>
                     </li>
@@ -82,15 +82,15 @@ export function AppShell({
               <button
                 type="button"
                 onClick={() => setMobileOpen(true)}
-                className="text-[#86868B] hover:text-[#1D1D1F] lg:hidden"
+                className="text-[#86868B] hover:text-black lg:hidden"
                 aria-label="Open navigation"
               >
                 <Menu className="size-5" />
               </button>
               <div className="min-w-0">
                 <div className="flex items-center gap-2.5">
-                  <h1 className="truncate text-2xl font-extrabold tracking-tight text-[#1D1D1F]">{title}</h1>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-[#E5F1FF] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#0066CC] border border-[#B8DAFF]">
+                  <h1 className="truncate text-2xl font-black tracking-tight text-black">{title}</h1>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#E8E8ED] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-black border border-black/10">
                     <Sparkles className="size-3" /> Apple OS Pro
                   </span>
                 </div>
@@ -104,11 +104,11 @@ export function AppShell({
               {/* Quick Command Search Pill */}
               <button
                 onClick={() => alert("Apple System Command (⌘K) ready: Search patients, beds, doctors & active Rx.")}
-                className="hidden sm:inline-flex items-center gap-2 rounded-full border border-black/10 bg-[#F5F5F7] px-3.5 py-1.5 text-xs font-semibold text-[#86868B] hover:border-[#0071E3] hover:text-[#1D1D1F] hover:bg-white transition-all shadow-xs"
+                className="hidden sm:inline-flex items-center gap-2 rounded-full border border-black/10 bg-[#F5F5F7] px-3.5 py-1.5 text-xs font-semibold text-[#1D1D1F] hover:border-black hover:bg-white transition-all shadow-2xs"
               >
-                <Search className="size-3.5 text-[#86868B]" />
+                <Search className="size-3.5 text-[#515154]" />
                 <span>Search system...</span>
-                <kbd className="rounded-md bg-white px-1.5 py-0.5 text-[10px] font-mono text-[#1D1D1F] border border-black/10 shadow-2xs">
+                <kbd className="rounded-md bg-white px-1.5 py-0.5 text-[10px] font-mono text-black border border-black/10 shadow-2xs">
                   ⌘K
                 </kbd>
               </button>
@@ -117,13 +117,13 @@ export function AppShell({
 
               {/* User Profile Pill */}
               <div className="hidden sm:flex items-center gap-3 border-l border-black/5 pl-3">
-                <div className="relative grid size-9 place-items-center rounded-full bg-[#0071E3] text-sm font-bold text-white shadow-xs">
+                <div className="relative grid size-9 place-items-center rounded-full bg-black text-sm font-bold text-white shadow-2xs">
                   {me?.profile?.full_name?.charAt(0) ?? "D"}
                   <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-[#34C759] border-2 border-white" />
                 </div>
                 <div className="text-right">
-                  <p className="text-xs font-bold text-[#1D1D1F]">{me?.profile?.full_name ?? "Dr. Sarah Hana"}</p>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#0071E3]">
+                  <p className="text-xs font-bold text-black">{me?.profile?.full_name ?? "Dr. Sarah Hana"}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#86868B]">
                     {me?.roles?.[0]?.replace(/_/g, " ") ?? "Medical Director"}
                   </p>
                 </div>

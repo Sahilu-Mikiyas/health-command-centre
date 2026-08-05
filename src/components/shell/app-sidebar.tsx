@@ -9,14 +9,15 @@ export function AppSidebar() {
 
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-black/5 bg-[#F5F5F7] lg:flex">
+      {/* Brand Header */}
       <div className="flex items-center gap-3 px-6 py-5 border-b border-black/5">
-        <span className="grid size-9 place-items-center rounded-2xl bg-[#0071E3] text-white shadow-md shadow-[#0071E3]/20">
+        <span className="grid size-9 place-items-center rounded-2xl bg-black text-white shadow-md">
           <Activity className="size-5" />
         </span>
         <div className="leading-tight">
-          <h2 className="text-base font-black tracking-tight text-[#1D1D1F]">Meridian HIP</h2>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-[#0071E3]">
-            Hospital OS Pro
+          <h2 className="text-base font-black tracking-tight text-black">Meridian HIP</h2>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-[#86868B]">
+            HOSPITAL OS PRO
           </p>
         </div>
       </div>
@@ -35,13 +36,13 @@ export function AppSidebar() {
                     <Link
                       to={item.to}
                       className={cn(
-                        "flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold transition-all duration-200",
+                        "flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm transition-all duration-200",
                         active
-                          ? "bg-white text-[#0071E3] font-bold shadow-xs border border-black/5"
-                          : "text-[#515154] hover:bg-white/60 hover:text-[#1D1D1F]",
+                          ? "bg-white text-black font-extrabold shadow-sm border border-black/10"
+                          : "text-[#1D1D1F] font-semibold hover:bg-white/60 hover:text-black",
                       )}
                     >
-                      <item.icon className={cn("size-4 shrink-0", active ? "text-[#0071E3]" : "text-[#86868B]")} />
+                      <item.icon className={cn("size-4 shrink-0", active ? "text-black" : "text-[#515154]")} />
                       <span className="flex-1 truncate">{item.label}</span>
                     </Link>
                   </li>
@@ -53,8 +54,8 @@ export function AppSidebar() {
       </nav>
 
       <div className="p-4 border-t border-black/5">
-        <div className="rounded-2xl bg-white p-4 border border-black/5 shadow-xs text-xs">
-          <div className="flex items-center gap-2 text-[#0071E3] font-bold mb-1">
+        <div className="rounded-2xl bg-white p-4 border border-black/5 shadow-2xs text-xs">
+          <div className="flex items-center gap-2 text-black font-extrabold mb-1">
             <span className="size-2 rounded-full bg-[#34C759] animate-pulse" />
             <span>Event-Driven OS</span>
           </div>

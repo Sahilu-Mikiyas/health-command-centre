@@ -5,9 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Hospital Intelligence Platform — Official Apple Website (apple.com) Design System.
- * Light Apple Silver (#F5F5F7), Pure White (#FFFFFF), Crisp Dark Charcoal Typography (#1D1D1F),
- * Frosted Glass Translucency, Apple System Badges & Spring Micro-Animations.
+ * Hospital Intelligence Platform — Pure Apple Black, White & Silver Design System.
+ * Background: #F5F5F7, Cards: #FFFFFF, Active Text & Headings: Pure Black (#000000 / #1D1D1F),
+ * Subtext: Neutral Grey (#86868B). Colors used strictly for medical status indicators.
  */
 
 @theme inline {
@@ -45,43 +45,43 @@
   --color-ok: #34C759;
   --color-warn: #FF9500;
   --color-crit: #FF3B30;
-  --color-info: #0071E3;
-  --color-ai: #AF52DE;
+  --color-info: #000000;
+  --color-ai: #8922C7;
 }
 
 :root {
   --radius: 1.25rem;
 
   --background: #F5F5F7;
-  --foreground: #1D1D1F;
-  --surface: rgba(255, 255, 255, 0.85);
+  --foreground: #000000;
+  --surface: rgba(255, 255, 255, 0.9);
   --surface-raised: #FFFFFF;
   --card: #FFFFFF;
-  --card-foreground: #1D1D1F;
-  --popover: rgba(255, 255, 255, 0.95);
-  --popover-foreground: #1D1D1F;
+  --card-foreground: #000000;
+  --popover: rgba(255, 255, 255, 0.98);
+  --popover-foreground: #000000;
 
-  --primary: #0071E3;
+  --primary: #000000;
   --primary-foreground: #FFFFFF;
-  --accent: #0071E3;
+  --accent: #000000;
   --accent-foreground: #FFFFFF;
 
   --secondary: #E8E8ED;
-  --secondary-foreground: #1D1D1F;
+  --secondary-foreground: #000000;
   --muted: #F5F5F7;
   --muted-foreground: #86868B;
 
   --border: rgba(0, 0, 0, 0.08);
-  --border-strong: rgba(0, 0, 0, 0.14);
+  --border-strong: rgba(0, 0, 0, 0.16);
   --input: rgba(0, 0, 0, 0.08);
-  --ring: #0071E3;
+  --ring: #000000;
 
   --sidebar: #F5F5F7;
-  --sidebar-foreground: #1D1D1F;
-  --sidebar-primary: #0071E3;
+  --sidebar-foreground: #000000;
+  --sidebar-primary: #000000;
   --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: #FFFFFF;
-  --sidebar-accent-foreground: #0071E3;
+  --sidebar-accent-foreground: #000000;
   --sidebar-border: rgba(0, 0, 0, 0.06);
 }
 
@@ -104,7 +104,7 @@
 
   h1, h2, h3, h4 {
     letter-spacing: -0.025em;
-    color: #1D1D1F;
+    color: #000000;
   }
 }
 
@@ -126,13 +126,6 @@
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 
-@utility apple-glass {
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(0, 0, 0, 0.07);
-}
-
 @utility badge-ok {
   background-color: #E8F8EC;
   color: #1D8A39;
@@ -152,24 +145,13 @@
 }
 
 @utility badge-info {
-  background-color: #E5F1FF;
-  color: #0066CC;
-  border: 1px solid #B8DAFF;
+  background-color: #E8E8ED;
+  color: #000000;
+  border: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 @utility badge-ai {
   background-color: #F5E8FF;
   color: #8922C7;
   border: 1px solid #E4BEFF;
-}
-
-@keyframes apple-spring-bounce {
-  0% { transform: scale(0.9); opacity: 0; }
-  60% { transform: scale(1.05); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-@keyframes scan-ring-rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
 }
