@@ -30,7 +30,7 @@ export function AppSidebar() {
             <ul className="space-y-0.5">
               {group.items.map((item) => {
                 const active = pathname.startsWith(item.to);
-                const locked = item.phase > 1;
+                const locked = item.phase > 3;
                 const content = (
                   <>
                     <item.icon className="size-4 shrink-0" />
