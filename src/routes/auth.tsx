@@ -10,16 +10,16 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in | Meridian Hospital Intelligence Platform" },
+      { title: "Sign in | Furii Hospital Prototype" },
       {
         name: "description",
         content:
-          "Secure staff access to the Meridian Hospital Intelligence Platform command centre and clinical workspaces.",
+          "Secure staff access to the Furii Hospital Prototype command centre and clinical workspaces.",
       },
-      { property: "og:title", content: "Sign in | Meridian HIP" },
+      { property: "og:title", content: "Sign in | Furii Hospital Prototype" },
       {
         property: "og:description",
-        content: "Secure staff access to the Meridian Hospital Intelligence Platform.",
+        content: "Secure staff access to the Furii Hospital Prototype.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -72,13 +72,13 @@ function AuthPage() {
     <main className="grid min-h-screen place-items-center bg-background px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <span className="mx-auto mb-4 grid size-11 place-items-center rounded-lg bg-accent text-lg font-bold text-accent-foreground">
-            H
+          <span className="mx-auto mb-4 grid size-11 place-items-center rounded-lg bg-black text-lg font-bold text-white">
+            F
           </span>
-          <h1 className="text-xl font-semibold tracking-tight">
-            Meridian Hospital Intelligence Platform
+          <h1 className="text-xl font-semibold tracking-tight text-black">
+            Furii Hospital Prototype
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-sm text-[#86868B]">
             Staff access to live hospital operations
           </p>
         </div>

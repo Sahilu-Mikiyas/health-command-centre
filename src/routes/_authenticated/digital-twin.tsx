@@ -76,7 +76,7 @@ function DigitalTwinContent() {
             <div className="flex items-center justify-between border-b border-black/5 pb-4">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-[#86868B]">Live Spatial Digital Twin</span>
-                <h3 className="text-2xl font-black tracking-tight text-black">Meridian Hospital Tower 1</h3>
+                <h3 className="text-2xl font-black tracking-tight text-black">Furii Hospital Tower 1</h3>
               </div>
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E8F8EC] border border-[#B6ECC3] px-3.5 py-1 text-xs font-bold text-[#1D8A39]">

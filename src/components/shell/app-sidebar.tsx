@@ -21,9 +21,9 @@ export function AppSidebar() {
           <Activity className="size-5" />
         </span>
         <div className="leading-tight min-w-0">
-          <h2 className="text-base font-black tracking-tight text-black truncate">Meridian HIP</h2>
+          <h2 className="text-base font-black tracking-tight text-black truncate">Furii Hospital</h2>
           <p className="text-[10px] font-bold uppercase tracking-widest text-[#86868B] truncate">
-            {ROLE_LABELS[primaryRole] ?? "Hospital OS Pro"}
+            PROTOTYPE OS
           </p>
         </div>
       </div>

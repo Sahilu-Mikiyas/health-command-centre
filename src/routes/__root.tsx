@@ -80,14 +80,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Meridian Hospital Intelligence Platform" },
+      { title: "Furii Hospital Prototype" },
       {
         name: "description",
         content:
-          "Meridian HIP: a live hospital intelligence platform uniting command centre, clinical workspaces and operational events.",
+          "Furii Hospital Prototype: a live hospital intelligence platform uniting command centre, clinical workspaces and operational events.",
       },
-      { name: "author", content: "Meridian General" },
-      { property: "og:title", content: "Meridian Hospital Intelligence Platform" },
+      { name: "author", content: "Furii Hospital Prototype" },
+      { property: "og:title", content: "Furii Hospital Prototype" },
       {
         property: "og:description",
         content: "A live hospital intelligence platform for clinical and operational command.",
