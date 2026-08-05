@@ -18,14 +18,14 @@ export function Panel({
   bodyClassName?: string;
 }) {
   return (
-    <section className={cn("rounded-3xl border border-white/10 bg-slate-900/60 backdrop-blur-2xl shadow-xl transition-all duration-200 flex flex-col overflow-hidden hover:border-white/15", className)}>
+    <section className={cn("apple-card flex flex-col overflow-hidden", className)}>
       {title ? (
-        <header className="flex items-center justify-between gap-3 border-b border-white/10 px-6 py-4 bg-slate-900/40">
+        <header className="flex items-center justify-between gap-3 border-b border-black/5 px-6 py-4 bg-[#FAFAFC]">
           <div>
-            <h2 className="text-xs font-black uppercase tracking-widest text-indigo-400">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[#0071E3]">
               {title}
             </h2>
-            {subtitle ? <p className="mt-0.5 text-xs text-slate-400 font-medium">{subtitle}</p> : null}
+            {subtitle ? <p className="mt-0.5 text-xs text-[#86868B] font-medium">{subtitle}</p> : null}
           </div>
           {action}
         </header>
@@ -47,17 +47,17 @@ export function Stat({
   tone?: "default" | "ok" | "warn" | "crit";
 }) {
   const toneClass = {
-    default: "text-white",
-    ok: "text-emerald-400 drop-shadow-[0_0_12px_rgba(16,185,129,0.4)]",
-    warn: "text-amber-400 drop-shadow-[0_0_12px_rgba(245,158,11,0.4)]",
-    crit: "text-rose-400 drop-shadow-[0_0_12px_rgba(239,68,68,0.4)]",
+    default: "text-[#1D1D1F]",
+    ok: "text-[#34C759]",
+    warn: "text-[#FF9500]",
+    crit: "text-[#FF3B30]",
   }[tone];
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">{label}</span>
-      <span className={cn("numeric text-3xl font-black tracking-tight leading-none", toneClass)}>{value}</span>
-      {hint ? <span className="text-xs font-semibold text-slate-400 mt-1">{hint}</span> : null}
+    <div className="flex flex-col gap-1">
+      <span className="text-[11px] font-bold uppercase tracking-wider text-[#86868B]">{label}</span>
+      <span className={cn("numeric text-3xl font-extrabold tracking-tight leading-none", toneClass)}>{value}</span>
+      {hint ? <span className="text-xs font-semibold text-[#86868B] mt-1">{hint}</span> : null}
     </div>
   );
 }

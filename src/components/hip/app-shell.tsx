@@ -29,7 +29,7 @@ export function AppShell({
   };
 
   return (
-    <div className="flex min-h-screen bg-[#0B0F19] text-slate-100 selection:bg-indigo-500 selection:text-white">
+    <div className="flex min-h-screen bg-[#F5F5F7] text-[#1D1D1F] selection:bg-[#0071E3] selection:text-white">
       <AppSidebar />
 
       {mobileOpen ? (
@@ -37,21 +37,21 @@ export function AppShell({
           <button
             type="button"
             aria-label="Close navigation"
-            className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
-          <nav className="relative flex w-72 flex-col gap-6 overflow-y-auto border-r border-white/10 bg-[#0F172A] p-5">
+          <nav className="relative flex w-72 flex-col gap-6 overflow-y-auto border-r border-black/5 bg-[#F5F5F7] p-5 shadow-2xl">
             <button
               type="button"
               onClick={() => setMobileOpen(false)}
-              className="self-end text-slate-400 hover:text-white"
+              className="self-end text-[#86868B] hover:text-[#1D1D1F]"
               aria-label="Close navigation"
             >
               <X className="size-5" />
             </button>
             {navGroups.map((group) => (
               <div key={group.label}>
-                <p className="pb-2 text-[10px] uppercase font-bold tracking-widest text-indigo-400">
+                <p className="pb-2 text-[10px] uppercase font-bold tracking-widest text-[#86868B]">
                   {group.label}
                 </p>
                 <ul className="space-y-1">
@@ -60,9 +60,9 @@ export function AppShell({
                       <Link
                         to={item.to}
                         onClick={() => setMobileOpen(false)}
-                        className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-300 hover:bg-indigo-600/20 hover:text-white transition-all"
+                        className="flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold text-[#1D1D1F] hover:bg-white hover:text-[#0071E3] hover:shadow-xs transition-all"
                       >
-                        <item.icon className="size-4 text-indigo-400" />
+                        <item.icon className="size-4 text-[#0071E3]" />
                         {item.label}
                       </Link>
                     </li>
@@ -75,55 +75,55 @@ export function AppShell({
       ) : null}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Top Floating Glass Header */}
-        <header className="sticky top-0 z-30 border-b border-white/10 bg-[#0B0F19]/80 backdrop-blur-2xl px-6 py-4">
+        {/* Apple Translucent Glass Header */}
+        <header className="sticky top-0 z-30 border-b border-black/5 bg-white/80 backdrop-blur-xl px-6 py-4">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
               <button
                 type="button"
                 onClick={() => setMobileOpen(true)}
-                className="text-slate-400 hover:text-white lg:hidden"
+                className="text-[#86868B] hover:text-[#1D1D1F] lg:hidden"
                 aria-label="Open navigation"
               >
                 <Menu className="size-5" />
               </button>
               <div className="min-w-0">
                 <div className="flex items-center gap-2.5">
-                  <h1 className="truncate text-2xl font-black tracking-tight text-white">{title}</h1>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-indigo-500/10 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-indigo-400 border border-indigo-500/20">
-                    <Sparkles className="size-3" /> OS v4.2 Pro
+                  <h1 className="truncate text-2xl font-extrabold tracking-tight text-[#1D1D1F]">{title}</h1>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#E5F1FF] px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#0066CC] border border-[#B8DAFF]">
+                    <Sparkles className="size-3" /> Apple OS Pro
                   </span>
                 </div>
                 {subtitle ? (
-                  <p className="truncate text-xs font-semibold text-slate-400 mt-0.5">{subtitle}</p>
+                  <p className="truncate text-xs font-medium text-[#86868B] mt-0.5">{subtitle}</p>
                 ) : null}
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              {/* Quick Command Palette Button */}
+              {/* Quick Command Search Pill */}
               <button
-                onClick={() => alert("Command Palette (Cmd+K) ready: Search patients, beds, doctors & active Rx.")}
-                className="hidden sm:inline-flex items-center gap-2 rounded-xl border border-white/10 bg-slate-900/80 px-3 py-1.5 text-xs font-semibold text-slate-400 hover:border-indigo-500/40 hover:text-white transition-all"
+                onClick={() => alert("Apple System Command (⌘K) ready: Search patients, beds, doctors & active Rx.")}
+                className="hidden sm:inline-flex items-center gap-2 rounded-full border border-black/10 bg-[#F5F5F7] px-3.5 py-1.5 text-xs font-semibold text-[#86868B] hover:border-[#0071E3] hover:text-[#1D1D1F] hover:bg-white transition-all shadow-xs"
               >
-                <Search className="size-3.5" />
+                <Search className="size-3.5 text-[#86868B]" />
                 <span>Search system...</span>
-                <kbd className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-slate-400 border border-slate-700">
+                <kbd className="rounded-md bg-white px-1.5 py-0.5 text-[10px] font-mono text-[#1D1D1F] border border-black/10 shadow-2xs">
                   ⌘K
                 </kbd>
               </button>
 
               {actions}
 
-              {/* User Profile Badge */}
-              <div className="hidden sm:flex items-center gap-3 border-l border-white/10 pl-3">
-                <div className="relative grid size-9 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-sm font-bold text-white shadow-md shadow-indigo-500/30">
+              {/* User Profile Pill */}
+              <div className="hidden sm:flex items-center gap-3 border-l border-black/5 pl-3">
+                <div className="relative grid size-9 place-items-center rounded-full bg-[#0071E3] text-sm font-bold text-white shadow-xs">
                   {me?.profile?.full_name?.charAt(0) ?? "D"}
-                  <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-400 border-2 border-[#0B0F19]" />
+                  <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-[#34C759] border-2 border-white" />
                 </div>
                 <div className="text-right">
-                  <p className="text-xs font-bold text-white">{me?.profile?.full_name ?? "Dr. Sarah Hana"}</p>
-                  <p className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-400">
+                  <p className="text-xs font-bold text-[#1D1D1F]">{me?.profile?.full_name ?? "Dr. Sarah Hana"}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#0071E3]">
                     {me?.roles?.[0]?.replace(/_/g, " ") ?? "Medical Director"}
                   </p>
                 </div>
@@ -133,7 +133,7 @@ export function AppShell({
                 type="button"
                 onClick={signOut}
                 title="Sign out"
-                className="rounded-xl border border-white/10 bg-slate-900/60 p-2 text-slate-400 transition-colors hover:bg-rose-500/20 hover:border-rose-500/30 hover:text-rose-400"
+                className="rounded-full border border-black/10 bg-[#F5F5F7] p-2 text-[#86868B] transition-colors hover:bg-[#FDE8E7] hover:border-[#F9BDBD] hover:text-[#D70015]"
               >
                 <LogOut className="size-4" />
               </button>
