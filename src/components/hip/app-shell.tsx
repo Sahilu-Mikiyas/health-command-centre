@@ -3,6 +3,7 @@ import { Link, useRouter } from "@tanstack/react-router";
 import { LogOut, Menu, Search, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
+import { CommandPalette } from "@/components/hip/command-palette";
 import { AppSidebar } from "@/components/shell/app-sidebar";
 import { navGroups } from "@/components/shell/nav-config";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +23,7 @@ export function AppShell({
 }) {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const { data: me } = useQuery(myProfileQuery);
 
   const primaryRole = (me?.roles?.[0] ?? "super_admin") as AppRole;
@@ -35,6 +37,9 @@ export function AppShell({
   return (
     <div className="flex min-h-screen bg-[#F5F5F7] text-black selection:bg-black selection:text-white">
       <AppSidebar />
+
+      {/* Real Apple Command Palette (⌘K) Modal */}
+      <CommandPalette open={searchOpen} onClose={() => setSearchOpen(false)} />
 
       {mobileOpen ? (
         <div className="fixed inset-0 z-50 flex lg:hidden">
@@ -102,8 +107,8 @@ export function AppShell({
             <div className="flex items-center gap-3 shrink-0">
               {/* Quick Command Search Pill */}
               <button
-                onClick={() => alert("Apple System Command (⌘K) ready: Search patients, beds, doctors & active Rx.")}
-                className="hidden sm:inline-flex items-center gap-2 rounded-full border border-black/10 bg-[#F5F5F7] px-3.5 py-1.5 text-xs font-semibold text-[#1D1D1F] hover:border-black hover:bg-white transition-all shadow-2xs"
+                onClick={() => setSearchOpen(true)}
+                className="hidden sm:inline-flex items-center gap-2 rounded-full border border-black/10 bg-[#F5F5F7] px-3.5 py-1.5 text-xs font-semibold text-[#1D1D1F] hover:border-black hover:bg-white transition-all shadow-2xs cursor-pointer"
               >
                 <Search className="size-3.5 text-[#515154]" />
                 <span>Search system...</span>
