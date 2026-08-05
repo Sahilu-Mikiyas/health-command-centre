@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedCommandCentreRouteImport } from './routes/_authenticated/command-centre'
+import { Route as AuthenticatedDoctorRouteImport } from './routes/_authenticated/doctor'
 import { Route as AuthenticatedEventsRouteImport } from './routes/_authenticated/events'
 import { Route as AuthenticatedReceptionRouteImport } from './routes/_authenticated/reception'
 import { Route as AuthenticatedPatientsIndexRouteImport } from './routes/_authenticated/patients/index'
@@ -38,6 +39,11 @@ const AuthenticatedCommandCentreRoute =
     path: '/command-centre',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDoctorRoute = AuthenticatedDoctorRouteImport.update({
+  id: '/doctor',
+  path: '/doctor',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedEventsRoute = AuthenticatedEventsRouteImport.update({
   id: '/events',
   path: '/events',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/command-centre': typeof AuthenticatedCommandCentreRoute
+  '/doctor': typeof AuthenticatedDoctorRoute
   '/events': typeof AuthenticatedEventsRoute
   '/reception': typeof AuthenticatedReceptionRoute
   '/patients/$patientId': typeof AuthenticatedPatientsPatientIdRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/command-centre': typeof AuthenticatedCommandCentreRoute
+  '/doctor': typeof AuthenticatedDoctorRoute
   '/events': typeof AuthenticatedEventsRoute
   '/reception': typeof AuthenticatedReceptionRoute
   '/patients/$patientId': typeof AuthenticatedPatientsPatientIdRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/command-centre': typeof AuthenticatedCommandCentreRoute
+  '/_authenticated/doctor': typeof AuthenticatedDoctorRoute
   '/_authenticated/events': typeof AuthenticatedEventsRoute
   '/_authenticated/reception': typeof AuthenticatedReceptionRoute
   '/_authenticated/patients/$patientId': typeof AuthenticatedPatientsPatientIdRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/command-centre'
+    | '/doctor'
     | '/events'
     | '/reception'
     | '/patients/$patientId'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/command-centre'
+    | '/doctor'
     | '/events'
     | '/reception'
     | '/patients/$patientId'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/command-centre'
+    | '/_authenticated/doctor'
     | '/_authenticated/events'
     | '/_authenticated/reception'
     | '/_authenticated/patients/$patientId'
@@ -157,6 +169,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCommandCentreRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/doctor': {
+      id: '/_authenticated/doctor'
+      path: '/doctor'
+      fullPath: '/doctor'
+      preLoaderRoute: typeof AuthenticatedDoctorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/events': {
       id: '/_authenticated/events'
       path: '/events'
@@ -190,6 +209,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCommandCentreRoute: typeof AuthenticatedCommandCentreRoute
+  AuthenticatedDoctorRoute: typeof AuthenticatedDoctorRoute
   AuthenticatedEventsRoute: typeof AuthenticatedEventsRoute
   AuthenticatedReceptionRoute: typeof AuthenticatedReceptionRoute
   AuthenticatedPatientsPatientIdRoute: typeof AuthenticatedPatientsPatientIdRoute
@@ -198,6 +218,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCommandCentreRoute: AuthenticatedCommandCentreRoute,
+  AuthenticatedDoctorRoute: AuthenticatedDoctorRoute,
   AuthenticatedEventsRoute: AuthenticatedEventsRoute,
   AuthenticatedReceptionRoute: AuthenticatedReceptionRoute,
   AuthenticatedPatientsPatientIdRoute: AuthenticatedPatientsPatientIdRoute,
