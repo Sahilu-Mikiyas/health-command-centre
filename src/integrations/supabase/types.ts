@@ -49,6 +49,67 @@ export type Database = {
           },
         ]
       }
+      appointments: {
+        Row: {
+          booked_by_label: string | null
+          created_at: string
+          department_id: string | null
+          hospital_id: string
+          id: string
+          patient_id: string
+          reason: string | null
+          scheduled_at: string
+          status: Database["public"]["Enums"]["appointment_status"]
+          updated_at: string
+        }
+        Insert: {
+          booked_by_label?: string | null
+          created_at?: string
+          department_id?: string | null
+          hospital_id: string
+          id?: string
+          patient_id: string
+          reason?: string | null
+          scheduled_at?: string
+          status?: Database["public"]["Enums"]["appointment_status"]
+          updated_at?: string
+        }
+        Update: {
+          booked_by_label?: string | null
+          created_at?: string
+          department_id?: string | null
+          hospital_id?: string
+          id?: string
+          patient_id?: string
+          reason?: string | null
+          scheduled_at?: string
+          status?: Database["public"]["Enums"]["appointment_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_hospital_id_fkey"
+            columns: ["hospital_id"]
+            isOneToOne: false
+            referencedRelation: "hospitals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -130,6 +191,69 @@ export type Database = {
             columns: ["room_id"]
             isOneToOne: false
             referencedRelation: "rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clinical_notes: {
+        Row: {
+          assessment: string | null
+          author_id: string | null
+          author_label: string | null
+          created_at: string
+          encounter_id: string | null
+          id: string
+          note_type: string
+          objective: string | null
+          patient_id: string
+          plan: string | null
+          signed_at: string | null
+          subjective: string | null
+          updated_at: string
+        }
+        Insert: {
+          assessment?: string | null
+          author_id?: string | null
+          author_label?: string | null
+          created_at?: string
+          encounter_id?: string | null
+          id?: string
+          note_type?: string
+          objective?: string | null
+          patient_id: string
+          plan?: string | null
+          signed_at?: string | null
+          subjective?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assessment?: string | null
+          author_id?: string | null
+          author_label?: string | null
+          created_at?: string
+          encounter_id?: string | null
+          id?: string
+          note_type?: string
+          objective?: string | null
+          patient_id?: string
+          plan?: string | null
+          signed_at?: string | null
+          subjective?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinical_notes_encounter_id_fkey"
+            columns: ["encounter_id"]
+            isOneToOne: false
+            referencedRelation: "encounters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "clinical_notes_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
             referencedColumns: ["id"]
           },
         ]
@@ -389,6 +513,85 @@ export type Database = {
           timezone?: string
         }
         Relationships: []
+      }
+      orders: {
+        Row: {
+          category: Database["public"]["Enums"]["order_category"]
+          code: string | null
+          completed_at: string | null
+          created_at: string
+          encounter_id: string | null
+          hospital_id: string
+          id: string
+          instructions: string | null
+          name: string
+          patient_id: string
+          priority: string
+          requested_at: string
+          requested_by_id: string | null
+          requested_by_label: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          updated_at: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["order_category"]
+          code?: string | null
+          completed_at?: string | null
+          created_at?: string
+          encounter_id?: string | null
+          hospital_id: string
+          id?: string
+          instructions?: string | null
+          name: string
+          patient_id: string
+          priority?: string
+          requested_at?: string
+          requested_by_id?: string | null
+          requested_by_label?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["order_category"]
+          code?: string | null
+          completed_at?: string | null
+          created_at?: string
+          encounter_id?: string | null
+          hospital_id?: string
+          id?: string
+          instructions?: string | null
+          name?: string
+          patient_id?: string
+          priority?: string
+          requested_at?: string
+          requested_by_id?: string | null
+          requested_by_label?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_encounter_id_fkey"
+            columns: ["encounter_id"]
+            isOneToOne: false
+            referencedRelation: "encounters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_hospital_id_fkey"
+            columns: ["hospital_id"]
+            isOneToOne: false
+            referencedRelation: "hospitals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       patients: {
         Row: {
@@ -731,6 +934,13 @@ export type Database = {
         | "pharmacist"
         | "cashier"
         | "patient"
+      appointment_status:
+        | "booked"
+        | "arrived"
+        | "in_progress"
+        | "completed"
+        | "cancelled"
+        | "no_show"
       bed_status:
         | "available"
         | "occupied"
@@ -738,6 +948,14 @@ export type Database = {
         | "reserved"
         | "maintenance"
       op_status: "healthy" | "busy" | "critical" | "offline"
+      order_category: "laboratory" | "imaging" | "medication" | "procedure"
+      order_status:
+        | "draft"
+        | "requested"
+        | "in_progress"
+        | "resulted"
+        | "completed"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -878,6 +1096,14 @@ export const Constants = {
         "cashier",
         "patient",
       ],
+      appointment_status: [
+        "booked",
+        "arrived",
+        "in_progress",
+        "completed",
+        "cancelled",
+        "no_show",
+      ],
       bed_status: [
         "available",
         "occupied",
@@ -886,6 +1112,15 @@ export const Constants = {
         "maintenance",
       ],
       op_status: ["healthy", "busy", "critical", "offline"],
+      order_category: ["laboratory", "imaging", "medication", "procedure"],
+      order_status: [
+        "draft",
+        "requested",
+        "in_progress",
+        "resulted",
+        "completed",
+        "cancelled",
+      ],
     },
   },
 } as const
