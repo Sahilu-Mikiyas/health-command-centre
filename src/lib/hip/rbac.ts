@@ -7,6 +7,7 @@ export type AppRole =
   | "receptionist"
   | "pharmacist"
   | "lab_tech"
+  | "radiologist"
   | "billing_clerk";
 
 export const ROLE_LABELS: Record<AppRole, string> = {
@@ -18,6 +19,7 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   receptionist: "Receptionist & Triage",
   pharmacist: "Clinical Pharmacist",
   lab_tech: "Lab Technologist",
+  radiologist: "Radiology Specialist",
   billing_clerk: "Billing & Financial Clerk",
 };
 
@@ -31,6 +33,7 @@ export const ROUTE_PERMISSIONS: Record<string, AppRole[]> = {
     "receptionist",
     "pharmacist",
     "lab_tech",
+    "radiologist",
     "billing_clerk",
   ],
   "/digital-twin": ["super_admin", "ceo", "medical_director", "doctor", "nurse"],
@@ -43,6 +46,7 @@ export const ROUTE_PERMISSIONS: Record<string, AppRole[]> = {
     "receptionist",
     "pharmacist",
     "lab_tech",
+    "radiologist",
     "billing_clerk",
   ],
   "/patients": [
@@ -54,12 +58,14 @@ export const ROUTE_PERMISSIONS: Record<string, AppRole[]> = {
     "receptionist",
     "pharmacist",
     "lab_tech",
+    "radiologist",
     "billing_clerk",
   ],
   "/reception": ["super_admin", "ceo", "medical_director", "nurse", "receptionist"],
   "/nurse": ["super_admin", "ceo", "medical_director", "nurse", "doctor"],
   "/doctor": ["super_admin", "ceo", "medical_director", "doctor", "nurse"],
   "/laboratory": ["super_admin", "ceo", "medical_director", "doctor", "lab_tech"],
+  "/radiology": ["super_admin", "ceo", "medical_director", "doctor", "radiologist", "lab_tech"],
   "/pharmacy": ["super_admin", "ceo", "medical_director", "doctor", "pharmacist"],
   "/billing": ["super_admin", "ceo", "medical_director", "billing_clerk"],
   "/admin": ["super_admin"],
@@ -92,9 +98,9 @@ export function getDefaultRedirect(roles: string[] | undefined): string {
   if (effectiveRoles.includes("nurse")) return "/nurse";
   if (effectiveRoles.includes("pharmacist")) return "/pharmacy";
   if (effectiveRoles.includes("lab_tech")) return "/laboratory";
+  if (effectiveRoles.includes("radiologist")) return "/radiology";
   if (effectiveRoles.includes("receptionist")) return "/reception";
   if (effectiveRoles.includes("billing_clerk")) return "/billing";
-  if (effectiveRoles.includes("nurse")) return "/reception";
 
   return "/command-centre";
 }
