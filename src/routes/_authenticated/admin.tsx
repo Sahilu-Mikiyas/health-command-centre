@@ -204,6 +204,7 @@ function AdminWorkspace() {
     { role: "receptionist", label: "Receptionist & Triage" },
     { role: "pharmacist", label: "Clinical Pharmacist" },
     { role: "lab_tech", label: "Laboratory Technologist" },
+    { role: "radiologist", label: "Radiology Specialist" },
     { role: "billing_clerk", label: "Billing & Financial Clerk" },
   ];
 
@@ -244,10 +245,11 @@ function AdminWorkspace() {
         <div className="flex flex-wrap gap-2 pt-1">
           {[
             { role: "receptionist", label: "Test as Receptionist", to: "/reception" },
-            { role: "nurse", label: "Test as Nurse", to: "/reception" },
+            { role: "nurse", label: "Test as Nurse", to: "/nurse" },
             { role: "doctor", label: "Test as Doctor", to: "/doctor" },
-            { role: "pharmacist", label: "Test as Pharmacist", to: "/pharmacy" },
             { role: "lab_tech", label: "Test as Lab Tech", to: "/laboratory" },
+            { role: "radiologist", label: "Test as Radiologist", to: "/radiology" },
+            { role: "pharmacist", label: "Test as Pharmacist", to: "/pharmacy" },
             { role: "billing_clerk", label: "Test as Billing Clerk", to: "/billing" },
           ].map((item) => (
             <button
