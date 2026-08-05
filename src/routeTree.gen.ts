@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedCommandCentreRouteImport } from './routes/_authenticated/command-centre'
 import { Route as AuthenticatedEventsRouteImport } from './routes/_authenticated/events'
+import { Route as AuthenticatedReceptionRouteImport } from './routes/_authenticated/reception'
 import { Route as AuthenticatedPatientsIndexRouteImport } from './routes/_authenticated/patients/index'
 import { Route as AuthenticatedPatientsPatientIdRouteImport } from './routes/_authenticated/patients/$patientId'
 
@@ -42,6 +43,11 @@ const AuthenticatedEventsRoute = AuthenticatedEventsRouteImport.update({
   path: '/events',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReceptionRoute = AuthenticatedReceptionRouteImport.update({
+  id: '/reception',
+  path: '/reception',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPatientsIndexRoute =
   AuthenticatedPatientsIndexRouteImport.update({
     id: '/patients/',
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/command-centre': typeof AuthenticatedCommandCentreRoute
   '/events': typeof AuthenticatedEventsRoute
+  '/reception': typeof AuthenticatedReceptionRoute
   '/patients/$patientId': typeof AuthenticatedPatientsPatientIdRoute
   '/patients/': typeof AuthenticatedPatientsIndexRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/command-centre': typeof AuthenticatedCommandCentreRoute
   '/events': typeof AuthenticatedEventsRoute
+  '/reception': typeof AuthenticatedReceptionRoute
   '/patients/$patientId': typeof AuthenticatedPatientsPatientIdRoute
   '/patients': typeof AuthenticatedPatientsIndexRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/command-centre': typeof AuthenticatedCommandCentreRoute
   '/_authenticated/events': typeof AuthenticatedEventsRoute
+  '/_authenticated/reception': typeof AuthenticatedReceptionRoute
   '/_authenticated/patients/$patientId': typeof AuthenticatedPatientsPatientIdRoute
   '/_authenticated/patients/': typeof AuthenticatedPatientsIndexRoute
 }
@@ -88,6 +97,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/command-centre'
     | '/events'
+    | '/reception'
     | '/patients/$patientId'
     | '/patients/'
   fileRoutesByTo: FileRoutesByTo
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/command-centre'
     | '/events'
+    | '/reception'
     | '/patients/$patientId'
     | '/patients'
   id:
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/command-centre'
     | '/_authenticated/events'
+    | '/_authenticated/reception'
     | '/_authenticated/patients/$patientId'
     | '/_authenticated/patients/'
   fileRoutesById: FileRoutesById
@@ -152,6 +164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEventsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/reception': {
+      id: '/_authenticated/reception'
+      path: '/reception'
+      fullPath: '/reception'
+      preLoaderRoute: typeof AuthenticatedReceptionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/patients/': {
       id: '/_authenticated/patients/'
       path: '/patients'
@@ -172,6 +191,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCommandCentreRoute: typeof AuthenticatedCommandCentreRoute
   AuthenticatedEventsRoute: typeof AuthenticatedEventsRoute
+  AuthenticatedReceptionRoute: typeof AuthenticatedReceptionRoute
   AuthenticatedPatientsPatientIdRoute: typeof AuthenticatedPatientsPatientIdRoute
   AuthenticatedPatientsIndexRoute: typeof AuthenticatedPatientsIndexRoute
 }
@@ -179,6 +199,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCommandCentreRoute: AuthenticatedCommandCentreRoute,
   AuthenticatedEventsRoute: AuthenticatedEventsRoute,
+  AuthenticatedReceptionRoute: AuthenticatedReceptionRoute,
   AuthenticatedPatientsPatientIdRoute: AuthenticatedPatientsPatientIdRoute,
   AuthenticatedPatientsIndexRoute: AuthenticatedPatientsIndexRoute,
 }
