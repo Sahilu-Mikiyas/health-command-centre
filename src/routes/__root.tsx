@@ -77,15 +77,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Meridian Hospital Intelligence Platform" },
+      {
+        name: "description",
+        content:
+          "Meridian HIP: a live hospital intelligence platform uniting command centre, clinical workspaces and operational events.",
+      },
+      { name: "author", content: "Meridian General" },
+      { property: "og:title", content: "Meridian Hospital Intelligence Platform" },
+      {
+        property: "og:description",
+        content: "A live hospital intelligence platform for clinical and operational command.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
+
     links: [
       {
         rel: "stylesheet",
