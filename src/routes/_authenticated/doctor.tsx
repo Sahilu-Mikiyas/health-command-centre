@@ -113,28 +113,28 @@ function DoctorWorkspace() {
       title="Doctor Workspace"
       subtitle="Consult, document and order without leaving the patient"
     >
-      <div className="grid gap-4 xl:grid-cols-[280px_minmax(0,1fr)_340px]">
-        <Panel title="Live queue" subtitle={`${queue.length} patients`} bodyClassName="p-0">
-          <ul className="divide-y divide-border">
+      <div className="grid gap-4 xl:grid-cols-[280px_minmax(0,1fr)_320px]">
+        <Panel title="Live queue" subtitle={`${queue.length} patients`} bodyClassName="p-0" className="min-w-0">
+          <ul className="divide-y divide-black/5">
             {queue.map((encounter) => (
-              <li key={encounter.id}>
+              <li key={encounter.id} className="min-w-0">
                 <button
                   type="button"
                   onClick={() => setSelectedId(encounter.id)}
                   className={
                     selected?.id === encounter.id
-                      ? "w-full bg-surface-raised px-4 py-3 text-left"
-                      : "w-full px-4 py-3 text-left transition-colors hover:bg-surface-raised"
+                      ? "w-full bg-white px-4 py-3 text-left min-w-0"
+                      : "w-full px-4 py-3 text-left transition-colors hover:bg-[#F5F5F7] min-w-0"
                   }
                 >
-                  <p className="truncate text-sm font-medium">
+                  <p className="truncate text-sm font-medium text-black">
                     {encounter.patients?.full_name ?? "Unknown"}
                   </p>
-                  <p className="numeric truncate text-xs text-muted-foreground">
+                  <p className="numeric truncate text-xs text-[#86868B]">
                     {encounter.patients?.mrn} · {encounter.stage}
                   </p>
                   {encounter.priority !== "routine" ? (
-                    <span className="mt-1 inline-block text-[10px] uppercase tracking-widest text-warn">
+                    <span className="mt-1 inline-block truncate text-[10px] uppercase tracking-widest text-[#FF9500]">
                       {encounter.priority}
                     </span>
                   ) : null}
@@ -142,7 +142,7 @@ function DoctorWorkspace() {
               </li>
             ))}
             {queue.length === 0 ? (
-              <li className="px-4 py-6 text-sm text-muted-foreground">
+              <li className="px-4 py-6 text-sm text-[#86868B] truncate">
                 No patients waiting. Check them in from Reception.
               </li>
             ) : null}
@@ -150,15 +150,17 @@ function DoctorWorkspace() {
         </Panel>
 
         {selected ? (
-          <div className="space-y-4">
+          <div className="space-y-4 min-w-0">
             <Panel
+              className="min-w-0"
               title="Consultation"
               subtitle={selected.patients?.full_name ?? "Patient"}
               action={
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 min-w-0">
                   <Button
                     size="sm"
                     variant="outline"
+                    className="rounded-2xl truncate"
                     onClick={() =>
                       priority.mutate({
                         id: selected.id,
@@ -171,12 +173,14 @@ function DoctorWorkspace() {
                   <Button
                     size="sm"
                     variant="outline"
+                    className="rounded-2xl truncate"
                     onClick={() => stage.mutate({ encounterId: selected.id, stage: "doctor" })}
                   >
                     Start consult
                   </Button>
                   <Button
                     size="sm"
+                    className="rounded-2xl truncate"
                     onClick={() => stage.mutate({ encounterId: selected.id, stage: "complete" })}
                   >
                     Complete
@@ -184,7 +188,7 @@ function DoctorWorkspace() {
                 </div>
               }
             >
-              <div className="grid gap-4 sm:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-4 min-w-0">
                 <Stat
                   label="NEWS2"
                   value={latestVitals?.news2 ?? "—"}
@@ -208,38 +212,38 @@ function DoctorWorkspace() {
                 <Stat label="eGFR" value={record.data?.patient?.egfr ?? "—"} hint="Dosing signal" />
               </div>
 
-              <div className="mt-4 flex flex-wrap items-center gap-2">
+              <div className="mt-4 flex flex-wrap items-center gap-2 min-w-0">
                 <StatusPill
                   status={selected.priority === "critical" ? "critical" : "healthy"}
                   label={`${selected.stage} · ${selected.priority}`}
                 />
                 {allergies.length > 0 ? (
-                  <span className="rounded-full border border-crit/50 px-3 py-1 text-xs text-crit">
+                  <span className="rounded-full border border-[#FF3B30]/50 px-3 py-1 text-xs text-[#D70015] truncate max-w-full">
                     Allergies: {allergies.map((a) => a.substance).join(", ")}
                   </span>
                 ) : (
-                  <span className="text-xs text-muted-foreground">No known allergies</span>
+                  <span className="text-xs text-[#86868B] truncate">No known allergies</span>
                 )}
                 <Link
                   to="/patients/$patientId"
                   params={{ patientId: selected.patient_id }}
-                  className="text-xs text-accent hover:underline"
+                  className="text-xs text-black hover:underline truncate"
                 >
                   Full record
                 </Link>
               </div>
 
               {selected.chief_complaint ? (
-                <p className="mt-4 text-sm">
-                  <span className="text-muted-foreground">Presenting: </span>
+                <p className="mt-4 text-sm text-black truncate">
+                  <span className="text-[#86868B]">Presenting: </span>
                   {selected.chief_complaint}
                 </p>
               ) : null}
             </Panel>
 
-            <Panel title="Clinical note" subtitle="SOAP — signing makes it immutable">
+            <Panel title="Clinical note" subtitle="SOAP — signing makes it immutable" className="min-w-0">
               <form
-                className="space-y-3"
+                className="space-y-3 min-w-0"
                 onSubmit={(event) => {
                   event.preventDefault();
                   const form = new FormData(event.currentTarget);
@@ -256,35 +260,35 @@ function DoctorWorkspace() {
                   event.currentTarget.reset();
                 }}
               >
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="subjective">Subjective</Label>
-                    <Textarea id="subjective" name="subjective" rows={3} />
+                <div className="grid gap-3 sm:grid-cols-2 min-w-0">
+                  <div className="space-y-1.5 min-w-0">
+                    <Label htmlFor="subjective" className="text-black truncate block">Subjective</Label>
+                    <Textarea id="subjective" name="subjective" rows={3} className="rounded-2xl border-black/10 bg-[#F5F5F7] text-black" />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="objective">Objective</Label>
-                    <Textarea id="objective" name="objective" rows={3} />
+                  <div className="space-y-1.5 min-w-0">
+                    <Label htmlFor="objective" className="text-black truncate block">Objective</Label>
+                    <Textarea id="objective" name="objective" rows={3} className="rounded-2xl border-black/10 bg-[#F5F5F7] text-black" />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="assessment">Assessment</Label>
-                    <Textarea id="assessment" name="assessment" rows={3} />
+                  <div className="space-y-1.5 min-w-0">
+                    <Label htmlFor="assessment" className="text-black truncate block">Assessment</Label>
+                    <Textarea id="assessment" name="assessment" rows={3} className="rounded-2xl border-black/10 bg-[#F5F5F7] text-black" />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label htmlFor="plan">Plan</Label>
-                    <Textarea id="plan" name="plan" rows={3} />
+                  <div className="space-y-1.5 min-w-0">
+                    <Label htmlFor="plan" className="text-black truncate block">Plan</Label>
+                    <Textarea id="plan" name="plan" rows={3} className="rounded-2xl border-black/10 bg-[#F5F5F7] text-black" />
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button type="submit" variant="outline" disabled={note.isPending}>
+                <div className="flex gap-2 min-w-0">
+                  <Button type="submit" variant="outline" className="rounded-2xl truncate" disabled={note.isPending}>
                     Save draft
                   </Button>
-                  <Button type="submit" data-sign="1" disabled={note.isPending}>
+                  <Button type="submit" data-sign="1" className="rounded-2xl truncate" disabled={note.isPending}>
                     Sign note
                   </Button>
                 </div>
               </form>
 
-              <div className="mt-4">
+              <div className="mt-4 min-w-0">
                 <Timeline
                   items={(notes.data ?? []).slice(0, 6).map((row) => ({
                     id: row.id,
@@ -303,17 +307,17 @@ function DoctorWorkspace() {
             </Panel>
           </div>
         ) : (
-          <Panel title="Consultation">
-            <p className="text-sm text-muted-foreground">
+          <Panel title="Consultation" className="min-w-0">
+            <p className="text-sm text-[#86868B] truncate">
               Select a patient from the live queue to begin.
             </p>
           </Panel>
         )}
 
-        <div className="space-y-4">
-          <Panel title="Place order" subtitle="Routes straight to the receiving department">
+        <div className="space-y-4 min-w-0">
+          <Panel title="Place order" subtitle="Routes straight to the receiving department" className="min-w-0">
             <form
-              className="space-y-3"
+              className="space-y-3 min-w-0"
               onSubmit={(event) => {
                 event.preventDefault();
                 if (!selected) {
@@ -332,12 +336,12 @@ function DoctorWorkspace() {
                 event.currentTarget.reset();
               }}
             >
-              <div className="space-y-1.5">
-                <Label htmlFor="category">Category</Label>
+              <div className="space-y-1.5 min-w-0">
+                <Label htmlFor="category" className="text-black truncate block">Category</Label>
                 <select
                   id="category"
                   name="category"
-                  className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                  className="h-9 w-full rounded-2xl border border-black/10 bg-[#F5F5F7] px-2 text-sm text-black"
                 >
                   {categories.map((category) => (
                     <option key={category} value={category}>
@@ -346,41 +350,41 @@ function DoctorWorkspace() {
                   ))}
                 </select>
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="name">Order</Label>
-                <Input id="name" name="name" required placeholder="Full blood count" />
+              <div className="space-y-1.5 min-w-0">
+                <Label htmlFor="name" className="text-black truncate block">Order</Label>
+                <Input id="name" name="name" required placeholder="Full blood count" className="rounded-2xl border-black/10 bg-[#F5F5F7] text-black" />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="priority">Priority</Label>
+              <div className="space-y-1.5 min-w-0">
+                <Label htmlFor="priority" className="text-black truncate block">Priority</Label>
                 <select
                   id="priority"
                   name="priority"
-                  className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                  className="h-9 w-full rounded-2xl border border-black/10 bg-[#F5F5F7] px-2 text-sm text-black"
                 >
                   <option value="routine">routine</option>
                   <option value="urgent">urgent</option>
                   <option value="stat">stat</option>
                 </select>
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="instructions">Instructions</Label>
-                <Textarea id="instructions" name="instructions" rows={2} />
+              <div className="space-y-1.5 min-w-0">
+                <Label htmlFor="instructions" className="text-black truncate block">Instructions</Label>
+                <Textarea id="instructions" name="instructions" rows={2} className="rounded-2xl border-black/10 bg-[#F5F5F7] text-black" />
               </div>
-              <Button type="submit" className="w-full" disabled={order.isPending}>
+              <Button type="submit" className="w-full rounded-2xl truncate" disabled={order.isPending}>
                 Send order
               </Button>
             </form>
           </Panel>
 
-          <Panel title="Active orders" bodyClassName="p-0">
-            <ul className="divide-y divide-border">
+          <Panel title="Active orders" bodyClassName="p-0" className="min-w-0">
+            <ul className="divide-y divide-black/5">
               {(orders.data ?? [])
                 .filter((row) => row.status !== "cancelled")
                 .map((row) => (
-                  <li key={row.id} className="flex items-center gap-2 px-4 py-2.5">
+                  <li key={row.id} className="flex items-center gap-2 px-4 py-2.5 min-w-0">
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{row.name}</p>
-                      <p className="truncate text-xs text-muted-foreground">
+                      <p className="truncate text-sm font-medium text-black">{row.name}</p>
+                      <p className="truncate text-xs text-[#86868B]">
                         {row.category} · {row.priority} · {row.status}
                       </p>
                     </div>
@@ -388,6 +392,7 @@ function DoctorWorkspace() {
                       <Button
                         size="sm"
                         variant="ghost"
+                        className="rounded-2xl truncate"
                         onClick={() => dropOrder.mutate(row.id)}
                         disabled={dropOrder.isPending}
                       >
@@ -397,7 +402,7 @@ function DoctorWorkspace() {
                   </li>
                 ))}
               {orders.data?.length === 0 ? (
-                <li className="px-4 py-6 text-sm text-muted-foreground">No orders yet.</li>
+                <li className="px-4 py-6 text-sm text-[#86868B] truncate">No orders yet.</li>
               ) : null}
             </ul>
           </Panel>

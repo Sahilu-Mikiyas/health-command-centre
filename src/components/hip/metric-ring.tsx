@@ -11,14 +11,14 @@ const strokeMap: Record<Tone, string> = {
   crit: "stroke-[#FF3B30]",
 };
 
-/** Radial gauge that animates from 0 to its value on mount and on change. */
+/** Radial gauge — percentage shown inside, label shown below. Zero overlap guaranteed. */
 export function MetricRing({
   value,
   max = 100,
   label,
   caption,
   tone = "accent",
-  size = 76,
+  size = 80,
   thickness = 7,
   className,
 }: {
@@ -43,7 +43,7 @@ export function MetricRing({
   const percentText = `${Math.round(pct * 100)}%`;
 
   return (
-    <div className={cn("inline-flex items-center gap-2.5 min-w-0 max-w-full", className)}>
+    <div className={cn("inline-flex flex-col items-center gap-1.5", className)}>
       <div className="relative grid place-items-center shrink-0" style={{ width: size, height: size }}>
         <svg width={size} height={size} className="-rotate-90">
           <circle
@@ -66,15 +66,13 @@ export function MetricRing({
             className={cn(strokeMap[tone], "transition-[stroke-dashoffset] duration-1000 ease-out")}
           />
         </svg>
-        <div className="absolute flex flex-col items-center justify-center leading-none text-center px-1">
-          <span className="numeric text-base font-black text-black">{percentText}</span>
-        </div>
+        <span className="absolute numeric text-lg font-black text-black">{percentText}</span>
       </div>
-      {label || caption ? (
-        <div className="flex flex-col justify-center min-w-0 flex-1">
-          {label ? <span className="text-xs font-black uppercase tracking-wider text-black truncate">{label}</span> : null}
-          {caption ? <span className="text-[11px] font-semibold text-[#86868B] truncate mt-0.5">{caption}</span> : null}
-        </div>
+      {label ? (
+        <span className="text-[10px] font-bold uppercase tracking-wider text-[#86868B] text-center">{label}</span>
+      ) : null}
+      {caption ? (
+        <span className="text-[10px] font-semibold text-[#86868B] text-center">{caption}</span>
       ) : null}
     </div>
   );

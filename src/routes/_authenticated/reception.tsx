@@ -113,22 +113,22 @@ function Reception() {
       subtitle="Registration, scheduling and arrivals — the front door of the hospital"
     >
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <div className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-4">
-            <Panel>
+        <div className="space-y-4 min-w-0">
+          <div className="grid gap-4 sm:grid-cols-4 min-w-0">
+            <Panel className="min-w-0">
               <Stat label="Scheduled" value={list.length} hint={day} />
             </Panel>
-            <Panel>
+            <Panel className="min-w-0">
               <Stat
                 label="Arrived"
                 value={list.filter((a) => a.status === "arrived").length}
                 tone="ok"
               />
             </Panel>
-            <Panel>
+            <Panel className="min-w-0">
               <Stat label="Waiting to be seen" value={waiting.length} tone="warn" />
             </Panel>
-            <Panel>
+            <Panel className="min-w-0">
               <Stat
                 label="No-shows"
                 value={list.filter((a) => a.status === "no_show").length}
@@ -140,20 +140,21 @@ function Reception() {
           <Panel
             title="Appointment book"
             subtitle="Check patients in to open a live encounter"
+            className="min-w-0"
             action={
               <Input
                 type="date"
                 value={day}
                 onChange={(event) => setDay(event.target.value)}
-                className="h-8 w-40"
+                className="h-8 w-40 rounded-2xl border-black/10 bg-[#F5F5F7] text-black"
               />
             }
             bodyClassName="p-0"
           >
-            <div className="divide-y divide-border">
+            <div className="divide-y divide-black/5 min-w-0">
               {list.map((appointment) => (
-                <div key={appointment.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
-                  <span className="numeric w-14 text-sm text-muted-foreground">
+                <div key={appointment.id} className="flex flex-wrap items-center gap-3 px-4 py-3 min-w-0">
+                  <span className="numeric w-14 text-sm text-[#86868B] truncate">
                     {new Date(appointment.scheduled_at).toLocaleTimeString([], {
                       hour: "2-digit",
                       minute: "2-digit",
@@ -163,11 +164,11 @@ function Reception() {
                     <Link
                       to="/patients/$patientId"
                       params={{ patientId: appointment.patient_id }}
-                      className="truncate text-sm font-medium hover:text-accent"
+                      className="truncate text-sm font-medium text-black hover:text-black hover:underline block"
                     >
                       {appointment.patients?.full_name ?? "Unknown patient"}
                     </Link>
-                    <p className="numeric truncate text-xs text-muted-foreground">
+                    <p className="numeric truncate text-xs text-[#86868B]">
                       {appointment.patients?.mrn} · {appointment.departments?.name ?? "Unassigned"}
                       {appointment.reason ? ` · ${appointment.reason}` : ""}
                     </p>
@@ -177,9 +178,10 @@ function Reception() {
                     label={appointment.status.replace("_", " ")}
                   />
                   {appointment.status === "booked" ? (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 min-w-0">
                       <Button
                         size="sm"
+                        className="rounded-2xl truncate"
                         disabled={checkIn.isPending}
                         onClick={() =>
                           checkIn.mutate({
@@ -195,6 +197,7 @@ function Reception() {
                       <Button
                         size="sm"
                         variant="outline"
+                        className="rounded-2xl truncate"
                         onClick={() => markStatus.mutate({ id: appointment.id, status: "no_show" })}
                       >
                         No show
@@ -204,26 +207,26 @@ function Reception() {
                 </div>
               ))}
               {list.length === 0 ? (
-                <p className="px-4 py-6 text-sm text-muted-foreground">
+                <p className="px-4 py-6 text-sm text-[#86868B] truncate">
                   No appointments booked for this day.
                 </p>
               ) : null}
             </div>
           </Panel>
 
-          <Panel title="Waiting room" subtitle="Checked-in patients awaiting clinical review">
-            <div className="grid gap-2 sm:grid-cols-2">
+          <Panel title="Waiting room" subtitle="Checked-in patients awaiting clinical review" className="min-w-0">
+            <div className="grid gap-2 sm:grid-cols-2 min-w-0">
               {waiting.map((encounter) => (
                 <Link
                   key={encounter.id}
                   to="/patients/$patientId"
                   params={{ patientId: encounter.patient_id }}
-                  className="rounded-md border border-border px-3 py-2 transition-colors hover:bg-surface-raised"
+                  className="rounded-2xl border border-black/5 px-3 py-2 transition-colors hover:bg-[#F5F5F7] min-w-0 block"
                 >
-                  <p className="truncate text-sm font-medium">
+                  <p className="truncate text-sm font-medium text-black">
                     {encounter.patients?.full_name ?? "Unknown"}
                   </p>
-                  <p className="truncate text-xs text-muted-foreground">
+                  <p className="truncate text-xs text-[#86868B]">
                     waiting since{" "}
                     {new Date(encounter.started_at).toLocaleTimeString([], {
                       hour: "2-digit",
@@ -233,16 +236,16 @@ function Reception() {
                 </Link>
               ))}
               {waiting.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Waiting room clear.</p>
+                <p className="text-sm text-[#86868B] truncate">Waiting room clear.</p>
               ) : null}
             </div>
           </Panel>
         </div>
 
-        <div className="space-y-4">
-          <Panel title="Register patient" subtitle="Creates the permanent MRN">
+        <div className="space-y-4 min-w-0">
+          <Panel title="Register patient" subtitle="Creates the permanent MRN" className="min-w-0">
             <form
-              className="space-y-3"
+              className="space-y-3 min-w-0"
               onSubmit={(event) => {
                 event.preventDefault();
                 const form = new FormData(event.currentTarget);
@@ -256,21 +259,21 @@ function Reception() {
                 event.currentTarget.reset();
               }}
             >
-              <div className="space-y-1.5">
-                <Label htmlFor="fullName">Full name</Label>
-                <Input id="fullName" name="fullName" required />
+              <div className="space-y-1.5 min-w-0">
+                <Label htmlFor="fullName" className="text-black truncate block">Full name</Label>
+                <Input id="fullName" name="fullName" required className="rounded-2xl border-black/10 bg-[#F5F5F7] text-black" />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="dateOfBirth">Date of birth</Label>
-                  <Input id="dateOfBirth" name="dateOfBirth" type="date" required />
+              <div className="grid grid-cols-2 gap-3 min-w-0">
+                <div className="space-y-1.5 min-w-0">
+                  <Label htmlFor="dateOfBirth" className="text-black truncate block">Date of birth</Label>
+                  <Input id="dateOfBirth" name="dateOfBirth" type="date" required className="rounded-2xl border-black/10 bg-[#F5F5F7] text-black" />
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="sex">Sex</Label>
+                <div className="space-y-1.5 min-w-0">
+                  <Label htmlFor="sex" className="text-black truncate block">Sex</Label>
                   <select
                     id="sex"
                     name="sex"
-                    className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                    className="h-9 w-full rounded-2xl border border-black/10 bg-[#F5F5F7] px-2 text-sm text-black"
                   >
                     <option value="female">female</option>
                     <option value="male">male</option>
@@ -278,23 +281,23 @@ function Reception() {
                   </select>
                 </div>
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="phone">Phone</Label>
-                <Input id="phone" name="phone" />
+              <div className="space-y-1.5 min-w-0">
+                <Label htmlFor="phone" className="text-black truncate block">Phone</Label>
+                <Input id="phone" name="phone" className="rounded-2xl border-black/10 bg-[#F5F5F7] text-black" />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="insurance">Insurance provider</Label>
-                <Input id="insurance" name="insurance" placeholder="Self-pay if blank" />
+              <div className="space-y-1.5 min-w-0">
+                <Label htmlFor="insurance" className="text-black truncate block">Insurance provider</Label>
+                <Input id="insurance" name="insurance" placeholder="Self-pay if blank" className="rounded-2xl border-black/10 bg-[#F5F5F7] text-black" />
               </div>
-              <Button type="submit" className="w-full" disabled={register.isPending}>
+              <Button type="submit" className="w-full rounded-2xl truncate" disabled={register.isPending}>
                 Register patient
               </Button>
             </form>
           </Panel>
 
-          <Panel title="Book appointment" subtitle="Search an existing patient first">
+          <Panel title="Book appointment" subtitle="Search an existing patient first" className="min-w-0">
             <form
-              className="space-y-3"
+              className="space-y-3 min-w-0"
               onSubmit={(event) => {
                 event.preventDefault();
                 const form = new FormData(event.currentTarget);
@@ -312,21 +315,22 @@ function Reception() {
                 event.currentTarget.reset();
               }}
             >
-              <div className="space-y-1.5">
-                <Label htmlFor="patientSearch">Find patient</Label>
+              <div className="space-y-1.5 min-w-0">
+                <Label htmlFor="patientSearch" className="text-black truncate block">Find patient</Label>
                 <Input
                   id="patientSearch"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Name or MRN"
+                  className="rounded-2xl border-black/10 bg-[#F5F5F7] text-black"
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="patientId">Patient</Label>
+              <div className="space-y-1.5 min-w-0">
+                <Label htmlFor="patientId" className="text-black truncate block">Patient</Label>
                 <select
                   id="patientId"
                   name="patientId"
-                  className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                  className="h-9 w-full rounded-2xl border border-black/10 bg-[#F5F5F7] px-2 text-sm text-black"
                 >
                   <option value="">Select…</option>
                   {(patients.data ?? []).slice(0, 40).map((patient) => (
@@ -336,12 +340,12 @@ function Reception() {
                   ))}
                 </select>
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="departmentId">Department</Label>
+              <div className="space-y-1.5 min-w-0">
+                <Label htmlFor="departmentId" className="text-black truncate block">Department</Label>
                 <select
                   id="departmentId"
                   name="departmentId"
-                  className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
+                  className="h-9 w-full rounded-2xl border border-black/10 bg-[#F5F5F7] px-2 text-sm text-black"
                 >
                   <option value="">Unassigned</option>
                   {(departments.data ?? []).map((department) => (
@@ -351,15 +355,15 @@ function Reception() {
                   ))}
                 </select>
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="scheduledAt">When</Label>
-                <Input id="scheduledAt" name="scheduledAt" type="datetime-local" required />
+              <div className="space-y-1.5 min-w-0">
+                <Label htmlFor="scheduledAt" className="text-black truncate block">When</Label>
+                <Input id="scheduledAt" name="scheduledAt" type="datetime-local" required className="rounded-2xl border-black/10 bg-[#F5F5F7] text-black" />
               </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="reason">Reason</Label>
-                <Input id="reason" name="reason" placeholder="Follow-up, chest pain…" />
+              <div className="space-y-1.5 min-w-0">
+                <Label htmlFor="reason" className="text-black truncate block">Reason</Label>
+                <Input id="reason" name="reason" placeholder="Follow-up, chest pain…" className="rounded-2xl border-black/10 bg-[#F5F5F7] text-black" />
               </div>
-              <Button type="submit" className="w-full" disabled={book.isPending}>
+              <Button type="submit" className="w-full rounded-2xl truncate" disabled={book.isPending}>
                 Book appointment
               </Button>
             </form>

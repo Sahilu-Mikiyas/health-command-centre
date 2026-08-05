@@ -20,14 +20,14 @@ export function Panel({
   return (
     <section className={cn("apple-card flex flex-col overflow-hidden", className)}>
       {title ? (
-        <header className="flex items-center justify-between gap-3 border-b border-black/5 px-6 py-4 bg-[#FAFAFC]">
-          <div>
-            <h2 className="text-xs font-black uppercase tracking-wider text-black">
+        <header className="flex items-center justify-between gap-3 border-b border-black/5 px-6 py-4 bg-[#FAFAFC] min-w-0">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-xs font-black uppercase tracking-wider text-black truncate">
               {title}
             </h2>
-            {subtitle ? <p className="mt-0.5 text-xs text-[#86868B] font-medium">{subtitle}</p> : null}
+            {subtitle ? <p className="mt-0.5 text-xs text-[#86868B] font-medium truncate">{subtitle}</p> : null}
           </div>
-          {action}
+          <div className="shrink-0">{action}</div>
         </header>
       ) : null}
       <div className={cn("flex-1 p-6", bodyClassName)}>{children}</div>
