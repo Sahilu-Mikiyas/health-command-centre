@@ -18,11 +18,14 @@ import { Route as AuthenticatedCommandCentreRouteImport } from './routes/_authen
 import { Route as AuthenticatedDigitalTwinRouteImport } from './routes/_authenticated/digital-twin'
 import { Route as AuthenticatedDoctorRouteImport } from './routes/_authenticated/doctor'
 import { Route as AuthenticatedEventsRouteImport } from './routes/_authenticated/events'
+import { Route as AuthenticatedExecutiveRouteImport } from './routes/_authenticated/executive'
+import { Route as AuthenticatedHrRouteImport } from './routes/_authenticated/hr'
 import { Route as AuthenticatedLaboratoryRouteImport } from './routes/_authenticated/laboratory'
 import { Route as AuthenticatedNurseRouteImport } from './routes/_authenticated/nurse'
 import { Route as AuthenticatedPharmacyRouteImport } from './routes/_authenticated/pharmacy'
 import { Route as AuthenticatedRadiologyRouteImport } from './routes/_authenticated/radiology'
 import { Route as AuthenticatedReceptionRouteImport } from './routes/_authenticated/reception'
+import { Route as AuthenticatedWardRouteImport } from './routes/_authenticated/ward'
 import { Route as AuthenticatedPatientsIndexRouteImport } from './routes/_authenticated/patients/index'
 import { Route as AuthenticatedPatientsPatientIdRouteImport } from './routes/_authenticated/patients/$patientId'
 
@@ -72,6 +75,16 @@ const AuthenticatedEventsRoute = AuthenticatedEventsRouteImport.update({
   path: '/events',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedExecutiveRoute = AuthenticatedExecutiveRouteImport.update({
+  id: '/executive',
+  path: '/executive',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHrRoute = AuthenticatedHrRouteImport.update({
+  id: '/hr',
+  path: '/hr',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedLaboratoryRoute = AuthenticatedLaboratoryRouteImport.update({
   id: '/laboratory',
   path: '/laboratory',
@@ -97,6 +110,11 @@ const AuthenticatedReceptionRoute = AuthenticatedReceptionRouteImport.update({
   path: '/reception',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedWardRoute = AuthenticatedWardRouteImport.update({
+  id: '/ward',
+  path: '/ward',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPatientsIndexRoute =
   AuthenticatedPatientsIndexRouteImport.update({
     id: '/patients/',
@@ -119,11 +137,14 @@ export interface FileRoutesByFullPath {
   '/digital-twin': typeof AuthenticatedDigitalTwinRoute
   '/doctor': typeof AuthenticatedDoctorRoute
   '/events': typeof AuthenticatedEventsRoute
+  '/executive': typeof AuthenticatedExecutiveRoute
+  '/hr': typeof AuthenticatedHrRoute
   '/laboratory': typeof AuthenticatedLaboratoryRoute
   '/nurse': typeof AuthenticatedNurseRoute
   '/pharmacy': typeof AuthenticatedPharmacyRoute
   '/radiology': typeof AuthenticatedRadiologyRoute
   '/reception': typeof AuthenticatedReceptionRoute
+  '/ward': typeof AuthenticatedWardRoute
   '/patients/$patientId': typeof AuthenticatedPatientsPatientIdRoute
   '/patients/': typeof AuthenticatedPatientsIndexRoute
 }
@@ -136,11 +157,14 @@ export interface FileRoutesByTo {
   '/digital-twin': typeof AuthenticatedDigitalTwinRoute
   '/doctor': typeof AuthenticatedDoctorRoute
   '/events': typeof AuthenticatedEventsRoute
+  '/executive': typeof AuthenticatedExecutiveRoute
+  '/hr': typeof AuthenticatedHrRoute
   '/laboratory': typeof AuthenticatedLaboratoryRoute
   '/nurse': typeof AuthenticatedNurseRoute
   '/pharmacy': typeof AuthenticatedPharmacyRoute
   '/radiology': typeof AuthenticatedRadiologyRoute
   '/reception': typeof AuthenticatedReceptionRoute
+  '/ward': typeof AuthenticatedWardRoute
   '/patients/$patientId': typeof AuthenticatedPatientsPatientIdRoute
   '/patients': typeof AuthenticatedPatientsIndexRoute
 }
@@ -155,11 +179,14 @@ export interface FileRoutesById {
   '/_authenticated/digital-twin': typeof AuthenticatedDigitalTwinRoute
   '/_authenticated/doctor': typeof AuthenticatedDoctorRoute
   '/_authenticated/events': typeof AuthenticatedEventsRoute
+  '/_authenticated/executive': typeof AuthenticatedExecutiveRoute
+  '/_authenticated/hr': typeof AuthenticatedHrRoute
   '/_authenticated/laboratory': typeof AuthenticatedLaboratoryRoute
   '/_authenticated/nurse': typeof AuthenticatedNurseRoute
   '/_authenticated/pharmacy': typeof AuthenticatedPharmacyRoute
   '/_authenticated/radiology': typeof AuthenticatedRadiologyRoute
   '/_authenticated/reception': typeof AuthenticatedReceptionRoute
+  '/_authenticated/ward': typeof AuthenticatedWardRoute
   '/_authenticated/patients/$patientId': typeof AuthenticatedPatientsPatientIdRoute
   '/_authenticated/patients/': typeof AuthenticatedPatientsIndexRoute
 }
@@ -174,11 +201,14 @@ export interface FileRouteTypes {
     | '/digital-twin'
     | '/doctor'
     | '/events'
+    | '/executive'
+    | '/hr'
     | '/laboratory'
     | '/nurse'
     | '/pharmacy'
     | '/radiology'
     | '/reception'
+    | '/ward'
     | '/patients/$patientId'
     | '/patients/'
   fileRoutesByTo: FileRoutesByTo
@@ -191,11 +221,14 @@ export interface FileRouteTypes {
     | '/digital-twin'
     | '/doctor'
     | '/events'
+    | '/executive'
+    | '/hr'
     | '/laboratory'
     | '/nurse'
     | '/pharmacy'
     | '/radiology'
     | '/reception'
+    | '/ward'
     | '/patients/$patientId'
     | '/patients'
   id:
@@ -209,11 +242,14 @@ export interface FileRouteTypes {
     | '/_authenticated/digital-twin'
     | '/_authenticated/doctor'
     | '/_authenticated/events'
+    | '/_authenticated/executive'
+    | '/_authenticated/hr'
     | '/_authenticated/laboratory'
     | '/_authenticated/nurse'
     | '/_authenticated/pharmacy'
     | '/_authenticated/radiology'
     | '/_authenticated/reception'
+    | '/_authenticated/ward'
     | '/_authenticated/patients/$patientId'
     | '/_authenticated/patients/'
   fileRoutesById: FileRoutesById
@@ -289,6 +325,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEventsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/executive': {
+      id: '/_authenticated/executive'
+      path: '/executive'
+      fullPath: '/executive'
+      preLoaderRoute: typeof AuthenticatedExecutiveRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/hr': {
+      id: '/_authenticated/hr'
+      path: '/hr'
+      fullPath: '/hr'
+      preLoaderRoute: typeof AuthenticatedHrRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/laboratory': {
       id: '/_authenticated/laboratory'
       path: '/laboratory'
@@ -324,6 +374,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReceptionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/ward': {
+      id: '/_authenticated/ward'
+      path: '/ward'
+      fullPath: '/ward'
+      preLoaderRoute: typeof AuthenticatedWardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/patients/': {
       id: '/_authenticated/patients/'
       path: '/patients'
@@ -348,11 +405,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDigitalTwinRoute: typeof AuthenticatedDigitalTwinRoute
   AuthenticatedDoctorRoute: typeof AuthenticatedDoctorRoute
   AuthenticatedEventsRoute: typeof AuthenticatedEventsRoute
+  AuthenticatedExecutiveRoute: typeof AuthenticatedExecutiveRoute
+  AuthenticatedHrRoute: typeof AuthenticatedHrRoute
   AuthenticatedLaboratoryRoute: typeof AuthenticatedLaboratoryRoute
   AuthenticatedNurseRoute: typeof AuthenticatedNurseRoute
   AuthenticatedPharmacyRoute: typeof AuthenticatedPharmacyRoute
   AuthenticatedRadiologyRoute: typeof AuthenticatedRadiologyRoute
   AuthenticatedReceptionRoute: typeof AuthenticatedReceptionRoute
+  AuthenticatedWardRoute: typeof AuthenticatedWardRoute
   AuthenticatedPatientsPatientIdRoute: typeof AuthenticatedPatientsPatientIdRoute
   AuthenticatedPatientsIndexRoute: typeof AuthenticatedPatientsIndexRoute
 }
@@ -364,11 +424,14 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDigitalTwinRoute: AuthenticatedDigitalTwinRoute,
   AuthenticatedDoctorRoute: AuthenticatedDoctorRoute,
   AuthenticatedEventsRoute: AuthenticatedEventsRoute,
+  AuthenticatedExecutiveRoute: AuthenticatedExecutiveRoute,
+  AuthenticatedHrRoute: AuthenticatedHrRoute,
   AuthenticatedLaboratoryRoute: AuthenticatedLaboratoryRoute,
   AuthenticatedNurseRoute: AuthenticatedNurseRoute,
   AuthenticatedPharmacyRoute: AuthenticatedPharmacyRoute,
   AuthenticatedRadiologyRoute: AuthenticatedRadiologyRoute,
   AuthenticatedReceptionRoute: AuthenticatedReceptionRoute,
+  AuthenticatedWardRoute: AuthenticatedWardRoute,
   AuthenticatedPatientsPatientIdRoute: AuthenticatedPatientsPatientIdRoute,
   AuthenticatedPatientsIndexRoute: AuthenticatedPatientsIndexRoute,
 }

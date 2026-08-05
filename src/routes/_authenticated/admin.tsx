@@ -249,8 +249,11 @@ function AdminWorkspace() {
             { role: "doctor", label: "Test as Doctor", to: "/doctor" },
             { role: "lab_tech", label: "Test as Lab Tech", to: "/laboratory" },
             { role: "radiologist", label: "Test as Radiologist", to: "/radiology" },
+            { role: "ward_manager", label: "Test as Ward Manager", to: "/ward" },
             { role: "pharmacist", label: "Test as Pharmacist", to: "/pharmacy" },
             { role: "billing_clerk", label: "Test as Billing Clerk", to: "/billing" },
+            { role: "hr_manager", label: "Test as HR Operations", to: "/hr" },
+            { role: "ceo", label: "Test as CEO / Executive", to: "/executive" },
           ].map((item) => (
             <button
               key={item.role}

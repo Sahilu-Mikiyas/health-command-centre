@@ -8,6 +8,8 @@ export type AppRole =
   | "pharmacist"
   | "lab_tech"
   | "radiologist"
+  | "ward_manager"
+  | "hr_manager"
   | "billing_clerk";
 
 export const ROLE_LABELS: Record<AppRole, string> = {
@@ -20,6 +22,8 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   pharmacist: "Clinical Pharmacist",
   lab_tech: "Lab Technologist",
   radiologist: "Radiology Specialist",
+  ward_manager: "Ward & Bed Manager",
+  hr_manager: "HR & Staff Operations",
   billing_clerk: "Billing & Financial Clerk",
 };
 
@@ -34,6 +38,8 @@ export const ROUTE_PERMISSIONS: Record<string, AppRole[]> = {
     "pharmacist",
     "lab_tech",
     "radiologist",
+    "ward_manager",
+    "hr_manager",
     "billing_clerk",
   ],
   "/digital-twin": ["super_admin", "ceo", "medical_director", "doctor", "nurse"],
@@ -47,6 +53,8 @@ export const ROUTE_PERMISSIONS: Record<string, AppRole[]> = {
     "pharmacist",
     "lab_tech",
     "radiologist",
+    "ward_manager",
+    "hr_manager",
     "billing_clerk",
   ],
   "/patients": [
@@ -59,6 +67,8 @@ export const ROUTE_PERMISSIONS: Record<string, AppRole[]> = {
     "pharmacist",
     "lab_tech",
     "radiologist",
+    "ward_manager",
+    "hr_manager",
     "billing_clerk",
   ],
   "/reception": ["super_admin", "ceo", "medical_director", "nurse", "receptionist"],
@@ -67,6 +77,9 @@ export const ROUTE_PERMISSIONS: Record<string, AppRole[]> = {
   "/laboratory": ["super_admin", "ceo", "medical_director", "doctor", "lab_tech"],
   "/radiology": ["super_admin", "ceo", "medical_director", "doctor", "radiologist", "lab_tech"],
   "/pharmacy": ["super_admin", "ceo", "medical_director", "doctor", "pharmacist"],
+  "/ward": ["super_admin", "ceo", "medical_director", "ward_manager", "nurse"],
+  "/hr": ["super_admin", "ceo", "hr_manager"],
+  "/executive": ["super_admin", "ceo", "medical_director"],
   "/billing": ["super_admin", "ceo", "medical_director", "billing_clerk"],
   "/admin": ["super_admin"],
 };
@@ -91,15 +104,16 @@ export function hasRouteAccess(roles: string[] | undefined, routePath: string): 
 export function getDefaultRedirect(roles: string[] | undefined): string {
   const effectiveRoles = !roles || roles.length === 0 ? ["super_admin"] : roles;
 
-  if (effectiveRoles.includes("super_admin") || effectiveRoles.includes("ceo") || effectiveRoles.includes("medical_director")) {
-    return "/command-centre";
-  }
+  if (effectiveRoles.includes("super_admin")) return "/admin";
+  if (effectiveRoles.includes("ceo") || effectiveRoles.includes("medical_director")) return "/executive";
   if (effectiveRoles.includes("doctor")) return "/doctor";
   if (effectiveRoles.includes("nurse")) return "/nurse";
   if (effectiveRoles.includes("pharmacist")) return "/pharmacy";
   if (effectiveRoles.includes("lab_tech")) return "/laboratory";
   if (effectiveRoles.includes("radiologist")) return "/radiology";
   if (effectiveRoles.includes("receptionist")) return "/reception";
+  if (effectiveRoles.includes("ward_manager")) return "/ward";
+  if (effectiveRoles.includes("hr_manager")) return "/hr";
   if (effectiveRoles.includes("billing_clerk")) return "/billing";
 
   return "/command-centre";
