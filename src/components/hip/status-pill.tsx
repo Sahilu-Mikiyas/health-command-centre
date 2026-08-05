@@ -1,25 +1,41 @@
 import { cn } from "@/lib/utils";
 
-export type OpStatus = "healthy" | "busy" | "critical" | "offline";
+export type OpStatus = "healthy" | "busy" | "critical" | "offline" | "info" | "ai";
 
-const toneMap: Record<OpStatus, { dot: string; text: string; ring: string }> = {
-  healthy: { dot: "bg-ok", text: "text-ok", ring: "ring-ok/30" },
-  busy: { dot: "bg-warn", text: "text-warn", ring: "ring-warn/30" },
-  critical: { dot: "bg-crit", text: "text-crit", ring: "ring-crit/30" },
-  offline: { dot: "bg-muted-foreground", text: "text-muted-foreground", ring: "ring-border" },
+const toneMap: Record<OpStatus, { pill: string; dot: string }> = {
+  healthy: {
+    pill: "bg-emerald-50 text-emerald-700 border-emerald-200 shadow-2xs",
+    dot: "bg-emerald-500",
+  },
+  busy: {
+    pill: "bg-amber-50 text-amber-700 border-amber-200 shadow-2xs",
+    dot: "bg-amber-500",
+  },
+  critical: {
+    pill: "bg-rose-50 text-rose-700 border-rose-200 shadow-2xs",
+    dot: "bg-rose-500",
+  },
+  offline: {
+    pill: "bg-slate-100 text-slate-600 border-slate-200 shadow-2xs",
+    dot: "bg-slate-400",
+  },
+  info: {
+    pill: "bg-sky-50 text-sky-700 border-sky-200 shadow-2xs",
+    dot: "bg-sky-500",
+  },
+  ai: {
+    pill: "bg-purple-50 text-purple-700 border-purple-200 shadow-2xs",
+    dot: "bg-purple-500",
+  },
 };
 
 export function StatusDot({ status, pulse = true }: { status: OpStatus; pulse?: boolean }) {
   return (
-    <span className="relative inline-flex size-2.5 items-center justify-center">
-      <span
-        className={cn(
-          "absolute inline-flex size-2.5 rounded-full",
-          toneMap[status].dot,
-          pulse && status !== "offline" && "animate-status-pulse",
-        )}
-      />
-      <span className={cn("inline-flex size-1.5 rounded-full", toneMap[status].dot)} />
+    <span className="relative inline-flex size-2 items-center justify-center">
+      {pulse && status !== "offline" ? (
+        <span className={cn("absolute inline-flex size-3 rounded-full opacity-75 animate-ping", toneMap[status].dot)} />
+      ) : null}
+      <span className={cn("inline-flex size-2 rounded-full", toneMap[status].dot)} />
     </span>
   );
 }
@@ -36,9 +52,8 @@ export function StatusPill({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-2 rounded-full bg-surface-raised px-2.5 py-1 text-xs font-medium ring-1",
-        toneMap[status].text,
-        toneMap[status].ring,
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide",
+        toneMap[status]?.pill ?? toneMap.info.pill,
         className,
       )}
     >

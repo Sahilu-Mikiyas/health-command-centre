@@ -52,27 +52,20 @@ export function AppShell({
             </button>
             {navGroups.map((group) => (
               <div key={group.label}>
-                <p className="pb-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                <p className="pb-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-semibold">
                   {group.label}
                 </p>
                 <ul className="space-y-1">
                   {group.items.map((item) => (
                     <li key={item.to}>
-                      {item.phase > 3 ? (
-                        <span className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-sidebar-foreground/40">
-                          <item.icon className="size-4" />
-                          {item.label}
-                        </span>
-                      ) : (
-                        <Link
-                          to={item.to}
-                          onClick={() => setMobileOpen(false)}
-                          className="flex items-center gap-2 rounded-md px-2 py-2 text-sm text-sidebar-foreground/80"
-                        >
-                          <item.icon className="size-4" />
-                          {item.label}
-                        </Link>
-                      )}
+                      <Link
+                        to={item.to}
+                        onClick={() => setMobileOpen(false)}
+                        className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium text-sidebar-foreground/80 hover:bg-sidebar-accent transition-colors"
+                      >
+                        <item.icon className="size-4" />
+                        {item.label}
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -85,41 +78,41 @@ export function AppShell({
       <div className="flex min-w-0 flex-1 flex-col">
         <StatusRibbon />
 
-        <div className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-3">
+        <div className="sticky top-0 z-30 flex flex-wrap items-center gap-3 border-b border-border/80 bg-white/70 backdrop-blur-xl px-6 py-3.5 shadow-xs">
           <button
             type="button"
             onClick={() => setMobileOpen(true)}
-            className="text-muted-foreground lg:hidden"
+            className="text-muted-foreground lg:hidden hover:text-foreground"
             aria-label="Open navigation"
           >
             <Menu className="size-5" />
           </button>
           <div className="min-w-0">
-            <h2 className="truncate text-lg font-semibold tracking-tight">{title}</h2>
+            <h2 className="truncate text-xl font-bold tracking-tight text-slate-900">{title}</h2>
             {subtitle ? (
-              <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
+              <p className="truncate text-xs font-medium text-slate-500">{subtitle}</p>
             ) : null}
           </div>
           <div className="ml-auto flex items-center gap-3">
             {actions}
-            <div className="hidden text-right sm:block">
-              <p className="text-xs font-medium">{me?.profile?.full_name ?? me?.email ?? "—"}</p>
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                {me?.roles?.[0]?.replace(/_/g, " ") ?? "staff"}
+            <div className="hidden text-right sm:block border-l border-slate-200/80 pl-3">
+              <p className="text-xs font-semibold text-slate-800">{me?.profile?.full_name ?? me?.email ?? "Dr. Sarah Hana"}</p>
+              <p className="text-[10px] uppercase tracking-wider font-semibold text-indigo-600">
+                {me?.roles?.[0]?.replace(/_/g, " ") ?? "Medical Director"}
               </p>
             </div>
             <button
               type="button"
               onClick={signOut}
               title="Sign out"
-              className="rounded-md border border-border p-2 text-muted-foreground transition-colors hover:text-foreground"
+              className="rounded-lg border border-slate-200 bg-white/80 p-2 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 shadow-2xs"
             >
               <LogOut className="size-4" />
             </button>
           </div>
         </div>
 
-        <main className="min-w-0 flex-1 p-4">{children}</main>
+        <main className="min-w-0 flex-1 p-6">{children}</main>
       </div>
     </div>
   );

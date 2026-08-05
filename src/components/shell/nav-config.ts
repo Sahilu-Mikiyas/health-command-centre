@@ -3,6 +3,7 @@ import {
   Banknote,
   Boxes,
   Building2,
+  Cpu,
   FlaskConical,
   HeartPulse,
   LayoutDashboard,
@@ -17,7 +18,6 @@ export type NavItem = {
   label: string;
   to: string;
   icon: typeof Activity;
-  /** Phase that ships this workspace. Items past phase 1 render as "coming online". */
   phase: number;
 };
 
@@ -28,26 +28,25 @@ export const navGroups: NavGroup[] = [
     label: "Command",
     items: [
       { label: "Command Centre", to: "/command-centre", icon: LayoutDashboard, phase: 1 },
-      { label: "Event Monitor", to: "/events", icon: Radio, phase: 1 },
-      { label: "Patients", to: "/patients", icon: Users, phase: 1 },
+      { label: "Digital Twin", to: "/digital-twin", icon: Cpu, phase: 1 },
+      { label: "Event Ledger", to: "/events", icon: Radio, phase: 1 },
+      { label: "Patient Records", to: "/patients", icon: Users, phase: 1 },
     ],
   },
   {
-    label: "Clinical",
+    label: "Clinical Operations",
     items: [
-      { label: "Reception", to: "/reception", icon: Building2, phase: 2 },
-      { label: "Doctor", to: "/doctor", icon: Stethoscope, phase: 3 },
-      { label: "Nursing", to: "/nursing", icon: HeartPulse, phase: 4 },
-      { label: "Laboratory", to: "/laboratory", icon: FlaskConical, phase: 5 },
-      { label: "Radiology", to: "/radiology", icon: Scan, phase: 6 },
-      { label: "Pharmacy", to: "/pharmacy", icon: Boxes, phase: 7 },
+      { label: "Reception & Triage", to: "/reception", icon: Building2, phase: 1 },
+      { label: "Doctor Workspace", to: "/doctor", icon: Stethoscope, phase: 1 },
+      { label: "Laboratory", to: "/laboratory", icon: FlaskConical, phase: 1 },
+      { label: "AI Pharmacy", to: "/pharmacy", icon: Boxes, phase: 1 },
     ],
   },
   {
-    label: "Business",
+    label: "Finance & Admin",
     items: [
-      { label: "Billing", to: "/billing", icon: Banknote, phase: 8 },
-      { label: "Super Admin", to: "/admin", icon: ShieldCheck, phase: 11 },
+      { label: "Billing & Ledger", to: "/billing", icon: Banknote, phase: 1 },
+      { label: "Super Admin", to: "/admin", icon: ShieldCheck, phase: 1 },
     ],
   },
 ];

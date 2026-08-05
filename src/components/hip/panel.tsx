@@ -18,19 +18,19 @@ export function Panel({
   bodyClassName?: string;
 }) {
   return (
-    <section className={cn("panel flex flex-col overflow-hidden", className)}>
+    <section className={cn("rounded-2xl border border-slate-200/80 bg-white/80 backdrop-blur-xl shadow-xs transition-all duration-200 flex flex-col overflow-hidden", className)}>
       {title ? (
-        <header className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
+        <header className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-3.5 bg-slate-50/50">
           <div>
-            <h2 className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
               {title}
             </h2>
-            {subtitle ? <p className="mt-1 text-sm text-foreground/80">{subtitle}</p> : null}
+            {subtitle ? <p className="mt-0.5 text-xs text-slate-600 font-medium">{subtitle}</p> : null}
           </div>
           {action}
         </header>
       ) : null}
-      <div className={cn("flex-1 p-4", bodyClassName)}>{children}</div>
+      <div className={cn("flex-1 p-5", bodyClassName)}>{children}</div>
     </section>
   );
 }
@@ -47,17 +47,17 @@ export function Stat({
   tone?: "default" | "ok" | "warn" | "crit";
 }) {
   const toneClass = {
-    default: "text-foreground",
-    ok: "text-ok",
-    warn: "text-warn",
-    crit: "text-crit",
+    default: "text-slate-900",
+    ok: "text-emerald-600",
+    warn: "text-amber-600",
+    crit: "text-rose-600",
   }[tone];
 
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</span>
-      <span className={cn("numeric text-2xl font-semibold leading-none", toneClass)}>{value}</span>
-      {hint ? <span className="text-xs text-muted-foreground">{hint}</span> : null}
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{label}</span>
+      <span className={cn("numeric text-3xl font-extrabold tracking-tight leading-none", toneClass)}>{value}</span>
+      {hint ? <span className="text-xs font-medium text-slate-500 mt-1">{hint}</span> : null}
     </div>
   );
 }
