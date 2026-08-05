@@ -137,9 +137,12 @@ function CommandCentre() {
             <AlertCard
               severity="critical"
               title={`${criticalDepartments.length} department(s) critical`}
-              detail={criticalDepartments.map((d) => d.name).join(", ")}
-            />
+              meta="Live department status"
+            >
+              {criticalDepartments.map((d) => d.name).join(", ")}
+            </AlertCard>
           ) : null}
+
 
           <Panel
             title="Event stream"
