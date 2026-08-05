@@ -91,7 +91,6 @@ export function HospitalBrainPanel() {
     <Panel
       title="Hospital Brain"
       subtitle="Live narrative intelligence"
-      icon={<Brain className="size-4 text-accent" />}
       action={
         <Button
           size="sm"
