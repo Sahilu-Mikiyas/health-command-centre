@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Activity } from "lucide-react";
+import { Activity, Shield } from "lucide-react";
 
 import { navGroups } from "@/components/shell/nav-config";
 import { cn } from "@/lib/utils";
@@ -8,26 +8,26 @@ export function AppSidebar() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
 
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-r border-slate-200/80 bg-white/70 backdrop-blur-xl lg:flex">
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-slate-100">
-        <span className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 text-sm font-bold text-white shadow-md shadow-indigo-500/20">
-          <Activity className="size-5" />
+    <aside className="hidden w-64 shrink-0 flex-col border-r border-white/10 bg-[#0F172A]/70 backdrop-blur-2xl lg:flex">
+      <div className="flex items-center gap-3 px-6 py-5 border-b border-white/10">
+        <span className="relative grid size-10 place-items-center rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-600 to-cyan-500 text-white shadow-lg shadow-indigo-500/30">
+          <Activity className="size-6 animate-pulse" />
         </span>
         <div className="leading-tight">
-          <p className="text-base font-extrabold tracking-tight text-slate-900">Meridian HIP</p>
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-indigo-600">
-            Hospital Intelligence
+          <h2 className="text-base font-black tracking-tight text-white">Meridian HIP</h2>
+          <p className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-400">
+            Hospital Command OS
           </p>
         </div>
       </div>
 
-      <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4">
+      <nav className="flex-1 space-y-6 overflow-y-auto px-4 py-6">
         {navGroups.map((group) => (
           <div key={group.label}>
-            <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+            <p className="px-3 pb-2 text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
               {group.label}
             </p>
-            <ul className="space-y-1">
+            <ul className="space-y-1.5">
               {group.items.map((item) => {
                 const active = pathname.startsWith(item.to);
                 return (
@@ -35,13 +35,13 @@ export function AppSidebar() {
                     <Link
                       to={item.to}
                       className={cn(
-                        "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150",
+                        "flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold transition-all duration-200",
                         active
-                          ? "bg-indigo-50 text-indigo-700 font-semibold shadow-xs border border-indigo-100"
-                          : "text-slate-600 hover:bg-slate-100/70 hover:text-slate-900",
+                          ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/25 font-bold"
+                          : "text-slate-400 hover:bg-slate-800/60 hover:text-white",
                       )}
                     >
-                      <item.icon className={cn("size-4 shrink-0", active ? "text-indigo-600" : "text-slate-400")} />
+                      <item.icon className={cn("size-4 shrink-0", active ? "text-white" : "text-slate-400")} />
                       <span className="flex-1 truncate">{item.label}</span>
                     </Link>
                   </li>
@@ -52,14 +52,14 @@ export function AppSidebar() {
         ))}
       </nav>
 
-      <div className="p-4 border-t border-slate-100">
-        <div className="rounded-xl bg-gradient-to-br from-indigo-50 to-blue-50/80 p-3 border border-indigo-100/80 text-xs">
-          <div className="flex items-center gap-2 text-indigo-700 font-semibold mb-1">
-            <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Event-Driven OS</span>
+      <div className="p-4 border-t border-white/10">
+        <div className="rounded-2xl bg-gradient-to-br from-indigo-950/80 to-slate-900/90 p-4 border border-indigo-500/30 text-xs">
+          <div className="flex items-center gap-2 text-indigo-300 font-extrabold mb-1">
+            <span className="size-2 rounded-full bg-emerald-400 animate-ping" />
+            <span>Event Engine Active</span>
           </div>
-          <p className="text-slate-600 text-[11px] leading-relaxed">
-            All departments synced via real-time append-only event ledger.
+          <p className="text-slate-400 text-[11px] leading-relaxed font-medium">
+            Append-only ledger syncing all care units in real-time.
           </p>
         </div>
       </div>
