@@ -8,6 +8,7 @@ import {
   Clock,
   FileCheck,
   FileSpreadsheet,
+  FileText,
   FlaskConical,
   Microscope,
   Printer,
