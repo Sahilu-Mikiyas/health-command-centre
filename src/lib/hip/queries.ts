@@ -10,7 +10,7 @@ export type EventRow = {
   actor_label: string | null;
   entity_type: string | null;
   entity_id: string | null;
-  payload: Record<string, unknown> | null;
+  payload: unknown;
   occurred_at: string;
 };
 
