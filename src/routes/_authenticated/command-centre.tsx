@@ -27,13 +27,6 @@ export const Route = createFileRoute("/_authenticated/command-centre")({
         content:
           "Live hospital digital twin: occupancy, patient flow, department status, staffing and critical alerts in one operational view.",
       },
-      { property: "og:title", content: "Command Centre | Meridian HIP" },
-      {
-        property: "og:description",
-        content: "Live hospital digital twin: occupancy, flow, staffing and critical alerts.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: CommandCentre,
@@ -55,15 +48,15 @@ function CommandCentre() {
       title="Hospital Command Centre"
       subtitle={hospital.data ? `${hospital.data.name} · live digital twin` : "Loading hospital…"}
     >
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="space-y-4">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="space-y-6">
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <Panel>
-              <div className="flex items-center gap-4">
-                <MetricRing value={Math.round(occupancy * 100)} label="Occupancy" />
-                <div className="space-y-1 text-xs text-muted-foreground">
-                  <p className="numeric text-foreground">{beds.data?.occupied ?? 0} occupied</p>
-                  <p>{beds.data?.available ?? 0} available</p>
+              <div className="flex items-center gap-3">
+                <MetricRing value={Math.round(occupancy * 100)} label="Occupancy" size={92} />
+                <div className="space-y-1 text-xs font-semibold text-[#86868B]">
+                  <p className="numeric text-black font-extrabold">{beds.data?.occupied ?? 0} occupied</p>
+                  <p className="text-[#34C759] font-bold">{beds.data?.available ?? 0} available</p>
                   <p>{beds.data?.cleaning ?? 0} in cleaning</p>
                 </div>
               </div>
@@ -96,9 +89,9 @@ function CommandCentre() {
           <Panel title="Patient flow" subtitle="Live stage distribution">
             <div className="grid gap-3 sm:grid-cols-4 lg:grid-cols-8">
               {(flow.data?.stages ?? []).map((stage) => (
-                <div key={stage.stage} className="rounded-md border border-border p-3">
-                  <p className="numeric text-xl font-semibold">{stage.count}</p>
-                  <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                <div key={stage.stage} className="rounded-2xl border border-black/5 bg-[#F5F5F7] p-3 text-center">
+                  <p className="numeric text-xl font-black text-black">{stage.count}</p>
+                  <p className="mt-1 text-[10px] uppercase font-bold tracking-wider text-[#86868B] truncate">
                     {stage.stage}
                   </p>
                 </div>
@@ -111,15 +104,15 @@ function CommandCentre() {
             subtitle="Operational status"
             action={<DrillDownLink to="/patients">Patient index</DrillDownLink>}
           >
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {(departments.data ?? []).map((department) => (
                 <div
                   key={department.id}
-                  className="flex items-center justify-between gap-2 rounded-md border border-border px-3 py-2"
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-black/5 bg-[#F5F5F7] p-3.5"
                 >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{department.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold text-black">{department.name}</p>
+                    <p className="truncate text-xs font-medium text-[#86868B]">
                       {department.location ?? department.code}
                     </p>
                   </div>
@@ -130,7 +123,7 @@ function CommandCentre() {
           </Panel>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           <HospitalBrainPanel />
 
           {criticalDepartments.length > 0 ? (
@@ -142,7 +135,6 @@ function CommandCentre() {
               {criticalDepartments.map((d) => d.name).join(", ")}
             </AlertCard>
           ) : null}
-
 
           <Panel
             title="Event stream"
