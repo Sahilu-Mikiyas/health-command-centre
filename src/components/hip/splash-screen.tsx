@@ -1,5 +1,4 @@
 import { useRouter } from "@tanstack/react-router";
-import { Activity, Clock, ShieldCheck, Sparkles, Stethoscope } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export type SplashScreenProps = {
@@ -28,15 +27,13 @@ export function SplashScreen({
         now.toLocaleTimeString("en-US", {
           hour: "2-digit",
           minute: "2-digit",
-          second: "2-digit",
           hour12: true,
         }),
       );
       setDateStr(
         now.toLocaleDateString("en-US", {
-          weekday: "long",
-          year: "numeric",
-          month: "long",
+          weekday: "short",
+          month: "short",
           day: "numeric",
         }),
       );
@@ -47,10 +44,10 @@ export function SplashScreen({
     return () => clearInterval(interval);
   }, []);
 
-  // Smooth Progress Bar & Transition Timer (~2.5s)
+  // Smooth Progress Bar (~1.8s)
   useEffect(() => {
     const start = Date.now();
-    const duration = 2400; // 2.4 seconds
+    const duration = 1800;
 
     const timer = setInterval(() => {
       const elapsed = Date.now() - start;
@@ -62,88 +59,55 @@ export function SplashScreen({
         setTimeout(() => {
           if (onComplete) onComplete();
           void router.navigate({ to: targetRoute as any });
-        }, 200);
+        }, 150);
       }
-    }, 40);
+    }, 30);
 
     return () => clearInterval(timer);
   }, [router, targetRoute, onComplete]);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-between bg-black text-white p-6 sm:p-12 animate-in fade-in duration-300 selection:bg-white selection:text-black">
-      {/* Top Header & Live Clock */}
-      <div className="w-full max-w-4xl flex items-center justify-between border-b border-white/10 pb-6">
-        <div className="flex items-center gap-3">
-          <div className="grid size-10 place-items-center rounded-2xl bg-white text-black font-black text-lg shadow-lg">
-            F
-          </div>
-          <div>
-            <h2 className="font-extrabold text-sm tracking-wider uppercase text-white">
-              Furii Hospital OS
-            </h2>
-            <p className="text-[10px] font-semibold text-[#86868B] tracking-widest uppercase">
-              Clinical Intelligence Suite
-            </p>
-          </div>
-        </div>
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-between bg-[#F5F5F7] text-black p-6 sm:p-10 animate-in fade-in duration-200">
+      {/* Top Header & Minimal Live Clock */}
+      <div className="w-full max-w-2xl flex items-center justify-between border-b border-black/5 pb-4">
+        <span className="text-xs font-bold tracking-wider text-[#86868B] uppercase">
+          Furii Hospital
+        </span>
 
-        {/* Live Digital Clock */}
-        <div className="text-right">
-          <div className="flex items-center justify-end gap-2 text-xl font-mono font-bold tracking-tight text-white numeric">
-            <Clock className="size-4 text-[#34C759] animate-pulse" />
-            <span>{timeStr || "11:10:49 AM"}</span>
-          </div>
-          <p className="text-[10px] font-medium text-[#86868B] tracking-wide mt-0.5">
-            {dateStr}
-          </p>
+        {/* Minimalist Live Clock */}
+        <div className="text-right font-medium">
+          <span className="text-sm font-bold text-black font-mono tracking-tight">{timeStr}</span>
+          <span className="text-xs text-[#86868B] ml-2 font-medium">{dateStr}</span>
         </div>
       </div>
 
-      {/* Main Center Welcome Card */}
-      <div className="w-full max-w-lg text-center space-y-6 my-auto">
-        <div className="relative inline-flex items-center justify-center">
-          <div className="absolute inset-0 rounded-full bg-white/10 blur-xl animate-pulse" />
-          <div className="relative grid size-20 place-items-center rounded-full bg-white/10 border border-white/20 text-white shadow-2xl backdrop-blur-2xl">
-            <Sparkles className="size-10 text-white animate-spin-slow" />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 border border-white/15 px-4 py-1 text-xs font-extrabold uppercase tracking-widest text-slate-300">
-            <ShieldCheck className="size-3.5 text-[#34C759]" /> Authentication Verified
-          </span>
-          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
-            Welcome, {staffName}!
-          </h1>
-          <p className="text-sm font-semibold text-[#86868B]">
-            Initializing authorized perspective for{" "}
-            <span className="text-white font-bold underline underline-offset-4 decoration-white/30">
-              {roleLabel}
-            </span>
+      {/* Main Minimalist Welcome Card */}
+      <div className="w-full max-w-md text-center space-y-4 my-auto">
+        <div className="space-y-1">
+          <p className="text-xs font-bold tracking-widest text-[#86868B] uppercase">
+            {roleLabel}
           </p>
+          <h1 className="text-2xl sm:text-3xl font-black text-black tracking-tight">
+            Welcome, {staffName}
+          </h1>
         </div>
 
-        {/* Progress Bar & Subtext */}
-        <div className="space-y-3 pt-4">
-          <div className="relative h-2 w-full overflow-hidden rounded-full bg-white/10 p-0.5 border border-white/10">
+        {/* Minimalist Progress Line */}
+        <div className="w-full max-w-xs mx-auto pt-3">
+          <div className="h-1 w-full overflow-hidden rounded-full bg-black/10">
             <div
-              className="h-full rounded-full bg-white transition-all duration-75 ease-out shadow-[0_0_12px_rgba(255,255,255,0.8)]"
+              className="h-full rounded-full bg-black transition-all duration-75 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <div className="flex items-center justify-between text-xs font-semibold text-[#86868B]">
-            <span className="flex items-center gap-1.5 text-slate-300">
-              <Activity className="size-3.5 text-[#34C759] animate-spin" /> Loading workspace telemetry...
-            </span>
-            <span className="font-mono font-bold text-white">{progress}%</span>
-          </div>
         </div>
       </div>
 
-      {/* Footer Legal & Security */}
-      <div className="w-full max-w-4xl text-center border-t border-white/10 pt-4 text-[11px] font-medium text-[#86868B] flex flex-col sm:flex-row items-center justify-between gap-2">
-        <p>Furii Hospital Operations System · Protected Health Information (PHI)</p>
-        <p className="font-mono text-[10px]">Session Key: 0x8F92...E4A1</p>
+      {/* Minimal Footer */}
+      <div className="w-full max-w-2xl text-center border-t border-black/5 pt-4">
+        <p className="text-[11px] text-[#86868B] font-medium">
+          Entering workspace...
+        </p>
       </div>
     </div>
   );
