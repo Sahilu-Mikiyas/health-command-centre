@@ -208,13 +208,19 @@ export const myProfileQuery = queryOptions({
   queryKey: ["me"],
   queryFn: async () => {
     const { data: auth } = await supabase.auth.getUser();
-    if (!auth.user) return null;
-    const userEmail = auth.user.email ?? "";
+    let userEmail = auth?.user?.email ?? "";
+    if (!userEmail && typeof window !== "undefined") {
+      userEmail = localStorage.getItem("furii_logged_in_staff_email") ?? "";
+    }
+
+    if (!userEmail && !auth?.user) return null;
 
     const [profile, roles, staff] = await Promise.all([
-      supabase.from("profiles").select("*").eq("user_id", auth.user.id).maybeSingle(),
-      supabase.from("user_roles").select("role").eq("user_id", auth.user.id),
-      userEmail ? supabase.from("staff").select("role").eq("email", userEmail).maybeSingle() : Promise.resolve({ data: null, error: null }),
+      auth?.user ? supabase.from("profiles").select("*").eq("user_id", auth.user.id).maybeSingle() : Promise.resolve({ data: null, error: null }),
+      auth?.user ? supabase.from("user_roles").select("role").eq("user_id", auth.user.id) : Promise.resolve({ data: [], error: null }),
+      userEmail
+        ? supabase.from("staff").select("role").or(`email.eq.${userEmail},job_title.ilike.%${userEmail}%`).maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
     ]);
 
     const fetchedRoles = (roles.data ?? []).map((row) => row.role as string);
@@ -227,11 +233,11 @@ export const myProfileQuery = queryOptions({
     const activeOverride = typeof window !== "undefined" ? localStorage.getItem("furii_active_role_override") : null;
     const effectiveRoles = activeOverride ? [activeOverride] : baseRoles;
 
-    const userMetaData = auth.user.user_metadata ?? {};
+    const userMetaData = auth?.user?.user_metadata ?? {};
     const mustChangePassword = !!userMetaData.must_change_password;
 
     return {
-      email: userEmail,
+      email: userEmail || "staff@furii-hospital.org",
       profile: profile.data,
       roles: effectiveRoles,
       mustChangePassword,

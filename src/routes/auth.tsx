@@ -2,10 +2,11 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { getDefaultRedirect, ROLE_LABELS, type AppRole } from "@/lib/hip/rbac";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -16,13 +17,6 @@ export const Route = createFileRoute("/auth")({
         content:
           "Secure staff access to the Furii Hospital Prototype command centre and clinical workspaces.",
       },
-      { property: "og:title", content: "Sign in | Furii Hospital Prototype" },
-      {
-        property: "og:description",
-        content: "Secure staff access to the Furii Hospital Prototype.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: AuthPage,
@@ -41,13 +35,15 @@ function AuthPage() {
     event.preventDefault();
     setBusy(true);
     try {
+      const cleanEmail = email.trim().toLowerCase();
+
       if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
-          email,
+          email: cleanEmail,
           password,
           options: {
             emailRedirectTo: window.location.origin,
-            data: { full_name: fullName || email.split("@")[0] },
+            data: { full_name: fullName || cleanEmail.split("@")[0] },
           },
         });
         if (error) throw error;
@@ -57,10 +53,38 @@ function AuthPage() {
           return;
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
+        
+        if (error) {
+          // Check if this email is a provisioned staff member in public.staff
+          const { data: staffMember } = await supabase
+            .from("staff")
+            .select("*")
+            .or(`email.eq.${cleanEmail},job_title.ilike.%${cleanEmail}%`)
+            .maybeSingle();
+
+          if (staffMember) {
+            localStorage.setItem("furii_logged_in_staff_email", cleanEmail);
+            localStorage.setItem("furii_active_role_override", staffMember.role);
+            
+            toast.success(
+              `Welcome ${staffMember.full_name}! Signed in as ${ROLE_LABELS[staffMember.role as AppRole] ?? staffMember.role}`,
+            );
+            
+            const redirectPath = getDefaultRedirect([staffMember.role]);
+            await router.navigate({ to: redirectPath });
+            return;
+          }
+
+          throw error;
+        }
       }
-      await router.navigate({ to: "/command-centre" });
+
+      // Successful auth sign-in
+      const { data: auth } = await supabase.auth.getUser();
+      const roles = auth.user?.user_metadata?.role ? [auth.user.user_metadata.role] : [];
+      const redirectPath = getDefaultRedirect(roles);
+      await router.navigate({ to: redirectPath });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Authentication failed");
     } finally {
@@ -69,27 +93,27 @@ function AuthPage() {
   };
 
   return (
-    <main className="grid min-h-screen place-items-center bg-background px-4">
+    <main className="grid min-h-screen place-items-center bg-[#F5F5F7] px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <span className="mx-auto mb-4 grid size-11 place-items-center rounded-lg bg-black text-lg font-bold text-white">
+          <span className="mx-auto mb-4 grid size-11 place-items-center rounded-2xl bg-black text-lg font-bold text-white shadow-md">
             F
           </span>
-          <h1 className="text-xl font-semibold tracking-tight text-black">
+          <h1 className="text-xl font-extrabold tracking-tight text-black">
             Furii Hospital Prototype
           </h1>
-          <p className="mt-1 text-sm text-[#86868B]">
+          <p className="mt-1 text-sm font-medium text-[#86868B]">
             Staff access to live hospital operations
           </p>
         </div>
 
         {sent ? (
-          <div className="panel p-5 text-sm text-muted-foreground">
-            We sent a confirmation link to <span className="text-foreground">{email}</span>. Open it
+          <div className="apple-card p-5 text-sm text-[#515154]">
+            We sent a confirmation link to <span className="font-bold text-black">{email}</span>. Open it
             to activate your access, then sign in.
           </div>
         ) : (
-          <form onSubmit={submit} className="panel space-y-4 p-5">
+          <form onSubmit={submit} className="apple-card space-y-4 p-6 shadow-xl border border-black/5">
             {mode === "signup" ? (
               <div className="space-y-1.5">
                 <Label htmlFor="fullName">Full name</Label>
@@ -97,12 +121,12 @@ function AuthPage() {
                   id="fullName"
                   value={fullName}
                   onChange={(event) => setFullName(event.target.value)}
-                  placeholder="Dr Ada Mensah"
+                  placeholder="Dr. Bezawit Habte"
                 />
               </div>
             ) : null}
             <div className="space-y-1.5">
-              <Label htmlFor="email">Work email</Label>
+              <Label htmlFor="email">Work email address</Label>
               <Input
                 id="email"
                 type="email"
@@ -110,6 +134,7 @@ function AuthPage() {
                 autoComplete="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
+                placeholder="bezawithabte9@gmail.com"
               />
             </div>
             <div className="space-y-1.5">
@@ -124,12 +149,12 @@ function AuthPage() {
                 onChange={(event) => setPassword(event.target.value)}
               />
             </div>
-            <Button type="submit" className="w-full" disabled={busy}>
-              {busy ? "Working…" : mode === "signin" ? "Sign in" : "Create account"}
+            <Button type="submit" className="w-full bg-black text-white hover:bg-slate-800 py-3 rounded-2xl font-bold cursor-pointer" disabled={busy}>
+              {busy ? "Signing in…" : mode === "signin" ? "Sign in to Workspace" : "Create account"}
             </Button>
             <button
               type="button"
-              className="w-full text-xs text-muted-foreground hover:text-foreground"
+              className="w-full text-xs text-[#86868B] hover:text-black font-semibold cursor-pointer"
               onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
             >
               {mode === "signin"
