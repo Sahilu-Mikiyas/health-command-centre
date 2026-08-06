@@ -101,44 +101,26 @@ function AdminWorkspace() {
     mutationFn: async () => {
       const lic = licenseNumber || `LIC-${Math.floor(10000 + Math.random() * 90000)}`;
       const cleanEmail = email.trim();
-      const richTitle = `${ROLE_LABELS[selectedRole]} · ${department} (${lic})${cleanEmail ? ` · ${cleanEmail}` : ""}`;
+      const cleanPhone = phone.trim();
 
-      let payload: Record<string, any> = {
-        full_name: fullName,
-        email: cleanEmail || undefined,
-        phone: phone.trim() || undefined,
-        license_number: lic,
+      const richTitle = `${ROLE_LABELS[selectedRole]} · ${department} | ID: ${lic}${cleanEmail ? ` | Email: ${cleanEmail}` : ""}${cleanPhone ? ` | Phone: ${cleanPhone}` : ""}`;
+
+      const payload = {
+        full_name: fullName.trim(),
         role: selectedRole as any,
         availability: status,
         job_title: richTitle,
         hospital_id: "11111111-1111-1111-1111-111111111111",
       };
 
-      // Try initial insert
-      let res = await supabase.from("staff").insert([payload]).select().single();
+      const { data, error } = await supabase
+        .from("staff")
+        .insert([payload])
+        .select()
+        .single();
 
-      // Retry loop removing unknown column names until insert succeeds
-      while (res.error && res.error.message.includes("schema cache")) {
-        const match = res.error.message.match(/Could not find the '([^']+)' column/);
-        if (match && match[1] && match[1] in payload) {
-          delete payload[match[1]];
-          res = await supabase.from("staff").insert([payload]).select().single();
-        } else {
-          // If no specific column matched, strip to minimal base columns
-          const basePayload = {
-            full_name: fullName,
-            role: selectedRole as any,
-            availability: status,
-            job_title: richTitle,
-            hospital_id: "11111111-1111-1111-1111-111111111111",
-          };
-          res = await supabase.from("staff").insert([basePayload]).select().single();
-          break;
-        }
-      }
-
-      if (res.error) throw new Error(res.error.message);
-      return res.data;
+      if (error) throw new Error(error.message);
+      return data;
     },
     onSuccess: (data) => {
       toast.success(`Provisioned ${data.full_name} as ${ROLE_LABELS[selectedRole]}`);
@@ -153,34 +135,14 @@ function AdminWorkspace() {
   // Update Staff Mutation
   const updateStaffMut = useMutation({
     mutationFn: async (updated: Partial<StaffMember> & { id: string }) => {
-      let payload: Record<string, any> = {
+      const payload = {
         full_name: updated.full_name,
         role: updated.role as any,
         availability: updated.availability,
-        license_number: updated.license_number,
       };
 
-      let res = await supabase.from("staff").update(payload).eq("id", updated.id);
-
-      while (res.error && res.error.message.includes("schema cache")) {
-        const match = res.error.message.match(/Could not find the '([^']+)' column/);
-        if (match && match[1] && match[1] in payload) {
-          delete payload[match[1]];
-          res = await supabase.from("staff").update(payload).eq("id", updated.id);
-        } else {
-          res = await supabase
-            .from("staff")
-            .update({
-              full_name: updated.full_name,
-              role: updated.role as any,
-              availability: updated.availability,
-            })
-            .eq("id", updated.id);
-          break;
-        }
-      }
-
-      if (res.error) throw new Error(res.error.message);
+      const { error } = await supabase.from("staff").update(payload).eq("id", updated.id);
+      if (error) throw new Error(error.message);
     },
     onSuccess: () => {
       toast.success("Staff profile updated successfully");
