@@ -1,6 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
+import { toEthiopianName } from "@/lib/hip/ethiopian-names";
 
 export type EventRow = {
   id: number;
@@ -158,7 +159,11 @@ export const patientsQuery = (search: string) =>
       if (search.trim()) {
         query = query.or(`full_name.ilike.%${search.trim()}%,mrn.ilike.%${search.trim()}%`);
       }
-      return unwrap<PatientRow[]>(await query);
+      const raw = unwrap<PatientRow[]>(await query);
+      return raw.map((p) => ({
+        ...p,
+        full_name: toEthiopianName(p.full_name),
+      }));
     },
   });
 
@@ -183,8 +188,14 @@ export const patientRecordQuery = (patientId: string) =>
           .order("started_at", { ascending: false }),
       ]);
       if (patient.error) throw new Error(patient.error.message);
+      const patientData = patient.data
+        ? {
+            ...patient.data,
+            full_name: toEthiopianName(patient.data.full_name),
+          }
+        : null;
       return {
-        patient: patient.data,
+        patient: patientData,
         allergies: allergies.data ?? [],
         conditions: conditions.data ?? [],
         vitals: vitals.data ?? [],

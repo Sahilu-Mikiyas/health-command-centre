@@ -1,6 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
+import { toEthiopianName } from "@/lib/hip/ethiopian-names";
 
 export type AppointmentRow = {
   id: string;
@@ -74,7 +75,18 @@ export const appointmentsQuery = (dayISO: string) =>
         .lt("scheduled_at", end.toISOString())
         .order("scheduled_at");
       if (error) throw new Error(error.message);
-      return (data ?? []) as unknown as AppointmentRow[];
+      
+      const mapped = ((data ?? []) as any[]).map((row) => ({
+        ...row,
+        patients: row.patients
+          ? {
+              ...row.patients,
+              full_name: toEthiopianName(row.patients.full_name),
+            }
+          : null,
+      }));
+
+      return mapped as unknown as AppointmentRow[];
     },
   });
 
@@ -88,7 +100,18 @@ export const activeEncountersQuery = queryOptions({
       .is("ended_at", null)
       .order("started_at");
     if (error) throw new Error(error.message);
-    return (data ?? []) as unknown as EncounterRow[];
+    
+    const mapped = ((data ?? []) as any[]).map((row) => ({
+      ...row,
+      patients: row.patients
+        ? {
+            ...row.patients,
+            full_name: toEthiopianName(row.patients.full_name),
+          }
+        : null,
+    }));
+
+    return mapped as unknown as EncounterRow[];
   },
 });
 
@@ -102,7 +125,20 @@ export const encounterQuery = (encounterId: string) =>
         .eq("id", encounterId)
         .maybeSingle();
       if (error) throw new Error(error.message);
-      return (data ?? null) as unknown as EncounterRow | null;
+
+      if (!data) return null;
+      const row = data as any;
+      const mapped = {
+        ...row,
+        patients: row.patients
+          ? {
+              ...row.patients,
+              full_name: toEthiopianName(row.patients.full_name),
+            }
+          : null,
+      };
+
+      return mapped as unknown as EncounterRow;
     },
   });
 
