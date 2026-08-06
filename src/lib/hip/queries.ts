@@ -208,39 +208,36 @@ export const myProfileQuery = queryOptions({
   queryKey: ["me"],
   queryFn: async () => {
     const { data: auth } = await supabase.auth.getUser();
-    let userEmail = auth?.user?.email ?? "";
-    if (!userEmail && typeof window !== "undefined") {
-      userEmail = localStorage.getItem("furii_logged_in_staff_email") ?? "";
-    }
-
-    if (!userEmail && !auth?.user) return null;
+    const user = auth?.user;
+    if (!user) return null;
 
     const [profile, roles, staff] = await Promise.all([
-      auth?.user ? supabase.from("profiles").select("*").eq("user_id", auth.user.id).maybeSingle() : Promise.resolve({ data: null, error: null }),
-      auth?.user ? supabase.from("user_roles").select("role").eq("user_id", auth.user.id) : Promise.resolve({ data: [], error: null }),
-      userEmail
-        ? supabase.from("staff").select("role").ilike("job_title", `%${userEmail}%`).limit(1)
-        : Promise.resolve({ data: [], error: null }),
+      supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
+      supabase.from("user_roles").select("role").eq("user_id", user.id),
+      supabase.from("staff").select("role,full_name,job_title").eq("user_id", user.id).maybeSingle(),
     ]);
 
-    const fetchedRoles = (roles.data ?? []).map((row) => row.role as string);
-    const staffRole = (staff.data as any[])?.[0]?.role ? [(staff.data as any[])[0].role] : [];
+    const grantedRoles = (roles.data ?? []).map((row) => row.role as string);
+    const staffRole = staff.data?.role ? [staff.data.role as string] : [];
+    const metaRole = user.user_metadata?.['role'] ? [user.user_metadata['role'] as string] : [];
 
-    // Priority: 1. Staff provisioned role by email -> 2. Granted DB roles -> 3. Super Admin default
-    const baseRoles = staffRole.length > 0 ? staffRole : (fetchedRoles.length > 0 ? fetchedRoles : ["super_admin"]);
+    // Priority: granted DB roles -> staff roster role -> signup metadata role
+    const baseRoles =
+      grantedRoles.length > 0 ? grantedRoles : staffRole.length > 0 ? staffRole : metaRole;
 
-    // Check for testing role override in localStorage
-    const activeOverride = typeof window !== "undefined" ? localStorage.getItem("furii_active_role_override") : null;
-    const effectiveRoles = activeOverride ? [activeOverride] : baseRoles;
-
-    const userMetaData = auth?.user?.user_metadata ?? {};
-    const mustChangePassword = !!userMetaData['must_change_password'];
+    const isSuperAdmin = baseRoles.includes("super_admin");
+    const override =
+      isSuperAdmin && typeof window !== "undefined"
+        ? localStorage.getItem("furii_active_role_override")
+        : null;
 
     return {
-      email: userEmail || "staff@furii-hospital.org",
+      email: user.email ?? "",
       profile: profile.data,
-      roles: effectiveRoles,
-      mustChangePassword,
+      staff: staff.data,
+      roles: override ? [override] : baseRoles.length > 0 ? baseRoles : ["receptionist"],
+      baseRoles,
+      mustChangePassword: !!user.user_metadata?.['must_change_password'],
     };
   },
 });
