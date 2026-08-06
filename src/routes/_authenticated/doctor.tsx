@@ -279,7 +279,7 @@ function DoctorContent() {
                     label="Blood Pressure"
                     value={latestVitals?.systolic ? `${latestVitals.systolic}/${latestVitals.diastolic}` : "124/82"}
                   />
-                  <Stat label="Heart Pulse" value={latestVitals?.pulse ? `${latestVitals.pulse} bpm` : "74 bpm"} />
+                  <Stat label="Heart Pulse" value={latestVitals?.heart_rate ? `${latestVitals.heart_rate} bpm` : "74 bpm"} />
                   <Stat label="eGFR Renal" value={`${patientEgfr} mL/min`} hint="CKD Guard Active" tone={patientEgfr < 60 ? "warn" : "ok"} />
                 </div>
 

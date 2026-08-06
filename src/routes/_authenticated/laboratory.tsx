@@ -18,6 +18,7 @@ import {
   Scan,
   ShieldAlert,
   ShieldCheck,
+  X,
   Zap,
 } from "lucide-react";
 import { useState } from "react";
@@ -109,7 +110,7 @@ function LaboratoryContent() {
     },
   ]);
 
-  const [activeSample, setActiveSample] = useState(samples[0]);
+  const [activeSample, setActiveSample] = useState(samples[0]!);
 
   const handleValidateAndSign = () => {
     toast.success(`Lab test ${activeSample.test} validated & signed off into ${activeSample.patientName}'s Executive CV record.`);

@@ -161,9 +161,9 @@ function AdminWorkspace() {
   const updateStaffMut = useMutation({
     mutationFn: async (updated: Partial<StaffMember> & { id: string }) => {
       const payload = {
-        full_name: updated.full_name,
-        role: updated.role as any,
-        availability: updated.availability,
+        full_name: updated.full_name ?? "",
+        role: (updated.role ?? "nurse") as any,
+        availability: updated.availability ?? "active",
       };
 
       const { error } = await supabase.from("staff").update(payload).eq("id", updated.id);

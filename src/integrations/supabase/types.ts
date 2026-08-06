@@ -381,39 +381,64 @@ export type Database = {
       }
       encounters: {
         Row: {
+          bed_id: string | null
           chief_complaint: string | null
+          cleared_at: string | null
           department_id: string | null
+          discharge_ready: boolean
+          disposition: string | null
           ended_at: string | null
           hospital_id: string
           id: string
           patient_id: string
           priority: string
+          queue_ticket: string | null
           stage: string
           started_at: string
+          wristband_code: string | null
         }
         Insert: {
+          bed_id?: string | null
           chief_complaint?: string | null
+          cleared_at?: string | null
           department_id?: string | null
+          discharge_ready?: boolean
+          disposition?: string | null
           ended_at?: string | null
           hospital_id: string
           id?: string
           patient_id: string
           priority?: string
+          queue_ticket?: string | null
           stage?: string
           started_at?: string
+          wristband_code?: string | null
         }
         Update: {
+          bed_id?: string | null
           chief_complaint?: string | null
+          cleared_at?: string | null
           department_id?: string | null
+          discharge_ready?: boolean
+          disposition?: string | null
           ended_at?: string | null
           hospital_id?: string
           id?: string
           patient_id?: string
           priority?: string
+          queue_ticket?: string | null
           stage?: string
           started_at?: string
+          wristband_code?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "encounters_bed_id_fkey"
+            columns: ["bed_id"]
+            isOneToOne: false
+            referencedRelation: "beds"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "encounters_department_id_fkey"
             columns: ["department_id"]
@@ -514,8 +539,145 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_items: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          description: string
+          id: string
+          invoice_id: string
+          quantity: number
+          source_order_id: string | null
+          unit_price: number
+        }
+        Insert: {
+          amount?: number
+          category: string
+          created_at?: string
+          description: string
+          id?: string
+          invoice_id: string
+          quantity?: number
+          source_order_id?: string | null
+          unit_price?: number
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          invoice_id?: string
+          quantity?: number
+          source_order_id?: string | null
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_items_source_order_id_fkey"
+            columns: ["source_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          cleared_at: string | null
+          created_at: string
+          currency: string
+          encounter_id: string | null
+          hospital_id: string
+          id: string
+          insurance_covered: number
+          insurance_pct: number
+          paid_amount: number
+          paid_at: string | null
+          patient_due: number
+          patient_id: string
+          payment_method: string | null
+          receipt_no: string | null
+          status: string
+          subtotal: number
+          tin_number: string
+          updated_at: string
+        }
+        Insert: {
+          cleared_at?: string | null
+          created_at?: string
+          currency?: string
+          encounter_id?: string | null
+          hospital_id: string
+          id?: string
+          insurance_covered?: number
+          insurance_pct?: number
+          paid_amount?: number
+          paid_at?: string | null
+          patient_due?: number
+          patient_id: string
+          payment_method?: string | null
+          receipt_no?: string | null
+          status?: string
+          subtotal?: number
+          tin_number?: string
+          updated_at?: string
+        }
+        Update: {
+          cleared_at?: string | null
+          created_at?: string
+          currency?: string
+          encounter_id?: string | null
+          hospital_id?: string
+          id?: string
+          insurance_covered?: number
+          insurance_pct?: number
+          paid_amount?: number
+          paid_at?: string | null
+          patient_due?: number
+          patient_id?: string
+          payment_method?: string | null
+          receipt_no?: string | null
+          status?: string
+          subtotal?: number
+          tin_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_encounter_id_fkey"
+            columns: ["encounter_id"]
+            isOneToOne: false
+            referencedRelation: "encounters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_hospital_id_fkey"
+            columns: ["hospital_id"]
+            isOneToOne: false
+            referencedRelation: "hospitals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
+          analyzer: string | null
           category: Database["public"]["Enums"]["order_category"]
           code: string | null
           completed_at: string | null
@@ -524,16 +686,24 @@ export type Database = {
           hospital_id: string
           id: string
           instructions: string | null
+          is_critical: boolean
           name: string
           patient_id: string
           priority: string
           requested_at: string
           requested_by_id: string | null
           requested_by_label: string | null
+          result_summary: string | null
+          result_values: Json | null
+          specimen_barcode: string | null
           status: Database["public"]["Enums"]["order_status"]
+          unit_price: number | null
           updated_at: string
+          verified_at: string | null
+          verified_by_label: string | null
         }
         Insert: {
+          analyzer?: string | null
           category: Database["public"]["Enums"]["order_category"]
           code?: string | null
           completed_at?: string | null
@@ -542,16 +712,24 @@ export type Database = {
           hospital_id: string
           id?: string
           instructions?: string | null
+          is_critical?: boolean
           name: string
           patient_id: string
           priority?: string
           requested_at?: string
           requested_by_id?: string | null
           requested_by_label?: string | null
+          result_summary?: string | null
+          result_values?: Json | null
+          specimen_barcode?: string | null
           status?: Database["public"]["Enums"]["order_status"]
+          unit_price?: number | null
           updated_at?: string
+          verified_at?: string | null
+          verified_by_label?: string | null
         }
         Update: {
+          analyzer?: string | null
           category?: Database["public"]["Enums"]["order_category"]
           code?: string | null
           completed_at?: string | null
@@ -560,14 +738,21 @@ export type Database = {
           hospital_id?: string
           id?: string
           instructions?: string | null
+          is_critical?: boolean
           name?: string
           patient_id?: string
           priority?: string
           requested_at?: string
           requested_by_id?: string | null
           requested_by_label?: string | null
+          result_summary?: string | null
+          result_values?: Json | null
+          specimen_barcode?: string | null
           status?: Database["public"]["Enums"]["order_status"]
+          unit_price?: number | null
           updated_at?: string
+          verified_at?: string | null
+          verified_by_label?: string | null
         }
         Relationships: [
           {
@@ -737,34 +922,55 @@ export type Database = {
           availability: string
           created_at: string
           department_id: string | null
+          email: string | null
           full_name: string
           hospital_id: string
           id: string
           job_title: string
           last_seen_at: string
+          license_number: string | null
+          notes: string | null
+          phone: string | null
           role: Database["public"]["Enums"]["app_role"]
+          shift_pattern: string | null
+          updated_at: string
+          user_id: string | null
         }
         Insert: {
           availability?: string
           created_at?: string
           department_id?: string | null
+          email?: string | null
           full_name: string
           hospital_id: string
           id?: string
           job_title: string
           last_seen_at?: string
+          license_number?: string | null
+          notes?: string | null
+          phone?: string | null
           role: Database["public"]["Enums"]["app_role"]
+          shift_pattern?: string | null
+          updated_at?: string
+          user_id?: string | null
         }
         Update: {
           availability?: string
           created_at?: string
           department_id?: string | null
+          email?: string | null
           full_name?: string
           hospital_id?: string
           id?: string
           job_title?: string
           last_seen_at?: string
+          license_number?: string | null
+          notes?: string | null
+          phone?: string | null
           role?: Database["public"]["Enums"]["app_role"]
+          shift_pattern?: string | null
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -934,6 +1140,9 @@ export type Database = {
         | "pharmacist"
         | "cashier"
         | "patient"
+        | "ward_manager"
+        | "hr_manager"
+        | "billing_clerk"
       appointment_status:
         | "booked"
         | "arrived"
@@ -1095,6 +1304,9 @@ export const Constants = {
         "pharmacist",
         "cashier",
         "patient",
+        "ward_manager",
+        "hr_manager",
+        "billing_clerk",
       ],
       appointment_status: [
         "booked",

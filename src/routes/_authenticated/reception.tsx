@@ -600,7 +600,10 @@ function ReceptionContent() {
                 e.preventDefault();
                 const form = new FormData(e.currentTarget);
                 const pId = String(form.get("patientId"));
-                if (!pId) return toast.error("Select a patient");
+                if (!pId) {
+                  toast.error("Select a patient");
+                  return;
+                }
                 bookMut.mutate({
                   patientId: pId,
                   departmentId: String(form.get("departmentId")) || null,
@@ -719,6 +722,7 @@ function ReceptionContent() {
                         checkInMut.mutate({
                           id: `walkin-${Date.now()}`,
                           patient_id: patient.id,
+                          department_id: null,
                           reason: "Walk-in Triage & Consultation",
                         })
                       }

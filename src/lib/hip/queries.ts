@@ -234,7 +234,7 @@ export const myProfileQuery = queryOptions({
     const effectiveRoles = activeOverride ? [activeOverride] : baseRoles;
 
     const userMetaData = auth?.user?.user_metadata ?? {};
-    const mustChangePassword = !!userMetaData.must_change_password;
+    const mustChangePassword = !!userMetaData['must_change_password'];
 
     return {
       email: userEmail || "staff@furii-hospital.org",

@@ -85,7 +85,7 @@ function AuthPage() {
 
       // Successful auth sign-in
       const { data: auth } = await supabase.auth.getUser();
-      const roles = auth.user?.user_metadata?.role ? [auth.user.user_metadata.role] : [];
+      const roles = auth.user?.user_metadata?.['role'] ? [auth.user.user_metadata['role'] as string] : [];
       const redirectPath = getDefaultRedirect(roles);
       await router.navigate({ to: redirectPath });
     } catch (error) {
