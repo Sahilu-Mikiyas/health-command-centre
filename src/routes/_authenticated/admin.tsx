@@ -117,6 +117,7 @@ function AdminWorkspace() {
               data: {
                 full_name: fullName.trim(),
                 role: selectedRole,
+                must_change_password: true,
               },
             },
           });

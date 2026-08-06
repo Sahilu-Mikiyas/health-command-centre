@@ -227,10 +227,14 @@ export const myProfileQuery = queryOptions({
     const activeOverride = typeof window !== "undefined" ? localStorage.getItem("furii_active_role_override") : null;
     const effectiveRoles = activeOverride ? [activeOverride] : baseRoles;
 
+    const userMetaData = auth.user.user_metadata ?? {};
+    const mustChangePassword = !!userMetaData.must_change_password;
+
     return {
       email: userEmail,
       profile: profile.data,
       roles: effectiveRoles,
+      mustChangePassword,
     };
   },
 });

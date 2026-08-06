@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useRouter } from "@tanstack/react-router";
-import { LogOut, Menu, RefreshCw, Search, ShieldAlert, X } from "lucide-react";
+import { Lock, LogOut, Menu, RefreshCw, Search, ShieldAlert, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
@@ -28,6 +28,10 @@ export function AppShell({
   const [searchOpen, setSearchOpen] = useState(false);
   const { data: me } = useQuery(myProfileQuery);
 
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [updatingPass, setUpdatingPass] = useState(false);
+
   const primaryRole = (me?.roles?.[0] ?? "super_admin") as AppRole;
   const roleDisplay = ROLE_LABELS[primaryRole] ?? "Super Admin";
 
@@ -45,12 +49,99 @@ export function AppShell({
     await router.navigate({ to: "/auth" });
   };
 
+  const handleFirstTimePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters long.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match. Please re-enter.");
+      return;
+    }
+
+    setUpdatingPass(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+        data: { must_change_password: false },
+      });
+      if (error) throw error;
+
+      toast.success("Password updated successfully! Welcome to your private workspace.");
+      setNewPassword("");
+      setConfirmPassword("");
+      await queryClient.invalidateQueries({ queryKey: ["me"] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update password.");
+    } finally {
+      setUpdatingPass(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-[#F5F5F7] text-black selection:bg-black selection:text-white">
       <AppSidebar />
 
       {/* Real Apple Command Palette (⌘K) Modal */}
       <CommandPalette open={searchOpen} onClose={() => setSearchOpen(false)} />
+
+      {/* First-Time Login Password Change Security Modal */}
+      {me?.mustChangePassword && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
+          <div className="apple-card max-w-md w-full p-6 text-left space-y-4 animate-in zoom-in-95 shadow-2xl border-2 border-black/10">
+            <div className="flex items-center gap-3 border-b border-black/5 pb-4">
+              <div className="grid size-10 place-items-center rounded-2xl bg-black text-white shadow-md">
+                <Lock className="size-5" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-black text-base">First-Time Login Security Setup</h3>
+                <p className="text-xs text-[#86868B]">Create your private password to protect your account</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-[#515154] leading-relaxed">
+              Your account was provisioned with a temporary password. Please set a new private password known only to you before proceeding into your workspace.
+            </p>
+
+            <form onSubmit={handleFirstTimePasswordChange} className="space-y-3 pt-1">
+              <div className="space-y-1">
+                <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">New Private Password *</label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  className="w-full rounded-2xl border border-black/10 bg-[#F5F5F7] p-3 text-xs font-bold text-black focus:bg-white focus:outline-none font-mono"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">Confirm New Password *</label>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  className="w-full rounded-2xl border border-black/10 bg-[#F5F5F7] p-3 text-xs font-bold text-black focus:bg-white focus:outline-none font-mono"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={updatingPass}
+                className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-black py-3.5 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer mt-2"
+              >
+                {updatingPass ? "Updating Password…" : "Set New Private Password & Enter Workspace"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {mobileOpen ? (
         <div className="fixed inset-0 z-50 flex lg:hidden">
@@ -98,83 +189,75 @@ export function AppShell({
         {/* Active Role Testing Banner (if override active) */}
         {activeOverride && (
           <div className="sticky top-0 z-40 flex items-center justify-between gap-4 border-b border-[#FFE0B2] bg-[#FFF4E5] px-6 py-2 text-xs font-bold text-[#B86200]">
-            <div className="flex items-center gap-2 min-w-0">
-              <ShieldAlert className="size-4 shrink-0 text-[#FF9500]" />
-              <span className="truncate">
-                Testing Role Perspective: <strong>{ROLE_LABELS[activeOverride as AppRole] ?? activeOverride}</strong>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-[#FFE0B2] px-2 py-0.5 text-[10px] font-black uppercase">
+                Testing Role Perspective: {ROLE_LABELS[activeOverride as AppRole] ?? activeOverride}
               </span>
             </div>
             <button
               onClick={resetTestingRole}
-              className="inline-flex items-center gap-1.5 rounded-full bg-black px-3.5 py-1 text-[11px] font-black text-white hover:bg-slate-800 transition-all cursor-pointer shrink-0 shadow-2xs"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#B86200] px-3 py-1 text-xs font-bold text-white hover:bg-black transition-colors cursor-pointer"
             >
               <RefreshCw className="size-3" /> Exit & Return to Admin
             </button>
           </div>
         )}
 
-        {/* Translucent Glass Header */}
-        <header className="sticky top-0 z-30 border-b border-black/5 bg-white/80 backdrop-blur-xl px-6 py-4">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3 min-w-0">
-              <button
-                type="button"
-                onClick={() => setMobileOpen(true)}
-                className="text-[#86868B] hover:text-black lg:hidden"
-                aria-label="Open navigation"
-              >
-                <Menu className="size-5" />
-              </button>
-              <div className="min-w-0">
-                <h1 className="truncate text-2xl font-black tracking-tight text-black">{title}</h1>
-                {subtitle ? (
-                  <p className="truncate text-xs font-medium text-[#86868B] mt-0.5">{subtitle}</p>
-                ) : null}
-              </div>
+        {/* Global Header */}
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-black/5 bg-white/80 px-6 backdrop-blur-xl">
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              className="grid size-9 place-items-center rounded-xl border border-black/5 lg:hidden text-black hover:bg-[#F5F5F7]"
+              onClick={() => setMobileOpen(true)}
+              aria-label="Open mobile menu"
+            >
+              <Menu className="size-5" />
+            </button>
+            <div>
+              <h1 className="font-extrabold text-black text-base">{title}</h1>
+              {subtitle ? <p className="text-xs text-[#86868B] font-medium">{subtitle}</p> : null}
             </div>
+          </div>
 
-            <div className="flex items-center gap-3 shrink-0">
-              {/* Quick Command Search Pill */}
-              <button
-                onClick={() => setSearchOpen(true)}
-                className="hidden sm:inline-flex items-center gap-2 rounded-full border border-black/10 bg-[#F5F5F7] px-3.5 py-1.5 text-xs font-semibold text-[#1D1D1F] hover:border-black hover:bg-white transition-all shadow-2xs cursor-pointer"
-              >
-                <Search className="size-3.5 text-[#515154]" />
-                <span>Search system...</span>
-                <kbd className="rounded-md bg-white px-1.5 py-0.5 text-[10px] font-mono text-black border border-black/10 shadow-2xs">
-                  ⌘K
-                </kbd>
-              </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="hidden sm:flex items-center gap-2 rounded-2xl border border-black/5 bg-[#F5F5F7] px-3.5 py-2 text-xs font-bold text-[#86868B] hover:bg-white hover:text-black transition-all cursor-pointer shadow-2xs"
+            >
+              <Search className="size-3.5 text-black" />
+              <span>Search system...</span>
+              <kbd className="rounded-md bg-white border border-black/10 px-1.5 py-0.5 text-[10px] font-mono text-black">
+                ⌘K
+              </kbd>
+            </button>
 
-              {actions}
+            {actions}
 
-              {/* Staff Profile Pill */}
-              <div className="hidden sm:flex items-center gap-3 border-l border-black/5 pl-3">
-                <div className="relative grid size-9 place-items-center rounded-full bg-black text-sm font-bold text-white shadow-2xs">
-                  {me?.profile?.full_name?.charAt(0) ?? "S"}
-                  <span className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-[#34C759] border-2 border-white" />
+            {me ? (
+              <div className="flex items-center gap-2 border-l border-black/10 pl-3">
+                <div className="grid size-8 place-items-center rounded-full bg-black text-white text-xs font-bold shadow-2xs">
+                  {me.email.charAt(0).toUpperCase() || "S"}
                 </div>
-                <div className="text-right">
-                  <p className="text-xs font-bold text-black">{me?.profile?.full_name ?? "Super Admin"}</p>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#86868B]">
-                    {roleDisplay}
+                <div className="hidden sm:block text-left">
+                  <p className="font-bold text-black text-xs leading-none">
+                    {me.email.split("@")[0]}
                   </p>
+                  <p className="text-[10px] text-[#86868B] font-semibold">{roleDisplay}</p>
                 </div>
+                <button
+                  onClick={signOut}
+                  className="rounded-xl border border-black/10 bg-[#F5F5F7] p-2 text-black hover:bg-black hover:text-white transition-colors cursor-pointer"
+                  title="Sign Out"
+                >
+                  <LogOut className="size-3.5" />
+                </button>
               </div>
-
-              <button
-                type="button"
-                onClick={signOut}
-                title="Sign out"
-                className="rounded-full border border-black/10 bg-[#F5F5F7] p-2 text-[#86868B] transition-colors hover:bg-[#FDE8E7] hover:border-[#F9BDBD] hover:text-[#D70015]"
-              >
-                <LogOut className="size-4" />
-              </button>
-            </div>
+            ) : null}
           </div>
         </header>
 
-        <main className="min-w-0 flex-1 p-6 space-y-6">{children}</main>
+        <main className="flex-1 p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );
