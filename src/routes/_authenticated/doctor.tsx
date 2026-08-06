@@ -35,6 +35,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/hip/app-shell";
+import { HandoffBoard } from "@/components/hip/handoff-board";
 import { Panel, Stat } from "@/components/hip/panel";
 import { RouteGuard } from "@/components/hip/route-guard";
 import { StatusPill } from "@/components/hip/status-pill";
@@ -178,6 +179,7 @@ function DoctorContent() {
         </div>
       }
     >
+      <HandoffBoard role="doctor" />
       {/* Commercial Sub-Tab Rail */}
       <div className="flex flex-wrap items-center gap-2 border-b border-black/5 pb-4 overflow-x-auto">
         {[

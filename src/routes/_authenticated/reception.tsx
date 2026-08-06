@@ -30,6 +30,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/hip/app-shell";
+import { HandoffBoard } from "@/components/hip/handoff-board";
 import { Panel, Stat } from "@/components/hip/panel";
 import { RouteGuard } from "@/components/hip/route-guard";
 import { StatusPill } from "@/components/hip/status-pill";
@@ -193,6 +194,7 @@ function ReceptionContent() {
         </div>
       }
     >
+      <HandoffBoard role="reception" />
       {/* Printable Ticket Modal */}
       {printedTicket && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">

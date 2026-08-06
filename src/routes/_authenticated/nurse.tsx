@@ -33,6 +33,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/hip/app-shell";
+import { HandoffBoard } from "@/components/hip/handoff-board";
 import { Panel, Stat } from "@/components/hip/panel";
 import { RouteGuard } from "@/components/hip/route-guard";
 import { StatusPill } from "@/components/hip/status-pill";
@@ -154,6 +155,7 @@ function NurseContent() {
         </div>
       }
     >
+      <HandoffBoard role="nurse" />
       {/* Code Blue Emergency Active Banner */}
       {codeBlueActive && (
         <div className="rounded-2xl border border-[#F9BDBD] bg-[#FDE8E7] p-4 flex items-center justify-between gap-4 text-[#D70015] animate-in zoom-in-95">

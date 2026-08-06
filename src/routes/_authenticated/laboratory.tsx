@@ -25,6 +25,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/hip/app-shell";
+import { HandoffBoard } from "@/components/hip/handoff-board";
 import { Panel, Stat } from "@/components/hip/panel";
 import { RouteGuard } from "@/components/hip/route-guard";
 import { StatusPill } from "@/components/hip/status-pill";
@@ -128,6 +129,7 @@ function LaboratoryContent() {
         </div>
       }
     >
+      <HandoffBoard role="laboratory" />
       {/* Printable Barcode Tube Modal */}
       {printedTubeBarcode && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">

@@ -19,6 +19,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/hip/app-shell";
+import { HandoffBoard } from "@/components/hip/handoff-board";
 import { Panel, Stat } from "@/components/hip/panel";
 import { RouteGuard } from "@/components/hip/route-guard";
 import { StatusPill } from "@/components/hip/status-pill";
@@ -74,6 +75,7 @@ function WardContent() {
         </div>
       }
     >
+      <HandoffBoard role="ward" />
       <div className="space-y-6">
         {/* Ward Overview Stats */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
