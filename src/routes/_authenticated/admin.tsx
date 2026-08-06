@@ -99,20 +99,30 @@ function AdminWorkspace() {
   // Create Staff Mutation
   const createStaffMut = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase
+      const lic = licenseNumber || `LIC-${Math.floor(10000 + Math.random() * 90000)}`;
+      const payload: any = {
+        full_name: fullName,
+        role: selectedRole as any,
+        availability: status,
+        job_title: `${ROLE_LABELS[selectedRole]} · ${department} (${lic})`,
+        hospital_id: "11111111-1111-1111-1111-111111111111",
+      };
+
+      let { data, error } = await supabase
         .from("staff")
-        .insert([
-          {
-            full_name: fullName,
-            role: selectedRole as any,
-            availability: status,
-            license_number: licenseNumber || `LIC-${Math.floor(10000 + Math.random() * 90000)}`,
-            job_title: `${ROLE_LABELS[selectedRole]} · ${department}`,
-            hospital_id: "00000000-0000-0000-0000-000000000001",
-          },
-        ])
+        .insert([{ ...payload, license_number: lic }])
         .select()
         .single();
+
+      if (error && error.message.includes("license_number")) {
+        const res = await supabase
+          .from("staff")
+          .insert([payload])
+          .select()
+          .single();
+        data = res.data;
+        error = res.error;
+      }
 
       if (error) throw new Error(error.message);
       return data;
@@ -130,7 +140,7 @@ function AdminWorkspace() {
   // Update Staff Mutation
   const updateStaffMut = useMutation({
     mutationFn: async (updated: Partial<StaffMember> & { id: string }) => {
-      const { error } = await supabase
+      let { error } = await supabase
         .from("staff")
         .update({
           full_name: updated.full_name,
@@ -139,6 +149,18 @@ function AdminWorkspace() {
           license_number: updated.license_number,
         })
         .eq("id", updated.id);
+
+      if (error && error.message.includes("license_number")) {
+        const res = await supabase
+          .from("staff")
+          .update({
+            full_name: updated.full_name,
+            role: updated.role as any,
+            availability: updated.availability,
+          })
+          .eq("id", updated.id);
+        error = res.error;
+      }
 
       if (error) throw new Error(error.message);
     },
