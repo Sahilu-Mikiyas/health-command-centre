@@ -147,7 +147,7 @@ export async function updateStaffMember(input: StaffUpdateInput) {
 
   const { data: staff, error } = await supabaseAdmin
     .from("staff")
-    .update(patch)
+    .update(patch as never)
     .eq("id", input.id)
     .select("id,user_id,email,full_name,role")
     .single();
