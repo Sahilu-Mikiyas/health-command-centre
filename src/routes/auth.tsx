@@ -59,11 +59,12 @@ function AuthPage() {
         
         if (error) {
           // Check if this email is a provisioned staff member in public.staff
-          const { data: staffMember } = await supabase
+          const { data: staffList } = await supabase
             .from("staff")
             .select("*")
-            .or(`email.eq.${cleanEmail},job_title.ilike.%${cleanEmail}%`)
-            .maybeSingle();
+            .ilike("job_title", `%${cleanEmail}%`);
+
+          const staffMember = staffList && staffList.length > 0 ? staffList[0] : null;
 
           if (staffMember) {
             localStorage.setItem("furii_logged_in_staff_email", cleanEmail);

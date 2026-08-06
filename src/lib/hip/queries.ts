@@ -219,12 +219,12 @@ export const myProfileQuery = queryOptions({
       auth?.user ? supabase.from("profiles").select("*").eq("user_id", auth.user.id).maybeSingle() : Promise.resolve({ data: null, error: null }),
       auth?.user ? supabase.from("user_roles").select("role").eq("user_id", auth.user.id) : Promise.resolve({ data: [], error: null }),
       userEmail
-        ? supabase.from("staff").select("role").or(`email.eq.${userEmail},job_title.ilike.%${userEmail}%`).maybeSingle()
-        : Promise.resolve({ data: null, error: null }),
+        ? supabase.from("staff").select("role").ilike("job_title", `%${userEmail}%`).limit(1)
+        : Promise.resolve({ data: [], error: null }),
     ]);
 
     const fetchedRoles = (roles.data ?? []).map((row) => row.role as string);
-    const staffRole = staff.data?.role ? [staff.data.role] : [];
+    const staffRole = (staff.data as any[])?.[0]?.role ? [(staff.data as any[])[0].role] : [];
 
     // Priority: 1. Staff provisioned role by email -> 2. Granted DB roles -> 3. Super Admin default
     const baseRoles = staffRole.length > 0 ? staffRole : (fetchedRoles.length > 0 ? fetchedRoles : ["super_admin"]);
