@@ -421,7 +421,7 @@ LIMIT 520;
 INSERT INTO public.staff (hospital_id, department_id, full_name, job_title, role, availability)
 SELECT '11111111-1111-1111-1111-111111111111',
   (SELECT id FROM public.departments ORDER BY random() LIMIT 1),
-  (ARRAY['Dr Hana Bekele','Dr Daniel Okoro','Dr Sarah Lin','Dr Marcus Reid','Dr Amira Haddad','Dr Tom Fielding','Nurse Grace Wanjiru','Nurse Peter Salaam','Nurse Ivy Chen','Nurse Omar Farah'])[1 + (g % 10)] || ' ' || g,
+  (ARRAY['Dr Bethlehem Tadesse','Dr Dawit Yohannes','Dr Getachew Reda','Dr Almaz Tefera','Dr Kebede Bekele','Dr Solomon Worku','Nurse Tigist Alemu','Nurse Abebech Tadesse','Nurse Selamawit Haile','Nurse Mulugeta Assefa'])[1 + (g % 10)] || ' ' || g,
   (ARRAY['Consultant Cardiologist','Emergency Physician','Registrar','Senior Nurse','Charge Nurse','Biomedical Scientist','Radiographer','Clinical Pharmacist'])[1 + (g % 8)],
   (ARRAY['doctor','doctor','nurse','nurse','lab_tech','radiologist','pharmacist','receptionist']::public.app_role[])[1 + (g % 8)],
   (ARRAY['active','active','active','busy','in_surgery','offline'])[1 + (g % 6)]
@@ -430,13 +430,13 @@ FROM generate_series(1,42) g;
 INSERT INTO public.patients (hospital_id, mrn, full_name, date_of_birth, sex, phone, blood_group, insurance_provider, insurance_coverage_pct, egfr)
 SELECT '11111111-1111-1111-1111-111111111111',
   'MGH-' || lpad(g::text,6,'0'),
-  (ARRAY['John','Maria','Ahmed','Grace','Liam','Sofia','Noah','Amara','Ethan','Zara','Daniel','Fatima'])[1 + (g % 12)] || ' ' ||
-  (ARRAY['Doe','Alvarez','Hassan','Mwangi','Novak','Rossi','Adeyemi','Kaur','Sato','Petrov'])[1 + (g % 10)],
+  (ARRAY['Abebe','Abebech','Tigist','Dawit','Almaz','Bethlehem','Getachew','Yohannes','Kebede','Bereketeab','Selamawit','Mulugeta','Eleni','Haile','Solomon','Frehiwot'])[1 + (g % 16)] || ' ' ||
+  (ARRAY['Tadesse','Alemu','Bekele','Yilma','Worku','Mamo','Tefera','Reda','Assefa','Hailemariam'])[1 + (g % 10)],
   (date '1940-01-01' + (g * 211 % 26000)),
   (ARRAY['male','female'])[1 + (g % 2)],
-  '+44 7' || lpad((g * 137 % 100000000)::text, 9, '0'),
+  '+251 9' || lpad((g * 137 % 100000000)::text, 8, '0'),
   (ARRAY['O+','A+','B+','AB+','O-','A-'])[1 + (g % 6)],
-  (ARRAY['Britannia Health','Meridian Care','Aurora Insure',NULL])[1 + (g % 4)],
+  (ARRAY['Ethiopian Health Insurance Agency','Nyala Insurance','Awash Insurance',NULL])[1 + (g % 4)],
   (ARRAY[90,80,70,100])[1 + (g % 4)],
   round((35 + (g * 7 % 65))::numeric, 0)
 FROM generate_series(1,120) g;
