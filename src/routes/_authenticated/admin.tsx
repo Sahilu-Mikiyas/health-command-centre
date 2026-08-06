@@ -72,6 +72,7 @@ function AdminWorkspace() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("StaffPass123!");
   const [selectedRole, setSelectedRole] = useState<AppRole>("doctor");
   const [department, setDepartment] = useState("Emergency Department");
   const [licenseNumber, setLicenseNumber] = useState("");
@@ -102,8 +103,27 @@ function AdminWorkspace() {
       const lic = licenseNumber || `LIC-${Math.floor(10000 + Math.random() * 90000)}`;
       const cleanEmail = email.trim();
       const cleanPhone = phone.trim();
+      const cleanPass = password.trim();
 
       const richTitle = `${ROLE_LABELS[selectedRole]} · ${department} | ID: ${lic}${cleanEmail ? ` | Email: ${cleanEmail}` : ""}${cleanPhone ? ` | Phone: ${cleanPhone}` : ""}`;
+
+      // Provision Supabase Auth User Account
+      if (cleanEmail && cleanPass) {
+        try {
+          await supabase.auth.signUp({
+            email: cleanEmail,
+            password: cleanPass,
+            options: {
+              data: {
+                full_name: fullName.trim(),
+                role: selectedRole,
+              },
+            },
+          });
+        } catch {
+          // Continue provisioning database staff profile if account already exists
+        }
+      }
 
       const payload = {
         full_name: fullName.trim(),
@@ -123,7 +143,11 @@ function AdminWorkspace() {
       return data;
     },
     onSuccess: (data) => {
-      toast.success(`Provisioned ${data.full_name} as ${ROLE_LABELS[selectedRole]}`);
+      const cleanEmail = email.trim();
+      const cleanPass = password.trim();
+      toast.success(
+        `Provisioned ${data.full_name} (${ROLE_LABELS[selectedRole]}). Login: ${cleanEmail || data.full_name} | Password: ${cleanPass || "StaffPass123!"}`,
+      );
       setIsAddOpen(false);
       resetForm();
       queryClient.invalidateQueries({ queryKey: ["admin-staff-list"] });
@@ -398,6 +422,19 @@ function AdminWorkspace() {
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="+251 91 234 5678"
                     className="w-full rounded-2xl border border-black/10 bg-[#F5F5F7] p-3 text-xs font-bold text-black focus:bg-white focus:outline-none"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">Initial Login Password *</label>
+                  <input
+                    type="text"
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="StaffPass123!"
+                    className="w-full rounded-2xl border border-black/10 bg-[#F5F5F7] p-3 text-xs font-bold text-black focus:bg-white focus:outline-none font-mono"
                   />
                 </div>
 
