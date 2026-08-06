@@ -3,6 +3,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { SplashScreen } from "@/components/hip/splash-screen";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,6 +34,13 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
 
+  // Splash Screen State
+  const [splashData, setSplashData] = useState<{
+    staffName: string;
+    roleLabel: string;
+    targetRoute: string;
+  } | null>(null);
+
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setBusy(true);
@@ -56,7 +64,7 @@ function AuthPage() {
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
-        
+
         if (error) {
           // Check if this email is a provisioned staff member in public.staff
           const { data: staffList } = await supabase
@@ -69,13 +77,18 @@ function AuthPage() {
           if (staffMember) {
             localStorage.setItem("furii_logged_in_staff_email", cleanEmail);
             localStorage.setItem("furii_active_role_override", staffMember.role);
-            
-            toast.success(
-              `Welcome ${staffMember.full_name}! Signed in as ${ROLE_LABELS[staffMember.role as AppRole] ?? staffMember.role}`,
-            );
-            
+
+            const roleTitle = ROLE_LABELS[staffMember.role as AppRole] ?? staffMember.role;
             const redirectPath = getDefaultRedirect([staffMember.role]);
-            await router.navigate({ to: redirectPath });
+
+            toast.success(`Welcome ${staffMember.full_name}! Signed in as ${roleTitle}`);
+
+            // Trigger Welcome Splash Screen with Live Clock
+            setSplashData({
+              staffName: staffMember.full_name,
+              roleLabel: roleTitle,
+              targetRoute: redirectPath,
+            });
             return;
           }
 
@@ -85,15 +98,34 @@ function AuthPage() {
 
       // Successful auth sign-in
       const { data: auth } = await supabase.auth.getUser();
-      const roles = auth.user?.user_metadata?.['role'] ? [auth.user.user_metadata['role'] as string] : [];
+      const roles = auth.user?.user_metadata?.role ? [auth.user.user_metadata.role] : [];
+      const userMetaName = auth.user?.user_metadata?.full_name || auth.user?.email?.split("@")[0] || "Staff Member";
+      const primaryRole = (roles[0] ?? "super_admin") as AppRole;
+      const roleTitle = ROLE_LABELS[primaryRole] ?? "Super Admin";
       const redirectPath = getDefaultRedirect(roles);
-      await router.navigate({ to: redirectPath });
+
+      // Trigger Welcome Splash Screen with Live Clock
+      setSplashData({
+        staffName: userMetaName,
+        roleLabel: roleTitle,
+        targetRoute: redirectPath,
+      });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Authentication failed");
     } finally {
       setBusy(false);
     }
   };
+
+  if (splashData) {
+    return (
+      <SplashScreen
+        staffName={splashData.staffName}
+        roleLabel={splashData.roleLabel}
+        targetRoute={splashData.targetRoute}
+      />
+    );
+  }
 
   return (
     <main className="grid min-h-screen place-items-center bg-[#F5F5F7] px-4">
