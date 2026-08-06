@@ -134,7 +134,7 @@ function DigitalTwinContent() {
                   <p className="text-[11px] font-semibold text-[#86868B] mt-1">{bed.vitals}</p>
                   {bed.status === "Occupied" ? (
                     <Link
-                      to="/patients/pat-1"
+                      to="/patients"
                       className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-black hover:underline"
                     >
                       <Eye className="size-3" /> View Patient Record

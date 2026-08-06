@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -25,6 +26,7 @@ import { RouteGuard } from "@/components/hip/route-guard";
 import { StatusPill } from "@/components/hip/status-pill";
 import { supabase } from "@/integrations/supabase/client";
 import { getDefaultRedirect, ROLE_LABELS, type AppRole } from "@/lib/hip/rbac";
+import { deleteStaff, provisionStaff, updateStaff } from "@/lib/hip/staff.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
@@ -62,6 +64,9 @@ interface StaffMember {
 function AdminWorkspace() {
   const queryClient = useQueryClient();
   const router = useRouter();
+  const provision = useServerFn(provisionStaff);
+  const saveStaff = useServerFn(updateStaff);
+  const removeStaff = useServerFn(deleteStaff);
 
   // Search & Filter State
   const [searchTerm, setSearchTerm] = useState("");
@@ -100,54 +105,25 @@ function AdminWorkspace() {
   // Create Staff Mutation
   const createStaffMut = useMutation({
     mutationFn: async () => {
-      const lic = licenseNumber || `LIC-${Math.floor(10000 + Math.random() * 90000)}`;
-      const cleanEmail = email.trim();
-      const cleanPhone = phone.trim();
-      const cleanPass = password.trim();
-
-      const richTitle = `${ROLE_LABELS[selectedRole]} · ${department} | ID: ${lic}${cleanEmail ? ` | Email: ${cleanEmail}` : ""}${cleanPhone ? ` | Phone: ${cleanPhone}` : ""}`;
-
-      // Provision Supabase Auth User Account
-      if (cleanEmail && cleanPass) {
-        try {
-          await supabase.auth.signUp({
-            email: cleanEmail,
-            password: cleanPass,
-            options: {
-              data: {
-                full_name: fullName.trim(),
-                role: selectedRole,
-                must_change_password: true,
-              },
-            },
-          });
-        } catch {
-          // Continue provisioning database staff profile if account already exists
-        }
-      }
-
-      const payload = {
-        full_name: fullName.trim(),
-        role: selectedRole as any,
-        availability: status,
-        job_title: richTitle,
-        hospital_id: "11111111-1111-1111-1111-111111111111",
-      };
-
-      const { data, error } = await supabase
-        .from("staff")
-        .insert([payload])
-        .select()
-        .single();
-
-      if (error) throw new Error(error.message);
-      return data;
+      return provision({
+        data: {
+          fullName: fullName.trim(),
+          email: email.trim().toLowerCase(),
+          password: password.trim() || "StaffPass123!",
+          role: selectedRole as never,
+          phone: phone.trim(),
+          jobTitle: `${ROLE_LABELS[selectedRole]} · ${department}`,
+          departmentName: department,
+          licenseNumber: licenseNumber.trim(),
+          shiftPattern: shiftPattern,
+          availability: status,
+          notes: notes.trim(),
+        },
+      });
     },
-    onSuccess: (data) => {
-      const cleanEmail = email.trim();
-      const cleanPass = password.trim();
+    onSuccess: (result) => {
       toast.success(
-        `Provisioned ${data.full_name} (${ROLE_LABELS[selectedRole]}). Login: ${cleanEmail || data.full_name} | Password: ${cleanPass || "StaffPass123!"}`,
+        `${fullName.trim()} can now sign in as ${ROLE_LABELS[selectedRole]} — email ${result.email}, password ${password.trim() || "StaffPass123!"}`,
       );
       setIsAddOpen(false);
       resetForm();
@@ -159,18 +135,22 @@ function AdminWorkspace() {
 
   // Update Staff Mutation
   const updateStaffMut = useMutation({
-    mutationFn: async (updated: Partial<StaffMember> & { id: string }) => {
-      const payload = {
-        full_name: updated.full_name,
-        role: updated.role as any,
-        availability: updated.availability,
-      };
-
-      const { error } = await supabase.from("staff").update(payload).eq("id", updated.id);
-      if (error) throw new Error(error.message);
-    },
-    onSuccess: () => {
-      toast.success("Staff profile updated successfully");
+    mutationFn: async (updated: Partial<StaffMember> & { id: string }) =>
+      saveStaff({
+        data: {
+          id: updated.id,
+          fullName: updated.full_name ?? "",
+          role: (updated.role ?? "nurse") as never,
+          availability: updated.availability ?? "active",
+          licenseNumber: updated.license_number ?? "",
+        },
+      }),
+    onSuccess: (result) => {
+      toast.success(
+        result.hadLogin
+          ? "Staff profile and login role updated"
+          : "Staff profile updated (no login account linked yet)",
+      );
       setEditingStaff(null);
       queryClient.invalidateQueries({ queryKey: ["admin-staff-list"] });
       queryClient.invalidateQueries({ queryKey: ["staff"] });
@@ -180,12 +160,11 @@ function AdminWorkspace() {
 
   // Delete Staff Mutation
   const deleteStaffMut = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("staff").delete().eq("id", id);
-      if (error) throw new Error(error.message);
-    },
-    onSuccess: () => {
-      toast.success("Staff account removed from roster");
+    mutationFn: async (id: string) => removeStaff({ data: { id } }),
+    onSuccess: (result) => {
+      toast.success(
+        result.removedLogin ? "Staff member and their login account removed" : "Staff member removed from roster",
+      );
       queryClient.invalidateQueries({ queryKey: ["admin-staff-list"] });
       queryClient.invalidateQueries({ queryKey: ["staff"] });
     },

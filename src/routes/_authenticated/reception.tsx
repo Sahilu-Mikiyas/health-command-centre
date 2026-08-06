@@ -30,6 +30,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/hip/app-shell";
+import { HandoffBoard } from "@/components/hip/handoff-board";
 import { Panel, Stat } from "@/components/hip/panel";
 import { RouteGuard } from "@/components/hip/route-guard";
 import { StatusPill } from "@/components/hip/status-pill";
@@ -193,6 +194,7 @@ function ReceptionContent() {
         </div>
       }
     >
+      <HandoffBoard role="reception" />
       {/* Printable Ticket Modal */}
       {printedTicket && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -600,7 +602,10 @@ function ReceptionContent() {
                 e.preventDefault();
                 const form = new FormData(e.currentTarget);
                 const pId = String(form.get("patientId"));
-                if (!pId) return toast.error("Select a patient");
+                if (!pId) {
+                  toast.error("Select a patient");
+                  return;
+                }
                 bookMut.mutate({
                   patientId: pId,
                   departmentId: String(form.get("departmentId")) || null,
@@ -719,6 +724,7 @@ function ReceptionContent() {
                         checkInMut.mutate({
                           id: `walkin-${Date.now()}`,
                           patient_id: patient.id,
+                          department_id: null,
                           reason: "Walk-in Triage & Consultation",
                         })
                       }
