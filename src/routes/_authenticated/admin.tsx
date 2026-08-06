@@ -102,6 +102,7 @@ function AdminWorkspace() {
       const lic = licenseNumber || `LIC-${Math.floor(10000 + Math.random() * 90000)}`;
       const payload: any = {
         full_name: fullName,
+        email: email.trim() || undefined,
         role: selectedRole as any,
         availability: status,
         job_title: `${ROLE_LABELS[selectedRole]} · ${department} (${lic})`,

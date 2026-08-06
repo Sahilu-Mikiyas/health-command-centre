@@ -209,20 +209,26 @@ export const myProfileQuery = queryOptions({
   queryFn: async () => {
     const { data: auth } = await supabase.auth.getUser();
     if (!auth.user) return null;
-    const [profile, roles] = await Promise.all([
+    const userEmail = auth.user.email ?? "";
+
+    const [profile, roles, staff] = await Promise.all([
       supabase.from("profiles").select("*").eq("user_id", auth.user.id).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", auth.user.id),
+      userEmail ? supabase.from("staff").select("role").eq("email", userEmail).maybeSingle() : Promise.resolve({ data: null, error: null }),
     ]);
 
     const fetchedRoles = (roles.data ?? []).map((row) => row.role as string);
-    const defaultRoles = fetchedRoles.length > 0 ? fetchedRoles : ["super_admin"];
+    const staffRole = staff.data?.role ? [staff.data.role] : [];
+
+    // Priority: 1. Staff provisioned role by email -> 2. Granted DB roles -> 3. Super Admin default
+    const baseRoles = staffRole.length > 0 ? staffRole : (fetchedRoles.length > 0 ? fetchedRoles : ["super_admin"]);
 
     // Check for testing role override in localStorage
     const activeOverride = typeof window !== "undefined" ? localStorage.getItem("furii_active_role_override") : null;
-    const effectiveRoles = activeOverride ? [activeOverride] : defaultRoles;
+    const effectiveRoles = activeOverride ? [activeOverride] : baseRoles;
 
     return {
-      email: auth.user.email ?? "",
+      email: userEmail,
       profile: profile.data,
       roles: effectiveRoles,
     };
