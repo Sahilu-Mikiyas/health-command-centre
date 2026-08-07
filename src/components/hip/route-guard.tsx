@@ -41,6 +41,18 @@ export function RouteGuard({
     );
   }
 
+  if (licenseLocked) {
+    return (
+      <LicenseLockScreen
+        role={(me?.baseRoles?.[0] ?? primaryRole) as AppRole}
+        expiry={me?.staff?.license_expiry}
+        licenseNumber={me?.staff?.license_number}
+      />
+    );
+  }
+
+
+
   if (!isAllowed) {
     const defaultPage = getDefaultRedirect(roles);
 
