@@ -23,6 +23,10 @@ export type ProvisionInput = {
   jobTitle?: string;
   departmentName?: string;
   licenseNumber?: string;
+  licenseExpiry?: string;
+  boardCertification?: string;
+  cmeCredits?: number;
+  cmeRequired?: number;
   shiftPattern?: string;
   availability?: string;
   notes?: string;
