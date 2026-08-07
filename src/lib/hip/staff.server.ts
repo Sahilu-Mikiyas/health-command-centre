@@ -23,6 +23,10 @@ export type ProvisionInput = {
   jobTitle?: string;
   departmentName?: string;
   licenseNumber?: string;
+  licenseExpiry?: string;
+  boardCertification?: string;
+  cmeCredits?: number;
+  cmeRequired?: number;
   shiftPattern?: string;
   availability?: string;
   notes?: string;
@@ -109,6 +113,10 @@ export async function provisionStaffMember(input: ProvisionInput) {
     role: input.role,
     job_title: jobTitle,
     license_number: license,
+    license_expiry: input.licenseExpiry?.trim() || null,
+    board_certification: input.boardCertification?.trim() || null,
+    cme_credits: input.cmeCredits ?? 0,
+    cme_required: input.cmeRequired ?? 30,
     shift_pattern: input.shiftPattern ?? null,
     availability: input.availability ?? "active",
     notes: input.notes?.trim() || null,
@@ -131,8 +139,15 @@ export type StaffUpdateInput = {
   role?: StaffRole;
   availability?: string;
   licenseNumber?: string;
+  licenseExpiry?: string | null;
+  boardCertification?: string;
+  cmeCredits?: number;
+  cmeRequired?: number;
+  jobTitle?: string;
+  email?: string;
   phone?: string;
   shiftPattern?: string;
+  notes?: string;
   newPassword?: string;
 };
 
@@ -142,8 +157,16 @@ export async function updateStaffMember(input: StaffUpdateInput) {
   if (input.role !== undefined) patch["role"] = input.role;
   if (input.availability !== undefined) patch["availability"] = input.availability;
   if (input.licenseNumber !== undefined) patch["license_number"] = input.licenseNumber;
+  if (input.licenseExpiry !== undefined) patch["license_expiry"] = input.licenseExpiry || null;
+  if (input.boardCertification !== undefined) patch["board_certification"] = input.boardCertification;
+  if (input.cmeCredits !== undefined) patch["cme_credits"] = input.cmeCredits;
+  if (input.cmeRequired !== undefined) patch["cme_required"] = input.cmeRequired;
+  if (input.jobTitle !== undefined) patch["job_title"] = input.jobTitle;
+  if (input.email !== undefined) patch["email"] = input.email.trim().toLowerCase();
   if (input.phone !== undefined) patch["phone"] = input.phone;
   if (input.shiftPattern !== undefined) patch["shift_pattern"] = input.shiftPattern;
+  if (input.notes !== undefined) patch["notes"] = input.notes;
+
 
   const { data: staff, error } = await supabaseAdmin
     .from("staff")

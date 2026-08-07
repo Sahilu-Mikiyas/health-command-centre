@@ -214,7 +214,11 @@ export const myProfileQuery = queryOptions({
     const [profile, roles, staff] = await Promise.all([
       supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", user.id),
-      supabase.from("staff").select("role,full_name,job_title").eq("user_id", user.id).maybeSingle(),
+      supabase
+        .from("staff")
+        .select("id,role,full_name,job_title,license_number,license_expiry,cme_credits,cme_required,availability")
+        .eq("user_id", user.id)
+        .maybeSingle(),
     ]);
 
     const grantedRoles = (roles.data ?? []).map((row) => row.role as string);

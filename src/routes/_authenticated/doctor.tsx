@@ -13,7 +13,9 @@ import {
   FileText,
   Heart,
   HeartPulse,
+  Maximize2,
   Mic,
+  Minimize2,
   Pill,
   Printer,
   QrCode,
@@ -80,6 +82,57 @@ type DoctorTab =
   | "certificates"
   | "referrals"
   | "followups";
+
+/** One SOAP block: compact preview by default, expands to a full editor on its own. */
+function NoteSection({
+  id,
+  title,
+  hint,
+  defaultValue,
+}: {
+  id: string;
+  title: string;
+  hint: string;
+  defaultValue: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div
+      className={`space-y-2 rounded-2xl border bg-white p-3 transition-all ${
+        expanded ? "border-black/20 shadow-sm sm:col-span-2" : "border-black/5"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <Label htmlFor={id} className="text-[10px] font-extrabold uppercase tracking-wider text-black">
+            {title}
+          </Label>
+          <p className="truncate text-[10px] font-medium text-[#86868B]">{hint}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setExpanded((prev) => !prev)}
+          aria-expanded={expanded}
+          className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-full border border-black/10 bg-[#F5F5F7] px-2.5 py-1 text-[10px] font-bold text-black transition-colors hover:bg-black hover:text-white"
+        >
+          {expanded ? <Minimize2 className="size-3" /> : <Maximize2 className="size-3" />}
+          <span>{expanded ? "Minimise" : "Expand"}</span>
+        </button>
+      </div>
+
+      <Textarea
+        id={id}
+        name={id}
+        rows={expanded ? 10 : 2}
+        defaultValue={defaultValue}
+        className={`rounded-xl border-black/10 bg-[#F5F5F7] font-semibold text-black transition-all ${
+          expanded ? "text-xs leading-relaxed" : "text-[10px] leading-snug"
+        }`}
+      />
+    </div>
+  );
+}
 
 function DoctorContent() {
   const queryClient = useQueryClient();
@@ -336,34 +389,32 @@ function DoctorContent() {
                   }}
                 >
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="space-y-1">
-                      <Label htmlFor="subjective" className="text-[10px] font-extrabold uppercase text-[#86868B]">
-                        Subjective (Chief Complaint & History)
-                      </Label>
-                      <Textarea id="subjective" name="subjective" rows={3} defaultValue="Patient reports severe right-sided throbbing headache with nausea for 12 hours. No visual aura." className="rounded-2xl border-black/10 bg-[#F5F5F7] text-xs font-bold text-black" />
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label htmlFor="objective" className="text-[10px] font-extrabold uppercase text-[#86868B]">
-                        Objective (Physical Exam & Vitals)
-                      </Label>
-                      <Textarea id="objective" name="objective" rows={3} defaultValue="BP 124/82, HR 74. Neurological exam intact. No neck stiffness or focal deficit." className="rounded-2xl border-black/10 bg-[#F5F5F7] text-xs font-bold text-black" />
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label htmlFor="assessment" className="text-[10px] font-extrabold uppercase text-[#86868B]">
-                        Assessment (Diagnosis)
-                      </Label>
-                      <Textarea id="assessment" name="assessment" rows={3} defaultValue="1. Acute Migraine Exacerbation without aura. 2. Stage 3a Chronic Kidney Disease (eGFR 42)." className="rounded-2xl border-black/10 bg-[#F5F5F7] text-xs font-bold text-black" />
-                    </div>
-
-                    <div className="space-y-1">
-                      <Label htmlFor="plan" className="text-[10px] font-extrabold uppercase text-[#86868B]">
-                        Plan & Management
-                      </Label>
-                      <Textarea id="plan" name="plan" rows={3} defaultValue="Prescribe Sumatriptan 50mg PRN. Fluid hydration 1L IV Normal Saline. Avoid NSAIDs due to CKD stage." className="rounded-2xl border-black/10 bg-[#F5F5F7] text-xs font-bold text-black" />
-                    </div>
+                    <NoteSection
+                      id="subjective"
+                      title="Subjective"
+                      hint="Chief complaint & history"
+                      defaultValue="Patient reports severe right-sided throbbing headache with nausea for 12 hours. No visual aura."
+                    />
+                    <NoteSection
+                      id="objective"
+                      title="Objective"
+                      hint="Physical exam & vitals"
+                      defaultValue="BP 124/82, HR 74. Neurological exam intact. No neck stiffness or focal deficit."
+                    />
+                    <NoteSection
+                      id="assessment"
+                      title="Assessment"
+                      hint="Working diagnosis"
+                      defaultValue="1. Acute Migraine Exacerbation without aura. 2. Stage 3a Chronic Kidney Disease (eGFR 42)."
+                    />
+                    <NoteSection
+                      id="plan"
+                      title="Plan & Management"
+                      hint="Treatment & follow-up"
+                      defaultValue="Prescribe Sumatriptan 50mg PRN. Fluid hydration 1L IV Normal Saline. Avoid NSAIDs due to CKD stage."
+                    />
                   </div>
+
 
                   <div className="flex gap-2">
                     <Button type="submit" variant="outline" className="rounded-2xl text-xs font-bold" disabled={noteMut.isPending}>

@@ -5,8 +5,9 @@ import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { CommandPalette } from "@/components/hip/command-palette";
+import { LicenseWarningBanner } from "@/components/hip/license-gate";
 import { AppSidebar } from "@/components/shell/app-sidebar";
-import { navGroups } from "@/components/shell/nav-config";
+import { navGroupsForRoles } from "@/components/shell/nav-config";
 import { supabase } from "@/integrations/supabase/client";
 import { myProfileQuery } from "@/lib/hip/queries";
 import { ROLE_LABELS, type AppRole } from "@/lib/hip/rbac";
@@ -160,7 +161,7 @@ export function AppShell({
             >
               <X className="size-5" />
             </button>
-            {navGroups.map((group) => (
+            {navGroupsForRoles(me?.roles).map((group) => (
               <div key={group.label}>
                 <p className="pb-2 text-[10px] uppercase font-bold tracking-widest text-[#86868B]">
                   {group.label}
@@ -257,7 +258,10 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="flex-1 p-6 lg:p-8">{children}</main>
+        <main className="flex-1 space-y-6 p-6 lg:p-8">
+          <LicenseWarningBanner />
+          {children}
+        </main>
       </div>
     </div>
   );
