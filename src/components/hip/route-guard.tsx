@@ -4,6 +4,8 @@ import { Lock, RefreshCw, ShieldAlert } from "lucide-react";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
 
+import { LicenseLockScreen } from "@/components/hip/license-gate";
+import { isLockedOut } from "@/lib/hip/license";
 import { myProfileQuery } from "@/lib/hip/queries";
 import { getDefaultRedirect, hasRouteAccess, ROLE_LABELS, type AppRole } from "@/lib/hip/rbac";
 
@@ -20,6 +22,7 @@ export function RouteGuard({
   const roles = me?.roles ?? ["super_admin"];
   const primaryRole = (roles[0] ?? "super_admin") as AppRole;
   const isAllowed = hasRouteAccess(roles, route);
+  const licenseLocked = isLockedOut(me?.baseRoles ?? roles, me?.staff?.license_expiry);
 
   const activeOverride = typeof window !== "undefined" ? localStorage.getItem("furii_active_role_override") : null;
 
