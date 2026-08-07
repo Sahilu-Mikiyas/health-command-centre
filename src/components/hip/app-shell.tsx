@@ -258,7 +258,10 @@ export function AppShell({
           </div>
         </header>
 
-        <main className="flex-1 p-6 lg:p-8">{children}</main>
+        <main className="flex-1 space-y-6 p-6 lg:p-8">
+          <LicenseWarningBanner />
+          {children}
+        </main>
       </div>
     </div>
   );
