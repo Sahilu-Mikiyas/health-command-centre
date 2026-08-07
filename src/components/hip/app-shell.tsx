@@ -5,8 +5,9 @@ import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { CommandPalette } from "@/components/hip/command-palette";
+import { LicenseWarningBanner } from "@/components/hip/license-gate";
 import { AppSidebar } from "@/components/shell/app-sidebar";
-import { navGroups } from "@/components/shell/nav-config";
+import { navGroupsForRoles } from "@/components/shell/nav-config";
 import { supabase } from "@/integrations/supabase/client";
 import { myProfileQuery } from "@/lib/hip/queries";
 import { ROLE_LABELS, type AppRole } from "@/lib/hip/rbac";
