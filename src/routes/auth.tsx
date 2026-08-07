@@ -98,8 +98,9 @@ function AuthPage() {
 
       // Successful auth sign-in
       const { data: auth } = await supabase.auth.getUser();
-      const roles = auth.user?.user_metadata?.role ? [auth.user.user_metadata.role] : [];
-      const userMetaName = auth.user?.user_metadata?.full_name || auth.user?.email?.split("@")[0] || "Staff Member";
+      const meta = (auth.user?.user_metadata ?? {}) as Record<string, unknown>;
+      const roles = meta['role'] ? [String(meta['role'])] : [];
+      const userMetaName = (meta['full_name'] as string) || auth.user?.email?.split("@")[0] || "Staff Member";
       const primaryRole = (roles[0] ?? "super_admin") as AppRole;
       const roleTitle = ROLE_LABELS[primaryRole] ?? "Super Admin";
       const redirectPath = getDefaultRedirect(roles);
