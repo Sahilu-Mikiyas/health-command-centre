@@ -920,6 +920,9 @@ export type Database = {
       staff: {
         Row: {
           availability: string
+          board_certification: string | null
+          cme_credits: number
+          cme_required: number
           created_at: string
           department_id: string | null
           email: string | null
@@ -928,6 +931,7 @@ export type Database = {
           id: string
           job_title: string
           last_seen_at: string
+          license_expiry: string | null
           license_number: string | null
           notes: string | null
           phone: string | null
@@ -938,6 +942,9 @@ export type Database = {
         }
         Insert: {
           availability?: string
+          board_certification?: string | null
+          cme_credits?: number
+          cme_required?: number
           created_at?: string
           department_id?: string | null
           email?: string | null
@@ -946,6 +953,7 @@ export type Database = {
           id?: string
           job_title: string
           last_seen_at?: string
+          license_expiry?: string | null
           license_number?: string | null
           notes?: string | null
           phone?: string | null
@@ -956,6 +964,9 @@ export type Database = {
         }
         Update: {
           availability?: string
+          board_certification?: string | null
+          cme_credits?: number
+          cme_required?: number
           created_at?: string
           department_id?: string | null
           email?: string | null
@@ -964,6 +975,7 @@ export type Database = {
           id?: string
           job_title?: string
           last_seen_at?: string
+          license_expiry?: string | null
           license_number?: string | null
           notes?: string | null
           phone?: string | null
