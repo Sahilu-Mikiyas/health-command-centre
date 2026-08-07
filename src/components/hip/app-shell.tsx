@@ -161,7 +161,7 @@ export function AppShell({
             >
               <X className="size-5" />
             </button>
-            {navGroups.map((group) => (
+            {navGroupsForRoles(me?.roles).map((group) => (
               <div key={group.label}>
                 <p className="pb-2 text-[10px] uppercase font-bold tracking-widest text-[#86868B]">
                   {group.label}
