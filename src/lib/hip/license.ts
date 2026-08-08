@@ -18,6 +18,19 @@ export const LOCKOUT_EXEMPT_ROLES: AppRole[] = ["super_admin", "hr_manager"];
 export const WARNING_WINDOW_DAYS = 90;
 export const LOCKOUT_WINDOW_DAYS = 15;
 
+/** Configurable alert windows — owned by HR via notification settings. */
+export type LicenseThresholds = {
+  firstWarningDays: number;
+  urgentWarningDays: number;
+  lockoutDays: number;
+};
+
+export const DEFAULT_THRESHOLDS: LicenseThresholds = {
+  firstWarningDays: WARNING_WINDOW_DAYS,
+  urgentWarningDays: 30,
+  lockoutDays: LOCKOUT_WINDOW_DAYS,
+};
+
 export function daysUntil(date: string | null | undefined): number | null {
   if (!date) return null;
   const target = new Date(`${date}T00:00:00`);
@@ -27,15 +40,18 @@ export function daysUntil(date: string | null | undefined): number | null {
   return Math.round((target.getTime() - today.getTime()) / 86_400_000);
 }
 
-export function classifyLicense(expiry: string | null | undefined): {
+export function classifyLicense(
+  expiry: string | null | undefined,
+  thresholds: LicenseThresholds = DEFAULT_THRESHOLDS,
+): {
   state: LicenseState;
   days: number | null;
 } {
   const days = daysUntil(expiry);
   if (days === null) return { state: "unknown", days: null };
-  if (days <= LOCKOUT_WINDOW_DAYS) return { state: "locked", days };
-  if (days <= 30) return { state: "critical", days };
-  if (days <= WARNING_WINDOW_DAYS) return { state: "expiring", days };
+  if (days <= thresholds.lockoutDays) return { state: "locked", days };
+  if (days <= thresholds.urgentWarningDays) return { state: "critical", days };
+  if (days <= thresholds.firstWarningDays) return { state: "expiring", days };
   return { state: "valid", days };
 }
 
