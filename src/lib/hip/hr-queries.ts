@@ -1,7 +1,12 @@
 import { queryOptions } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
-import { classifyLicense, LICENSED_ROLES } from "@/lib/hip/license";
+import {
+  classifyLicense,
+  DEFAULT_THRESHOLDS,
+  LICENSED_ROLES,
+  type LicenseThresholds,
+} from "@/lib/hip/license";
 import type { AppRole } from "@/lib/hip/rbac";
 
 export type StaffRecord = {
@@ -42,7 +47,7 @@ export const staffDirectoryQuery = queryOptions({
 
 export type LicenseBucket = "locked" | "critical" | "expiring" | "valid" | "unknown";
 
-export function bucketStaff(rows: StaffRecord[]) {
+export function bucketStaff(rows: StaffRecord[], thresholds: LicenseThresholds = DEFAULT_THRESHOLDS) {
   const buckets: Record<LicenseBucket, StaffRecord[]> = {
     locked: [],
     critical: [],
@@ -52,7 +57,7 @@ export function bucketStaff(rows: StaffRecord[]) {
   };
   for (const row of rows) {
     const licensed = LICENSED_ROLES.includes(row.role as AppRole);
-    const { state } = classifyLicense(row.license_expiry);
+    const { state } = classifyLicense(row.license_expiry, thresholds);
     if (!licensed && state !== "locked") {
       buckets[state === "unknown" ? "unknown" : "valid"].push(row);
       continue;
