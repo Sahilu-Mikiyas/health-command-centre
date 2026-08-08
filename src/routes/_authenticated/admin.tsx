@@ -21,11 +21,15 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/hip/app-shell";
-import { Panel } from "@/components/hip/panel";
+import { Panel, Stat } from "@/components/hip/panel";
 import { RouteGuard } from "@/components/hip/route-guard";
 import { StatusPill } from "@/components/hip/status-pill";
 import { supabase } from "@/integrations/supabase/client";
+import { classifyLicense, LICENSED_ROLES } from "@/lib/hip/license";
 import { getDefaultRedirect, ROLE_LABELS, type AppRole } from "@/lib/hip/rbac";
+
+/** Every role this deployment ships a workspace for. */
+const ALL_ROLES = Object.keys(ROLE_LABELS) as AppRole[];
 import { deleteStaff, provisionStaff, updateStaff } from "@/lib/hip/staff.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -58,6 +62,7 @@ interface StaffMember {
   license_number?: string | null;
   phone?: string | null;
   job_title?: string | null;
+  license_expiry?: string | null;
   created_at?: string;
 }
 
