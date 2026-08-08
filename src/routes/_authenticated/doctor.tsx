@@ -33,7 +33,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/hip/app-shell";
@@ -133,7 +133,7 @@ function NoteSection({
         </div>
         <button
           type="button"
-          onClick={() => setExpanded((prev) => !prev)}
+          onClick={toggle}
           aria-expanded={expanded}
           className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-full border border-black/10 bg-[#F5F5F7] px-2.5 py-1 text-[10px] font-bold text-black transition-colors hover:bg-black hover:text-white"
         >
