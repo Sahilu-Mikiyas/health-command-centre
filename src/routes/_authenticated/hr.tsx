@@ -153,7 +153,7 @@ function HRContent() {
         {buckets.locked.length + buckets.critical.length > 0 && (
           <Panel
             title="Licence Escalation Board"
-            subtitle="{`Staff at or past the ${thresholds.lockoutDays}-day lockout threshold, and those inside the ${thresholds.urgentWarningDays}-day urgent window`}"
+            subtitle={`Staff at or past the ${thresholds.lockoutDays}-day lockout threshold, and those inside the ${thresholds.urgentWarningDays}-day urgent window`}
           >
             <ul className="space-y-2">
               {[...buckets.locked, ...buckets.critical].map((s) => {
