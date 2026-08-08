@@ -95,7 +95,28 @@ function NoteSection({
   hint: string;
   defaultValue: string;
 }) {
+  const storageKey = `hip:soap-expanded:${id}`;
   const [expanded, setExpanded] = useState(false);
+
+  // Restore the layout the doctor left behind (after hydration, to avoid SSR mismatch).
+  useEffect(() => {
+    try {
+      setExpanded(window.localStorage.getItem(storageKey) === "1");
+    } catch {
+      /* storage unavailable — keep the default */
+    }
+  }, [storageKey]);
+
+  const toggle = () =>
+    setExpanded((prev) => {
+      const next = !prev;
+      try {
+        window.localStorage.setItem(storageKey, next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
 
   return (
     <div
