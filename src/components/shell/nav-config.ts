@@ -122,12 +122,46 @@ export const ROLE_NAV: Record<AppRole, NavGroup[]> = {
   ],
 };
 
-/** Sidebar groups for the current effective roles. */
+/** Up to three one-click destinations each role reaches for constantly. */
+export const ROLE_QUICK_ACCESS: Record<AppRole, string[]> = {
+  super_admin: ["/admin", "/command-centre", "/hr"],
+  ceo: ["/executive", "/command-centre", "/billing"],
+  medical_director: ["/command-centre", "/doctor", "/ward"],
+  doctor: ["/doctor", "/laboratory", "/patients"],
+  nurse: ["/nurse", "/ward", "/reception"],
+  receptionist: ["/reception", "/patients", "/billing"],
+  pharmacist: ["/pharmacy", "/doctor", "/patients"],
+  lab_tech: ["/laboratory", "/doctor", "/patients"],
+  radiologist: ["/radiology", "/doctor", "/patients"],
+  ward_manager: ["/ward", "/nurse", "/patients"],
+  hr_manager: ["/hr", "/command-centre", "/events"],
+  billing_clerk: ["/billing", "/reception", "/patients"],
+};
+
+function primaryRoleOf(roles: string[] | undefined): AppRole {
+  const list = (roles && roles.length > 0 ? roles : ["super_admin"]) as AppRole[];
+  if (list.includes("super_admin")) return "super_admin";
+  return list.find((role) => ROLE_NAV[role]) ?? "receptionist";
+}
+
+/** Sidebar groups for the current effective roles — every item is permission-checked. */
 export function navGroupsForRoles(roles: string[] | undefined): NavGroup[] {
   const list = (roles && roles.length > 0 ? roles : ["super_admin"]) as AppRole[];
-  if (list.includes("super_admin")) return ROLE_NAV.super_admin;
-  const primary = list.find((role) => ROLE_NAV[role]);
-  return primary ? ROLE_NAV[primary] : ROLE_NAV.receptionist;
+  const primary = primaryRoleOf(list);
+  const quick = (ROLE_QUICK_ACCESS[primary] ?? [])
+    .map((path) => NAV_ITEMS[path])
+    .filter((item): item is NavItem => Boolean(item) && hasRouteAccess(list, item!.to));
+
+  const quickPaths = new Set(quick.map((item) => item.to));
+
+  const groups = (ROLE_NAV[primary] ?? ROLE_NAV.receptionist)
+    .map((group) => ({
+      label: group.label,
+      items: group.items.filter((item) => hasRouteAccess(list, item.to) && !quickPaths.has(item.to)),
+    }))
+    .filter((group) => group.items.length > 0);
+
+  return quick.length > 0 ? [{ label: "Quick Access", items: quick }, ...groups] : groups;
 }
 
 /** Legacy flat export kept for the command palette / mobile fallbacks. */
