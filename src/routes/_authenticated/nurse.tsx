@@ -72,10 +72,13 @@ type NurseTab =
   | "handover"
   | "emergency";
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isUuid = (value: string) => UUID_RE.test(value);
+
 function NurseContent() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<NurseTab>("overview");
-  const [selectedPatientId, setSelectedPatientId] = useState<string>("pat-1");
+  const [selectedPatientId, setSelectedPatientId] = useState<string>("");
 
   // Code Blue Emergency State
   const [codeBlueActive, setCodeBlueActive] = useState(false);
@@ -103,8 +106,12 @@ function NurseContent() {
 
   // Queries
   const encounters = useQuery({ ...activeEncountersQuery, refetchInterval: 15000 });
-  const orders = useQuery({ ...ordersQuery(selectedPatientId), enabled: Boolean(selectedPatientId) });
   const patients = useQuery(patientsQuery(""));
+
+  // Fall back to the first live encounter so we never query with a placeholder id.
+  const activePatientId =
+    selectedPatientId || (encounters.data ?? [])[0]?.patient_id || "";
+  const orders = useQuery({ ...ordersQuery(activePatientId), enabled: isUuid(activePatientId) });
 
   const assignedPatients = [
     { id: "pat-1", name: "Abebech Tadesse", mrn: "MRN-8829", bed: "ICU-01", status: "Stable", vitals: "124/82 · HR 74", diagnosis: "Acute Migraine Exacerbation & CKD Stage 3a" },

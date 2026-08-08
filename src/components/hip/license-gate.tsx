@@ -3,6 +3,7 @@ import { AlertTriangle, BadgeCheck, LogOut, ShieldAlert } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { classifyLicense, formatExpiry, LICENSE_LABEL } from "@/lib/hip/license";
+import { notificationSettingsQuery, staffAlertsOn, thresholdsFrom } from "@/lib/hip/notifications";
 import { myProfileQuery } from "@/lib/hip/queries";
 import { ROLE_LABELS, type AppRole } from "@/lib/hip/rbac";
 
@@ -83,9 +84,12 @@ export function LicenseLockScreen({
 /** Amber pre-expiry warning shown from 3 months out on every workspace. */
 export function LicenseWarningBanner() {
   const { data: me } = useQuery(myProfileQuery);
+  const { data: settings } = useQuery(notificationSettingsQuery);
+  const thresholds = thresholdsFrom(settings);
   const expiry = me?.staff?.license_expiry ?? null;
-  const { state, days } = classifyLicense(expiry);
+  const { state, days } = classifyLicense(expiry, thresholds);
 
+  if (!staffAlertsOn(settings)) return null;
   if (state !== "expiring" && state !== "critical") return null;
 
   const urgent = state === "critical";
@@ -104,7 +108,7 @@ export function LicenseWarningBanner() {
           </p>
           <p className={urgent ? "text-[#D70015]/80" : "text-[#B86200]/80"}>
             Licence {me?.staff?.license_number ?? "on file"} expires {formatExpiry(expiry)}. Access is
-            suspended automatically at 15 days remaining — submit your renewal to HR now.
+            suspended automatically at {thresholds.lockoutDays} days remaining — submit your renewal to HR now.
           </p>
         </div>
       </div>

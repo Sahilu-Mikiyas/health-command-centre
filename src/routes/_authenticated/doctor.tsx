@@ -33,7 +33,7 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/hip/app-shell";
@@ -95,7 +95,28 @@ function NoteSection({
   hint: string;
   defaultValue: string;
 }) {
+  const storageKey = `hip:soap-expanded:${id}`;
   const [expanded, setExpanded] = useState(false);
+
+  // Restore the layout the doctor left behind (after hydration, to avoid SSR mismatch).
+  useEffect(() => {
+    try {
+      setExpanded(window.localStorage.getItem(storageKey) === "1");
+    } catch {
+      /* storage unavailable — keep the default */
+    }
+  }, [storageKey]);
+
+  const toggle = () =>
+    setExpanded((prev) => {
+      const next = !prev;
+      try {
+        window.localStorage.setItem(storageKey, next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
 
   return (
     <div
@@ -112,7 +133,7 @@ function NoteSection({
         </div>
         <button
           type="button"
-          onClick={() => setExpanded((prev) => !prev)}
+          onClick={toggle}
           aria-expanded={expanded}
           className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-full border border-black/10 bg-[#F5F5F7] px-2.5 py-1 text-[10px] font-bold text-black transition-colors hover:bg-black hover:text-white"
         >
@@ -145,7 +166,8 @@ function DoctorContent() {
     ["waiting", "nurse", "doctor"].includes(e.stage)
   );
   const selected = queue.find((e) => e.id === selectedId) ?? queue[0] ?? null;
-  const patientId = selected?.patient_id ?? "pat-1";
+  // No live encounter selected means no patient to load — never query with a placeholder id.
+  const patientId = selected?.patient_id ?? "";
 
   const record = useQuery({ ...patientRecordQuery(patientId), enabled: Boolean(patientId) });
   const orders = useQuery({ ...ordersQuery(patientId), enabled: Boolean(patientId) });

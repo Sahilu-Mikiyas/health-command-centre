@@ -675,6 +675,65 @@ export type Database = {
           },
         ]
       }
+      notification_settings: {
+        Row: {
+          created_at: string
+          digest_hour: number
+          email_enabled: boolean
+          enabled: boolean
+          first_warning_days: number
+          hospital_id: string
+          id: string
+          in_app_enabled: boolean
+          lockout_days: number
+          notify_staff_member: boolean
+          quiet_weekends: boolean
+          recipient_roles: string[]
+          updated_at: string
+          urgent_warning_days: number
+        }
+        Insert: {
+          created_at?: string
+          digest_hour?: number
+          email_enabled?: boolean
+          enabled?: boolean
+          first_warning_days?: number
+          hospital_id: string
+          id?: string
+          in_app_enabled?: boolean
+          lockout_days?: number
+          notify_staff_member?: boolean
+          quiet_weekends?: boolean
+          recipient_roles?: string[]
+          updated_at?: string
+          urgent_warning_days?: number
+        }
+        Update: {
+          created_at?: string
+          digest_hour?: number
+          email_enabled?: boolean
+          enabled?: boolean
+          first_warning_days?: number
+          hospital_id?: string
+          id?: string
+          in_app_enabled?: boolean
+          lockout_days?: number
+          notify_staff_member?: boolean
+          quiet_weekends?: boolean
+          recipient_roles?: string[]
+          updated_at?: string
+          urgent_warning_days?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_settings_hospital_id_fkey"
+            columns: ["hospital_id"]
+            isOneToOne: true
+            referencedRelation: "hospitals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           analyzer: string | null
