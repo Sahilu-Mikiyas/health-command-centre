@@ -17,12 +17,15 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/hip/app-shell";
+import { NotificationSettingsPanel } from "@/components/hip/notification-settings-panel";
 import { Panel, Stat } from "@/components/hip/panel";
 import { RouteGuard } from "@/components/hip/route-guard";
 import { StaffEditor } from "@/components/hip/staff-editor";
 import { StatusPill } from "@/components/hip/status-pill";
 import { bucketStaff, staffDirectoryQuery, type StaffRecord } from "@/lib/hip/hr-queries";
 import { classifyLicense, formatExpiry, LICENSE_LABEL, LICENSED_ROLES } from "@/lib/hip/license";
+import { notificationSettingsQuery, thresholdsFrom } from "@/lib/hip/notifications";
+import { myProfileQuery } from "@/lib/hip/queries";
 import { ROLE_LABELS, type AppRole } from "@/lib/hip/rbac";
 import { deleteStaff } from "@/lib/hip/staff.functions";
 
@@ -58,8 +61,8 @@ function HRWorkspace() {
 const FILTERS = [
   { id: "all", label: "All Personnel" },
   { id: "locked", label: "Expired · Locked Out" },
-  { id: "critical", label: "Under 30 Days" },
-  { id: "expiring", label: "Under 90 Days" },
+  { id: "critical", label: "Urgent Window" },
+  { id: "expiring", label: "Renewal Window" },
   { id: "valid", label: "Compliant" },
   { id: "unknown", label: "No Licence On File" },
 ] as const;
@@ -72,7 +75,13 @@ function HRContent() {
   const [editing, setEditing] = useState<StaffRecord | null>(null);
 
   const { data: staff = [], isLoading } = useQuery(staffDirectoryQuery);
-  const buckets = bucketStaff(staff);
+  const { data: notifySettings } = useQuery(notificationSettingsQuery);
+  const { data: me } = useQuery(myProfileQuery);
+  const thresholds = thresholdsFrom(notifySettings);
+  const buckets = bucketStaff(staff, thresholds);
+  const canEditAlerts = (me?.baseRoles ?? me?.roles ?? ["super_admin"]).some((role) =>
+    ["super_admin", "ceo", "medical_director", "hr_manager"].includes(role),
+  );
 
   const removeMut = useMutation({
     mutationFn: async (id: string) => removeStaff({ data: { id } }),
@@ -129,7 +138,7 @@ function HRContent() {
             <Stat
               label="Renewals Due"
               value={`${buckets.critical.length + buckets.expiring.length} Members`}
-              hint="Within 90 days"
+              hint={`Within ${thresholds.firstWarningDays} days`}
               tone={buckets.critical.length ? "warn" : "ok"}
             />
           </Panel>
@@ -138,15 +147,17 @@ function HRContent() {
           </Panel>
         </div>
 
+        <NotificationSettingsPanel canEdit={canEditAlerts} />
+
         {/* Lockout escalation board */}
         {buckets.locked.length + buckets.critical.length > 0 && (
           <Panel
             title="Licence Escalation Board"
-            subtitle="Staff at or past the 15-day lockout threshold, and those inside the 30-day urgent window"
+            subtitle="{`Staff at or past the ${thresholds.lockoutDays}-day lockout threshold, and those inside the ${thresholds.urgentWarningDays}-day urgent window`}"
           >
             <ul className="space-y-2">
               {[...buckets.locked, ...buckets.critical].map((s) => {
-                const { state, days } = classifyLicense(s.license_expiry);
+                const { state, days } = classifyLicense(s.license_expiry, thresholds);
                 const locked = state === "locked";
                 return (
                   <li
@@ -243,7 +254,7 @@ function HRContent() {
                   </tr>
                 ) : (
                   rows.map((s) => {
-                    const { state, days } = classifyLicense(s.license_expiry);
+                    const { state, days } = classifyLicense(s.license_expiry, thresholds);
                     const licensed = LICENSED_ROLES.includes(s.role as AppRole);
                     return (
                       <tr key={s.id} className="hover:bg-[#F5F5F7]">
@@ -322,17 +333,17 @@ function HRContent() {
 
         {/* Policy explainer */}
         <div className="grid gap-4 md:grid-cols-3">
-          <Panel title="Renewal Notice" subtitle="90 days out">
+          <Panel title="Renewal Notice" subtitle={`${thresholds.firstWarningDays} days out`}>
             <p className="flex items-start gap-2 text-xs font-semibold leading-relaxed text-[#515154]">
               <CalendarClock className="mt-0.5 size-4 shrink-0 text-[#B86200]" />
-              Staff see an amber banner on every workspace they open from three months before expiry.
+              {`Staff see an amber banner on every workspace they open from ${thresholds.firstWarningDays} days before expiry — configurable above.`}
             </p>
           </Panel>
-          <Panel title="Automatic Lockout" subtitle="15 days out">
+          <Panel title="Automatic Lockout" subtitle={`${thresholds.lockoutDays} days out`}>
             <p className="flex items-start gap-2 text-xs font-semibold leading-relaxed text-[#515154]">
               <Lock className="mt-0.5 size-4 shrink-0 text-[#D70015]" />
-              At 15 days remaining the workspace is replaced by a renewal notice — clinical access resumes the
-              moment HR records a new expiry date here.
+              {`At ${thresholds.lockoutDays} days remaining the workspace is replaced by a renewal notice — clinical access resumes the
+              moment HR records a new expiry date here.`}
             </p>
           </Panel>
           <Panel title="CME Credits" subtitle="Annual cycle">
