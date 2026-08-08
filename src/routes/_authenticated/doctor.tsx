@@ -166,7 +166,8 @@ function DoctorContent() {
     ["waiting", "nurse", "doctor"].includes(e.stage)
   );
   const selected = queue.find((e) => e.id === selectedId) ?? queue[0] ?? null;
-  const patientId = selected?.patient_id ?? "pat-1";
+  // No live encounter selected means no patient to load — never query with a placeholder id.
+  const patientId = selected?.patient_id ?? "";
 
   const record = useQuery({ ...patientRecordQuery(patientId), enabled: Boolean(patientId) });
   const orders = useQuery({ ...ordersQuery(patientId), enabled: Boolean(patientId) });
