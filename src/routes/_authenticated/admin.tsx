@@ -61,6 +61,98 @@ interface StaffMember {
   created_at?: string;
 }
 
+/** What this platform actually contains right now, and where the gaps are. */
+function PlatformCoverage({ staff }: { staff: StaffMember[] }) {
+  const counts = new Map<string, number>();
+  for (const member of staff) counts.set(member.role, (counts.get(member.role) ?? 0) + 1);
+
+  const covered = ALL_ROLES.filter((role) => (counts.get(role) ?? 0) > 0);
+  const uncovered = ALL_ROLES.filter((role) => (counts.get(role) ?? 0) === 0);
+  const licensed = staff.filter((m) => LICENSED_ROLES.includes(m.role as AppRole));
+  const missingLicence = licensed.filter((m) => !m.license_expiry).length;
+  const lockedOut = licensed.filter(
+    (m) => classifyLicense(m.license_expiry).state === "locked",
+  ).length;
+
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Panel className="min-w-0">
+          <Stat label="Provisioned Accounts" value={`${staff.length} Staff`} hint="Real logins with granted roles" tone="ok" />
+        </Panel>
+        <Panel className="min-w-0">
+          <Stat
+            label="Role Coverage"
+            value={`${covered.length} / ${ALL_ROLES.length}`}
+            hint={uncovered.length ? `${uncovered.length} roles unstaffed` : "Every workspace staffed"}
+            tone={uncovered.length ? "warn" : "ok"}
+          />
+        </Panel>
+        <Panel className="min-w-0">
+          <Stat
+            label="Licences On File"
+            value={`${licensed.length - missingLicence} / ${licensed.length}`}
+            hint={missingLicence ? `${missingLicence} clinical staff missing expiry` : "All clinical licences recorded"}
+            tone={missingLicence ? "warn" : "ok"}
+          />
+        </Panel>
+        <Panel className="min-w-0">
+          <Stat
+            label="Locked Out Now"
+            value={`${lockedOut} Members`}
+            hint="Managed in HR & Staff Operations"
+            tone={lockedOut ? "crit" : "ok"}
+          />
+        </Panel>
+      </div>
+
+      <Panel
+        title="Platform Contents & Gaps"
+        subtitle="Every workspace this deployment ships, and which roles are not yet staffed"
+      >
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">Staffed roles</p>
+            <div className="flex flex-wrap gap-1.5">
+              {covered.length === 0 ? (
+                <span className="text-xs font-semibold text-[#86868B]">No accounts provisioned yet.</span>
+              ) : (
+                covered.map((role) => (
+                  <span
+                    key={role}
+                    className="rounded-full border border-[#B6ECC3] bg-[#E8F8EC] px-2.5 py-1 text-[10px] font-bold text-[#1D8A39]"
+                  >
+                    {ROLE_LABELS[role]} · {counts.get(role)}
+                  </span>
+                ))
+              )}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">
+              Roles still to provision
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {uncovered.length === 0 ? (
+                <span className="text-xs font-semibold text-[#1D8A39]">Every role has at least one account.</span>
+              ) : (
+                uncovered.map((role) => (
+                  <span
+                    key={role}
+                    className="rounded-full border border-[#FFE0B2] bg-[#FFF4E5] px-2.5 py-1 text-[10px] font-bold text-[#B86200]"
+                  >
+                    {ROLE_LABELS[role]}
+                  </span>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </Panel>
+    </div>
+  );
+}
+
 function AdminWorkspace() {
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -204,13 +296,16 @@ function AdminWorkspace() {
 
   const rolesOptions: { role: AppRole; label: string }[] = [
     { role: "super_admin", label: "Super Admin (Full System Access)" },
-    { role: "ceo", label: "Chief Executive Officer / Medical Director" },
+    { role: "ceo", label: "Chief Executive Officer" },
+    { role: "medical_director", label: "Medical Director" },
     { role: "doctor", label: "Attending Doctor" },
     { role: "nurse", label: "Registered Nurse" },
     { role: "receptionist", label: "Receptionist & Triage" },
     { role: "pharmacist", label: "Clinical Pharmacist" },
     { role: "lab_tech", label: "Laboratory Technologist" },
     { role: "radiologist", label: "Radiology Specialist" },
+    { role: "ward_manager", label: "Ward & Bed Manager" },
+    { role: "hr_manager", label: "HR & Staff Operations Manager" },
     { role: "billing_clerk", label: "Billing & Financial Clerk" },
   ];
 
@@ -229,6 +324,8 @@ function AdminWorkspace() {
         </div>
       }
     >
+      <PlatformCoverage staff={staffList ?? []} />
+
       {/* Active Role Testing Dock */}
       <div className="rounded-2xl border border-black/10 bg-white p-4 space-y-3 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-black/5 pb-2">
