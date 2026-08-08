@@ -72,11 +72,15 @@ export const LICENSE_LABEL: Record<LicenseState, string> = {
 };
 
 /** True when this staff member must be blocked from their clinical workspace. */
-export function isLockedOut(roles: string[] | undefined, expiry: string | null | undefined): boolean {
+export function isLockedOut(
+  roles: string[] | undefined,
+  expiry: string | null | undefined,
+  thresholds: LicenseThresholds = DEFAULT_THRESHOLDS,
+): boolean {
   const list = (roles ?? []) as AppRole[];
   if (list.some((role) => LOCKOUT_EXEMPT_ROLES.includes(role))) return false;
   if (!list.some((role) => LICENSED_ROLES.includes(role))) return false;
-  return classifyLicense(expiry).state === "locked";
+  return classifyLicense(expiry, thresholds).state === "locked";
 }
 
 export function formatExpiry(date: string | null | undefined): string {
