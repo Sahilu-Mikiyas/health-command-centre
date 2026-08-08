@@ -8,6 +8,7 @@ import {
   Clock,
   Cpu,
   DollarSign,
+  Download,
   FileCheck,
   FileSpreadsheet,
   HeartPulse,
@@ -22,6 +23,8 @@ import {
   Zap,
 } from "lucide-react";
 import { toast } from "sonner";
+
+import { generateExecutiveReport } from "@/lib/hip/pdf-engine";
 
 import { AppShell } from "@/components/hip/app-shell";
 import { Panel, Stat } from "@/components/hip/panel";
@@ -57,6 +60,29 @@ function ExecutiveContent() {
       subtitle="Enterprise healthcare analytics · Hospital revenue KPIs · Inpatient bed occupancy · Clinical safety governance"
       actions={
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              generateExecutiveReport({
+                period: "August 2026",
+                totalRevenue: "1,420,000 ETB",
+                totalPatients: "4,260",
+                avgLOS: "3.2 Days",
+                bedOccupancy: "76.2%",
+                infectionRate: "0.0%",
+                metrics: [
+                  { kpi: "Emergency Throughput", value: "142 Patients/Day", change: "+8.4%" },
+                  { kpi: "Lab Turnaround", value: "18 Minutes", change: "-12%" },
+                  { kpi: "Radiology Turnaround", value: "14 Minutes", change: "-5%" },
+                  { kpi: "Patient Satisfaction", value: "96.4 / 100", change: "+2.1%" },
+                ],
+                generatedBy: "CEO",
+              })
+            }
+            className="inline-flex items-center gap-1.5 rounded-2xl bg-black px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer"
+          >
+            <Download className="size-4" /> Download Executive Report PDF
+          </button>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E5F1FF] border border-[#B8DAFF] px-3.5 py-1 text-xs font-bold text-[#0066CC]">
             <TrendingUp className="size-3.5" /> Enterprise Hospital Performance: EXCELLENT
           </span>
@@ -65,6 +91,34 @@ function ExecutiveContent() {
     >
       <div className="space-y-6">
         {/* Executive High-Level KPIs */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-xs font-black uppercase tracking-wider text-black">
+            Executive High-Level KPIs
+          </h2>
+          <button
+            onClick={() =>
+              generateExecutiveReport({
+                period: 'August 2026',
+                totalRevenue: '1,420,000 ETB',
+                totalPatients: '4,260',
+                avgLOS: '3.2 Days',
+                bedOccupancy: '76.2%',
+                infectionRate: '0.0%',
+                metrics: [
+                  { kpi: 'Emergency Throughput', value: '142 Patients/Day', change: '+8.4%' },
+                  { kpi: 'Lab Turnaround', value: '18 Minutes', change: '-12%' },
+                  { kpi: 'Radiology Turnaround', value: '14 Minutes', change: '-5%' },
+                  { kpi: 'Patient Satisfaction', value: '96.4 / 100', change: '+2.1%' },
+                ],
+                generatedBy: 'CEO',
+              })
+            }
+            className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-[#F5F5F7] px-3 py-1.5 text-[10px] font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
+            title="Download PDF"
+          >
+            <Download className="size-3" /> Download PDF
+          </button>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Panel className="min-w-0">
             <Stat label="Total Monthly Revenue" value="1,420,000 ETB" hint="+12.4% vs last month" tone="ok" />

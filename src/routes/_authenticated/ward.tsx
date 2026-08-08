@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Clock,
   DoorOpen,
+  Download,
   FileCheck,
   HeartPulse,
   Printer,
@@ -17,6 +18,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+
+import { generateAdmissionSlip, generateWardCensus } from "@/lib/hip/pdf-engine";
 
 import { AppShell } from "@/components/hip/app-shell";
 import { HandoffBoard } from "@/components/hip/handoff-board";
@@ -69,6 +72,24 @@ function WardContent() {
       subtitle="Inpatient bed occupancy matrix · Infection isolation flags · Nurse shift assignments · Discharge preparation"
       actions={
         <div className="flex items-center gap-2">
+          <button
+            onClick={() =>
+              generateWardCensus({
+                wards: wards.map((w) => ({
+                  name: w.name,
+                  totalBeds: w.totalBeds,
+                  occupied: w.occupied,
+                  available: w.totalBeds - w.occupied,
+                  occupancyPct: Math.round((w.occupied / w.totalBeds) * 100) + "%",
+                })),
+                generatedBy: "Ward Manager",
+              })
+            }
+            className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-[#F5F5F7] px-3 py-1.5 text-[10px] font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
+            title="Download PDF"
+          >
+            <Download className="size-3" /> Download PDF
+          </button>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E8F8EC] border border-[#B6ECC3] px-3.5 py-1 text-xs font-bold text-[#1D8A39]">
             <Building2 className="size-3.5" /> 82% Overall Bed Occupancy
           </span>
@@ -151,6 +172,29 @@ function WardContent() {
                     >
                       Transfer Bed
                     </button>
+                    {b.status === "Occupied" && (
+                      <button
+                        onClick={() =>
+                          generateAdmissionSlip({
+                            patientName: b.patient,
+                            mrn: b.mrn,
+                            age: "45",
+                            gender: "Female",
+                            ward: selectedWard,
+                            bed: b.bedNo,
+                            admittingDoctor: "Dr. Bethlehem Tadesse",
+                            primaryNurse: b.nurse || "Unassigned",
+                            admissionDate: new Date().toLocaleDateString(),
+                            diagnosis: b.diagnosis || "",
+                            isolation: b.isolation ? "Contact Precautions" : "None",
+                          })
+                        }
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-[#F5F5F7] px-3 py-1.5 text-[10px] font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
+                        title="Download PDF"
+                      >
+                        <Download className="size-3" /> Download PDF
+                      </button>
+                    )}
                     <button
                       onClick={() => toast.success(`Printed bed tag label for ${b.bedNo}.`)}
                       className="rounded-xl border border-black/10 bg-[#F5F5F7] p-2 text-black hover:bg-white transition-colors"

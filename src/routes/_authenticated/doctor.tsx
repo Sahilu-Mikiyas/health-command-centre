@@ -8,6 +8,7 @@ import {
   Calendar,
   CheckCircle2,
   Clock,
+  Download,
   FileCheck,
   FileSpreadsheet,
   FileText,
@@ -49,6 +50,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { activeEncountersQuery, notesQuery, ordersQuery } from "@/lib/hip/clinical-queries";
 import { cancelOrder, createOrder, saveNote, setEncounterPriority, setEncounterStage } from "@/lib/hip/mutations";
 import { patientRecordQuery } from "@/lib/hip/queries";
+import {
+  generateDischargeSummary,
+  generateReferralLetter,
+  generateSickLeaveCert,
+  generateSOAPSummary,
+} from "@/lib/hip/pdf-engine";
 
 const categories = ["laboratory", "imaging", "medication", "procedure"] as const;
 
@@ -180,6 +187,12 @@ function DoctorContent() {
   const [sickDays, setSickDays] = useState("3");
   const [sickReason, setSickReason] = useState("Acute Exacerbation of Migraine & Severe Fatigue");
 
+  // SOAP Form State
+  const [soapSubjective, setSoapSubjective] = useState("Patient reports severe right-sided throbbing headache with nausea for 12 hours. No visual aura.");
+  const [soapObjective, setSoapObjective] = useState("BP 124/82, HR 74. Neurological exam intact. No neck stiffness or focal deficit.");
+  const [soapAssessment, setSoapAssessment] = useState("1. Acute Migraine Exacerbation without aura. 2. Stage 3a Chronic Kidney Disease (eGFR 42).");
+  const [soapPlan, setSoapPlan] = useState("Prescribe Sumatriptan 50mg PRN. Fluid hydration 1L IV Normal Saline. Avoid NSAIDs due to CKD stage.");
+
   // Prescription State
   const [rxDrug, setRxDrug] = useState("Sumatriptan 50mg Oral");
   const [rxDose, setRxDose] = useState("50mg");
@@ -248,6 +261,26 @@ function DoctorContent() {
       subtitle="SOAP clinical notes · AI diagnostic assist · eGFR renal safety guard · Electronic orders & certificates"
       actions={
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              generateSOAPSummary({
+                patientName: selected?.patients?.full_name || record.data?.patient?.full_name || "Abebech Tefera",
+                mrn: selected?.patients?.mrn || record.data?.patient?.mrn || "MGH-000079",
+                age: "45",
+                gender: "Female",
+                subjective: soapSubjective,
+                objective: soapObjective,
+                assessment: soapAssessment,
+                plan: soapPlan,
+                doctorName: "Dr. Bethlehem Tadesse",
+                licenseId: "MD-88291",
+              })
+            }
+            className="inline-flex items-center gap-1.5 rounded-2xl bg-black px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer"
+          >
+            <Download className="size-4" /> Download Consultation PDF
+          </button>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E8F8EC] border border-[#B6ECC3] px-3.5 py-1 text-xs font-bold text-[#1D8A39]">
             <Stethoscope className="size-3.5" /> Doctor License Active (MD-88291)
           </span>
@@ -327,7 +360,7 @@ function DoctorContent() {
                 title={`Active Consult: ${selected.patients?.full_name ?? "Patient"}`}
                 subtitle={`MRN: ${selected.patients?.mrn ?? "—"}`}
                 action={
-                  <div className="flex flex-wrap gap-2 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 min-w-0">
                     <Button
                       size="sm"
                       variant="outline"
@@ -343,6 +376,30 @@ function DoctorContent() {
                     >
                       Complete Consult ✓
                     </Button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        generateDischargeSummary({
+                          patientName: selected?.patients?.full_name || record.data?.patient?.full_name || 'Patient',
+                          mrn: selected?.patients?.mrn || record.data?.patient?.mrn || 'N/A',
+                          age: '45',
+                          gender: 'Female',
+                          admissionDate: 'Aug 6, 2026',
+                          dischargeDate: new Date().toLocaleDateString(),
+                          admittingDiagnosis: 'Acute Migraine Exacerbation',
+                          dischargeDiagnosis: 'Resolved Migraine, Stable CKD Stage 3a',
+                          treatmentSummary: 'IV Sumatriptan 50mg, IV Normal Saline 1L, Observation x 24h',
+                          dischargeMedications: 'Sumatriptan 50mg Oral PRN (max 100mg/24h)',
+                          followUpInstructions: 'Nephrology follow-up in 2 weeks for eGFR re-check',
+                          doctorName: 'Dr. Bethlehem Tadesse',
+                          licenseId: 'MD-88291',
+                        })
+                      }
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-[#F5F5F7] px-3 py-1.5 text-[10px] font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
+                      title="Download PDF"
+                    >
+                      <Download className="size-3" /> Download PDF
+                    </button>
                   </div>
                 }
               >
@@ -382,14 +439,37 @@ function DoctorContent() {
                 title="SOAP Clinical Documentation"
                 subtitle="Sign-off produces an immutable medical audit record"
                 action={
-                  <button
-                    onClick={handleVoiceDictation}
-                    disabled={isDictating}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-black px-3.5 py-1 text-xs font-bold text-white shadow-2xs hover:bg-slate-800 cursor-pointer"
-                  >
-                    <Mic className={`size-3.5 ${isDictating ? "animate-pulse text-red-400" : ""}`} />
-                    <span>{isDictating ? "Listening..." : "Voice Dictation"}</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        generateSOAPSummary({
+                          patientName: selected?.patients?.full_name || record.data?.patient?.full_name || "Abebech Tefera",
+                          mrn: selected?.patients?.mrn || record.data?.patient?.mrn || "MGH-000079",
+                          age: "45",
+                          gender: "Female",
+                          subjective: soapSubjective || "",
+                          objective: soapObjective || "",
+                          assessment: soapAssessment || "",
+                          plan: soapPlan || "",
+                          doctorName: "Dr. Bethlehem Tadesse",
+                          licenseId: "MD-88291",
+                        })
+                      }
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-[#F5F5F7] px-3 py-1 text-xs font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
+                      title="Download PDF"
+                    >
+                      <Download className="size-3.5" /> Download PDF
+                    </button>
+                    <button
+                      onClick={handleVoiceDictation}
+                      disabled={isDictating}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-black px-3.5 py-1 text-xs font-bold text-white shadow-2xs hover:bg-slate-800 cursor-pointer"
+                    >
+                      <Mic className={`size-3.5 ${isDictating ? "animate-pulse text-red-400" : ""}`} />
+                      <span>{isDictating ? "Listening..." : "Voice Dictation"}</span>
+                    </button>
+                  </div>
                 }
               >
                 <form
@@ -411,40 +491,63 @@ function DoctorContent() {
                   }}
                 >
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <NoteSection
-                      id="subjective"
-                      title="Subjective"
-                      hint="Chief complaint & history"
-                      defaultValue="Patient reports severe right-sided throbbing headache with nausea for 12 hours. No visual aura."
-                    />
-                    <NoteSection
-                      id="objective"
-                      title="Objective"
-                      hint="Physical exam & vitals"
-                      defaultValue="BP 124/82, HR 74. Neurological exam intact. No neck stiffness or focal deficit."
-                    />
-                    <NoteSection
-                      id="assessment"
-                      title="Assessment"
-                      hint="Working diagnosis"
-                      defaultValue="1. Acute Migraine Exacerbation without aura. 2. Stage 3a Chronic Kidney Disease (eGFR 42)."
-                    />
-                    <NoteSection
-                      id="plan"
-                      title="Plan & Management"
-                      hint="Treatment & follow-up"
-                      defaultValue="Prescribe Sumatriptan 50mg PRN. Fluid hydration 1L IV Normal Saline. Avoid NSAIDs due to CKD stage."
-                    />
+                    <div className="space-y-1">
+                      <Label htmlFor="subjective" className="text-[10px] font-extrabold uppercase text-[#86868B]">
+                        Subjective (Chief Complaint & History)
+                      </Label>
+                      <Textarea id="subjective" name="subjective" rows={3} value={soapSubjective} onChange={(e) => setSoapSubjective(e.target.value)} className="rounded-2xl border-black/10 bg-[#F5F5F7] text-xs font-bold text-black" />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="objective" className="text-[10px] font-extrabold uppercase text-[#86868B]">
+                        Objective (Physical Exam & Vitals)
+                      </Label>
+                      <Textarea id="objective" name="objective" rows={3} value={soapObjective} onChange={(e) => setSoapObjective(e.target.value)} className="rounded-2xl border-black/10 bg-[#F5F5F7] text-xs font-bold text-black" />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="assessment" className="text-[10px] font-extrabold uppercase text-[#86868B]">
+                        Assessment (Diagnosis)
+                      </Label>
+                      <Textarea id="assessment" name="assessment" rows={3} value={soapAssessment} onChange={(e) => setSoapAssessment(e.target.value)} className="rounded-2xl border-black/10 bg-[#F5F5F7] text-xs font-bold text-black" />
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label htmlFor="plan" className="text-[10px] font-extrabold uppercase text-[#86868B]">
+                        Plan & Management
+                      </Label>
+                      <Textarea id="plan" name="plan" rows={3} value={soapPlan} onChange={(e) => setSoapPlan(e.target.value)} className="rounded-2xl border-black/10 bg-[#F5F5F7] text-xs font-bold text-black" />
+                    </div>
                   </div>
 
-
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button type="submit" variant="outline" className="rounded-2xl text-xs font-bold" disabled={noteMut.isPending}>
                       Save Draft Note
                     </Button>
                     <Button type="submit" data-sign="1" className="rounded-2xl text-xs font-bold bg-black text-white" disabled={noteMut.isPending}>
                       Sign & Lock Note ✓
                     </Button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        generateSOAPSummary({
+                          patientName: selected?.patients?.full_name || record.data?.patient?.full_name || 'Patient',
+                          mrn: selected?.patients?.mrn || record.data?.patient?.mrn || 'N/A',
+                          age: '45',
+                          gender: 'Female',
+                          subjective: soapSubjective || '',
+                          objective: soapObjective || '',
+                          assessment: soapAssessment || '',
+                          plan: soapPlan || '',
+                          doctorName: 'Dr. Bethlehem Tadesse',
+                          licenseId: 'MD-88291',
+                        })
+                      }
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-[#F5F5F7] px-3 py-1.5 text-[10px] font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
+                      title="Download PDF"
+                    >
+                      <Download className="size-3" /> Download PDF
+                    </button>
                   </div>
                 </form>
               </Panel>
@@ -626,12 +729,36 @@ function DoctorContent() {
                 <textarea rows={2} value={sickReason} onChange={(e) => setSickReason(e.target.value)} className="w-full rounded-2xl border border-black/10 bg-[#F5F5F7] p-3 text-xs font-bold text-black" />
               </div>
 
-              <button
-                onClick={handlePrintCertificate}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-black py-3.5 text-xs font-bold text-white shadow-md hover:bg-slate-800 cursor-pointer"
-              >
-                <Printer className="size-4" /> Issue & Print Official Certificate
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handlePrintCertificate}
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-black py-3.5 text-xs font-bold text-white shadow-md hover:bg-slate-800 cursor-pointer"
+                >
+                  <Printer className="size-4" /> Issue & Print Official Certificate
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    generateSickLeaveCert({
+                      patientName: selected?.patients?.full_name || record.data?.patient?.full_name || 'Patient',
+                      mrn: selected?.patients?.mrn || record.data?.patient?.mrn || 'N/A',
+                      age: '45',
+                      gender: 'Female',
+                      diagnosis: sickReason || 'Acute Migraine Exacerbation',
+                      icdCode: 'G43.9',
+                      startDate: new Date().toLocaleDateString(),
+                      endDate: new Date(Date.now() + (Number(sickDays) || 3) * 86400000).toLocaleDateString(),
+                      totalDays: Number(sickDays) || 3,
+                      doctorName: 'Dr. Bethlehem Tadesse',
+                      licenseId: 'MD-88291',
+                    })
+                  }
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-[#F5F5F7] px-3 py-1.5 text-[10px] font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
+                  title="Download PDF"
+                >
+                  <Download className="size-3" /> Download PDF
+                </button>
+              </div>
             </div>
           </Panel>
         </div>
@@ -651,12 +778,36 @@ function DoctorContent() {
                 </select>
               </div>
 
-              <button
-                onClick={() => toast.success("Specialist referral generated & sent to Nephrology Department.")}
-                className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-black py-3.5 text-xs font-bold text-white shadow-md hover:bg-slate-800 cursor-pointer"
-              >
-                <Share2 className="size-4" /> Issue Specialist Referral Letter
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => toast.success("Specialist referral generated & sent to Nephrology Department.")}
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-2xl bg-black py-3.5 text-xs font-bold text-white shadow-md hover:bg-slate-800 cursor-pointer"
+                >
+                  <Share2 className="size-4" /> Issue Specialist Referral Letter
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    generateReferralLetter({
+                      patientName: selected?.patients?.full_name || record.data?.patient?.full_name || 'Patient',
+                      mrn: selected?.patients?.mrn || record.data?.patient?.mrn || 'N/A',
+                      age: '45',
+                      gender: 'Female',
+                      referTo: 'Specialist',
+                      referDepartment: 'Nephrology',
+                      clinicalFindings: 'eGFR 42 mL/min — CKD Stage 3a monitoring required',
+                      currentMedications: 'Sumatriptan 50mg PRN',
+                      urgency: 'Routine',
+                      doctorName: 'Dr. Bethlehem Tadesse',
+                      licenseId: 'MD-88291',
+                    })
+                  }
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-[#F5F5F7] px-3 py-1.5 text-[10px] font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
+                  title="Download PDF"
+                >
+                  <Download className="size-3" /> Download PDF
+                </button>
+              </div>
             </div>
           </Panel>
         </div>

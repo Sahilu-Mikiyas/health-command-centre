@@ -6,6 +6,7 @@ import {
   Barcode,
   CheckCircle2,
   Clock,
+  Download,
   FileCheck,
   FileSpreadsheet,
   FileText,
@@ -23,6 +24,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+
+import { generateLabReport } from "@/lib/hip/pdf-engine";
 
 import { AppShell } from "@/components/hip/app-shell";
 import { HandoffBoard } from "@/components/hip/handoff-board";
@@ -123,6 +126,30 @@ function LaboratoryContent() {
       subtitle="Sample lifecycle tracking · Automated analyzer telemetry · Critical value escalation · QC Calibration"
       actions={
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              generateLabReport({
+                patientName: activeSample?.patientName || "Abebech Tadesse",
+                mrn: activeSample?.mrn || "MRN-8829",
+                age: "45",
+                gender: "Female",
+                orderingPhysician: "Dr. Bethlehem Tadesse",
+                specimenType: activeSample?.tube || "SST Gold Top",
+                collectedAt: activeSample?.collectedAt || "10:15 AM",
+                results: [
+                  { test: "eGFR", result: "42", unit: "mL/min", refRange: "> 60", flag: "LOW" },
+                  { test: "Creatinine", result: "1.8", unit: "mg/dL", refRange: "0.6-1.2", flag: "HIGH" },
+                  { test: "Potassium", result: "4.2", unit: "mmol/L", refRange: "3.5-5.0", flag: "NORMAL" },
+                ],
+                techName: "Lab Tech Almaz",
+                techId: "LT-90211",
+              })
+            }
+            className="inline-flex items-center gap-1.5 rounded-2xl bg-black px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer"
+          >
+            <Download className="size-4" /> Download Lab Report PDF
+          </button>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E8F8EC] border border-[#B6ECC3] px-3.5 py-1 text-xs font-bold text-[#1D8A39]">
             <ShieldCheck className="size-3.5" /> Analyzers Online (3/3)
           </span>
@@ -246,20 +273,46 @@ function LaboratoryContent() {
                     <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">Order Name</span>
                     <h3 className="text-xl font-black text-black">{activeSample.test}</h3>
                   </div>
-                  <button
-                    onClick={() =>
-                      setPrintedTubeBarcode({
-                        sampleId: activeSample.id,
-                        patientName: activeSample.patientName,
-                        mrn: activeSample.mrn,
-                        tubeType: activeSample.tube,
-                        testName: activeSample.test,
-                      })
-                    }
-                    className="inline-flex items-center gap-1.5 rounded-full bg-black px-3.5 py-1.5 text-xs font-bold text-white shadow-2xs hover:bg-slate-800 transition-all cursor-pointer"
-                  >
-                    <Barcode className="size-3.5" /> Tube Barcode
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() =>
+                        generateLabReport({
+                          patientName: activeSample.patientName,
+                          mrn: activeSample.mrn,
+                          age: "45",
+                          gender: "Female",
+                          orderingPhysician: "Dr. Bethlehem Tadesse",
+                          specimenType: activeSample.tube || "SST Gold Top",
+                          collectedAt: activeSample.collectedAt || "10:15 AM",
+                          results: [
+                            { test: "eGFR", result: "42", unit: "mL/min", refRange: "> 60", flag: "LOW" },
+                            { test: "Creatinine", result: "1.8", unit: "mg/dL", refRange: "0.6-1.2", flag: "HIGH" },
+                            { test: "Potassium", result: "4.2", unit: "mmol/L", refRange: "3.5-5.0", flag: "NORMAL" },
+                          ],
+                          techName: "Lab Tech Almaz",
+                          techId: "LT-90211",
+                        })
+                      }
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-[#F5F5F7] px-3 py-1.5 text-[10px] font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
+                      title="Download PDF"
+                    >
+                      <Download className="size-3" /> Download PDF
+                    </button>
+                    <button
+                      onClick={() =>
+                        setPrintedTubeBarcode({
+                          sampleId: activeSample.id,
+                          patientName: activeSample.patientName,
+                          mrn: activeSample.mrn,
+                          tubeType: activeSample.tube,
+                          testName: activeSample.test,
+                        })
+                      }
+                      className="inline-flex items-center gap-1.5 rounded-full bg-black px-3.5 py-1.5 text-xs font-bold text-white shadow-2xs hover:bg-slate-800 transition-all cursor-pointer"
+                    >
+                      <Barcode className="size-3.5" /> Tube Barcode
+                    </button>
+                  </div>
                 </div>
 
                 {/* Lifecycle Stages */}

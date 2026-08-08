@@ -7,6 +7,7 @@ import {
   Check,
   CheckCircle2,
   Clock,
+  Download,
   Eye,
   FileCheck,
   FileSpreadsheet,
@@ -23,6 +24,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+
+import { generatePrescription } from "@/lib/hip/pdf-engine";
 
 import { AppShell } from "@/components/hip/app-shell";
 import { HandoffBoard } from "@/components/hip/handoff-board";
@@ -108,6 +111,33 @@ function PharmacyContent() {
       subtitle="Prescription lifecycle · 5-Point Barcode verification · eGFR Renal Guard · Controlled Substance Register"
       actions={
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              generatePrescription({
+                patientName: selectedRx?.patientName || "Abebech Tadesse",
+                mrn: selectedRx?.mrn || "MRN-8829",
+                age: "45",
+                gender: "Female",
+                weight: "65 kg",
+                egfr: selectedRx?.egfr ? `${selectedRx.egfr} mL/min` : "42 mL/min",
+                prescriber: selectedRx?.doctor || "Dr. Bethlehem Tadesse",
+                prescriberId: "MD-88291",
+                medications: [
+                  {
+                    drug: selectedRx?.medication || "Sumatriptan 50mg",
+                    dose: selectedRx?.dosage || "50mg",
+                    frequency: "PRN",
+                    duration: "7 days",
+                    instructions: "Take at onset of migraine",
+                  },
+                ],
+              })
+            }
+            className="inline-flex items-center gap-1.5 rounded-2xl bg-black px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer"
+          >
+            <Download className="size-4" /> Download e-Prescription PDF
+          </button>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E8F8EC] border border-[#B6ECC3] px-3.5 py-1 text-xs font-bold text-[#1D8A39]">
             <Zap className="size-3.5 text-[#34C759]" /> AI Safety Guard Active
           </span>
@@ -213,12 +243,31 @@ function PharmacyContent() {
                     <h3 className="text-xl font-black text-black">{selectedRx.medication}</h3>
                     <p className="text-xs font-semibold text-[#86868B]">{selectedRx.dosage}</p>
                   </div>
-                  <button
-                    onClick={() => setActiveTab("dispense")}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-black px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer"
-                  >
-                    <Barcode className="size-4" /> Start Barcode Scan
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() =>
+                        generatePrescription({
+                          patientName: selectedRx?.patientName || (selectedRx as any)?.patient || 'Patient',
+                          mrn: selectedRx?.mrn || 'N/A',
+                          age: '45', gender: 'Female',
+                          weight: '65 kg', egfr: selectedRx?.egfr ? selectedRx.egfr + ' mL/min' : 'N/A',
+                          prescriber: selectedRx?.doctor || 'Dr. Bethlehem Tadesse',
+                          prescriberId: 'MD-88291',
+                          medications: [{ drug: selectedRx?.medication || 'Sumatriptan 50mg', dose: selectedRx?.dosage || '50mg', frequency: 'PRN', duration: '7 days', instructions: 'Take at onset of migraine' }],
+                        })
+                      }
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-[#F5F5F7] px-3 py-1.5 text-[10px] font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
+                      title="Download PDF"
+                    >
+                      <Download className="size-3" /> Download PDF
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("dispense")}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-black px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer"
+                    >
+                      <Barcode className="size-4" /> Start Barcode Scan
+                    </button>
+                  </div>
                 </div>
 
                 <div className="rounded-2xl bg-[#FAFAFC] border border-black/5 p-4 grid grid-cols-2 gap-3 text-xs font-semibold">

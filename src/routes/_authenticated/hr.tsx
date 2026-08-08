@@ -3,9 +3,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
   AlertTriangle,
+  Award,
   BadgeCheck,
+  Calendar,
   CalendarClock,
+  CheckCircle2,
+  Clock,
+  Download,
   Edit2,
+  FileCheck,
+  FileSpreadsheet,
   GraduationCap,
   Lock,
   Search,
@@ -15,6 +22,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+
+import { generateStaffAudit } from "@/lib/hip/pdf-engine";
 
 import { AppShell } from "@/components/hip/app-shell";
 import { NotificationSettingsPanel } from "@/components/hip/notification-settings-panel";
@@ -113,9 +122,30 @@ function HRContent() {
       title="HR & Staff Operations Mission Control"
       subtitle="Live roster · Medical licence expiry classification · Automatic lockout enforcement · CME compliance"
       actions={
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-[#B6ECC3] bg-[#E8F8EC] px-3.5 py-1 text-xs font-bold text-[#1D8A39]">
-          <UserCheck className="size-3.5" /> {staff.length} Personnel · {licensedCount} Licensed
-        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              generateStaffAudit({
+                staff: staff.map((s) => ({
+                  name: s.full_name,
+                  role: ROLE_LABELS[s.role as AppRole] ?? s.role,
+                  licenseId: s.license_number ?? "N/A",
+                  status: s.license_status,
+                  cmePoints: `${s.cme_credits} / ${s.cme_required} Credits`,
+                })),
+                department: "All Departments",
+                generatedBy: me?.full_name ?? "HR Manager",
+              })
+            }
+            className="inline-flex items-center gap-1.5 rounded-2xl bg-black px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer"
+          >
+            <Download className="size-4" /> Download Staff Audit Report PDF
+          </button>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#B6ECC3] bg-[#E8F8EC] px-3.5 py-1 text-xs font-bold text-[#1D8A39]">
+            <UserCheck className="size-3.5" /> {staff.length} Personnel · {licensedCount} Licensed
+          </span>
+        </div>
       }
     >
       {editing ? <StaffEditor staff={editing} onClose={() => setEditing(null)} /> : null}
@@ -208,6 +238,26 @@ function HRContent() {
           subtitle="Live staff roster — every field editable, including licence expiry"
           action={
             <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  generateStaffAudit({
+                    staff: staff.map((s) => ({
+                      name: s.full_name,
+                      role: ROLE_LABELS[s.role as AppRole] ?? s.role,
+                      licenseId: s.license_number ?? "N/A",
+                      status: s.license_status,
+                      cmePoints: `${s.cme_credits} / ${s.cme_required} Credits`,
+                    })),
+                    department: "All Departments",
+                    generatedBy: me?.full_name ?? "HR Manager",
+                  })
+                }
+                className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-[#F5F5F7] px-3 py-1.5 text-[10px] font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
+                title="Download PDF"
+              >
+                <Download className="size-3" /> Download PDF
+              </button>
               <div className="relative">
                 <Search className="absolute left-3 top-2.5 size-3.5 text-[#86868B]" />
                 <input

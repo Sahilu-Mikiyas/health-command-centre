@@ -5,6 +5,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Clock,
+  Download,
   Eye,
   FileCheck,
   FileSpreadsheet,
@@ -24,6 +25,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+
+import { generateRadiologyReport } from "@/lib/hip/pdf-engine";
 
 import { AppShell } from "@/components/hip/app-shell";
 import { HandoffBoard } from "@/components/hip/handoff-board";
@@ -105,6 +108,28 @@ function RadiologyContent() {
       subtitle="DICOM PACS Viewer · AI CAD Findings · Contrast Safety Guard · Radiologist Dictation"
       actions={
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              generateRadiologyReport({
+                patientName: selectedScan?.patientName || "Abebech Tadesse",
+                mrn: selectedScan?.mrn || "MRN-8829",
+                age: "45",
+                gender: "Female",
+                modality: selectedScan?.modality || "CT Head Non-Contrast",
+                bodyPart: selectedScan?.bodyPart || "Brain / Neuro",
+                contrastUsed: "Non-Contrast",
+                clinicalIndication: "Rule out intracranial hemorrhage",
+                findings: radiologyReportText || "Normal head CT scan",
+                impression: "No acute intracranial pathology",
+                radiologistName: "Dr. Almaz Tefera",
+                radiologistId: "RAD-70102",
+              })
+            }
+            className="inline-flex items-center gap-1.5 rounded-2xl bg-black px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer"
+          >
+            <Download className="size-4" /> Download Imaging Report PDF
+          </button>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E5F1FF] border border-[#B8DAFF] px-3.5 py-1 text-xs font-bold text-[#0066CC]">
             <Zap className="size-3.5" /> PACS Server 100% Online
           </span>
@@ -384,14 +409,38 @@ function RadiologyContent() {
                   <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">
                     Radiology Report Text
                   </label>
-                  <button
-                    onClick={handleStartDictation}
-                    disabled={isDictating}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-black px-3.5 py-1 text-xs font-bold text-white shadow-2xs hover:bg-slate-800 cursor-pointer"
-                  >
-                    <Mic className={`size-3.5 ${isDictating ? "animate-pulse text-red-400" : ""}`} />
-                    <span>{isDictating ? "Listening Dictation..." : "Voice Dictation"}</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() =>
+                        generateRadiologyReport({
+                          patientName: selectedScan?.patientName || "Patient",
+                          mrn: selectedScan?.mrn || "N/A",
+                          age: "45",
+                          gender: "Female",
+                          modality: selectedScan?.modality || "CT",
+                          bodyPart: selectedScan?.bodyPart || "Head",
+                          contrastUsed: "Non-Contrast",
+                          clinicalIndication: "Rule out intracranial hemorrhage",
+                          findings: radiologyReportText || "Normal head CT scan",
+                          impression: "No acute intracranial pathology",
+                          radiologistName: "Dr. Almaz Tefera",
+                          radiologistId: "RAD-70102",
+                        })
+                      }
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-[#F5F5F7] px-3 py-1.5 text-[10px] font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
+                      title="Download PDF"
+                    >
+                      <Download className="size-3" /> Download PDF
+                    </button>
+                    <button
+                      onClick={handleStartDictation}
+                      disabled={isDictating}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-black px-3.5 py-1 text-xs font-bold text-white shadow-2xs hover:bg-slate-800 cursor-pointer"
+                    >
+                      <Mic className={`size-3.5 ${isDictating ? "animate-pulse text-red-400" : ""}`} />
+                      <span>{isDictating ? "Listening Dictation..." : "Voice Dictation"}</span>
+                    </button>
+                  </div>
                 </div>
 
                 <textarea

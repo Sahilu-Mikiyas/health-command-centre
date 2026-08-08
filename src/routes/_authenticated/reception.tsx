@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Clock,
   CreditCard,
+  Download,
   FileCheck,
   FileText,
   IdCard,
@@ -42,6 +43,7 @@ import {
   updateAppointmentStatus,
 } from "@/lib/hip/mutations";
 import { departmentsQuery, patientsQuery } from "@/lib/hip/queries";
+import { generateAppointmentSlip, generateQueueTicket } from "@/lib/hip/pdf-engine";
 
 export const Route = createFileRoute("/_authenticated/reception")({
   head: () => ({
@@ -186,6 +188,23 @@ function ReceptionContent() {
       actions={
         <div className="flex items-center gap-2">
           <button
+            type="button"
+            onClick={() =>
+              generateAppointmentSlip({
+                patientName: "Abebech Tadesse",
+                mrn: "MRN-8829",
+                appointmentDate: day,
+                appointmentTime: "10:00 AM",
+                department: "General Consultation",
+                physician: "Dr. Bethlehem Tadesse",
+                room: "Room 101",
+              })
+            }
+            className="inline-flex items-center gap-1.5 rounded-2xl border border-black/10 bg-[#F5F5F7] px-3.5 py-2 text-xs font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
+          >
+            <Download className="size-3.5" /> Download Slip PDF
+          </button>
+          <button
             onClick={() => setActiveTab("registration")}
             className="inline-flex items-center gap-2 rounded-full bg-black px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all scale-105 cursor-pointer"
           >
@@ -201,9 +220,25 @@ function ReceptionContent() {
           <div className="apple-card max-w-sm w-full p-6 text-center space-y-4 animate-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-black/5 pb-3">
               <span className="text-xs font-black uppercase text-black">Queue Ticket Issued</span>
-              <button onClick={() => setPrintedTicket(null)} className="text-[#86868B] hover:text-black">
-                <X className="size-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() =>
+                    generateQueueTicket({
+                      ticketNumber: (printedTicket as any).ticket || printedTicket.ticketNo,
+                      patientName: (printedTicket as any).name || printedTicket.patientName,
+                      mrn: printedTicket.mrn,
+                      department: (printedTicket as any).department || printedTicket.dept,
+                    })
+                  }
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-[#F5F5F7] px-3 py-1.5 text-[10px] font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
+                  title="Download PDF"
+                >
+                  <Download className="size-3" /> PDF
+                </button>
+                <button onClick={() => setPrintedTicket(null)} className="text-[#86868B] hover:text-black">
+                  <X className="size-4" />
+                </button>
+              </div>
             </div>
 
             <div className="rounded-2xl border border-black/10 bg-[#FAFAFC] p-6 space-y-3">
@@ -568,6 +603,24 @@ function ReceptionContent() {
 
                   <div className="flex items-center gap-2">
                     <StatusPill status={appointment.status === "booked" ? "healthy" : "busy"} label={appointment.status} />
+                    <button
+                      onClick={() => {
+                        const apt = appointment as any;
+                        generateAppointmentSlip({
+                          patientName: apt.patient_name || apt.patients?.full_name || apt.name || "Patient",
+                          mrn: apt.mrn || apt.patients?.mrn || "N/A",
+                          appointmentDate: apt.date || apt.scheduled_date || (apt.scheduled_at ? new Date(apt.scheduled_at).toLocaleDateString() : day),
+                          appointmentTime: apt.time || (apt.scheduled_at ? new Date(apt.scheduled_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""),
+                          department: apt.department || apt.departments?.name || "",
+                          physician: apt.doctor || apt.physician || "",
+                          room: apt.room || "TBD",
+                        });
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-[#F5F5F7] px-3 py-1.5 text-[10px] font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
+                      title="Download PDF"
+                    >
+                      <Download className="size-3" /> PDF
+                    </button>
                     {appointment.status === "booked" && (
                       <button
                         onClick={() =>

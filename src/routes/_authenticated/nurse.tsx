@@ -8,6 +8,7 @@ import {
   Barcode,
   CheckCircle2,
   Clock,
+  Download,
   FileCheck,
   FileText,
   Heart,
@@ -38,6 +39,7 @@ import { Panel, Stat } from "@/components/hip/panel";
 import { RouteGuard } from "@/components/hip/route-guard";
 import { StatusPill } from "@/components/hip/status-pill";
 import { activeEncountersQuery, ordersQuery } from "@/lib/hip/clinical-queries";
+import { generateMAR, generateTriageChart } from "@/lib/hip/pdf-engine";
 import { patientsQuery } from "@/lib/hip/queries";
 
 export const Route = createFileRoute("/_authenticated/nurse")({
@@ -150,6 +152,31 @@ function NurseContent() {
       subtitle="Shift overview · Bedside vitals · Barcode medication administration · Doctor orders · Handover"
       actions={
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              generateTriageChart({
+                patientName: "Abebech Tadesse",
+                mrn: "MRN-8829",
+                age: "45",
+                gender: "Female",
+                bp: `${systolic}/${diastolic}`,
+                temp: `${temp}°C`,
+                hr: `${pulse} bpm`,
+                spo2: `${spo2}%`,
+                rr: "18 /min",
+                gcs: "15/15",
+                news2Score: 1,
+                news2Risk: "Low",
+                chiefComplaint: nursingNote || "Patient resting comfortably in bed ICU-01. Vitals stable.",
+                allergies: "NKDA",
+                nurseName: "Nurse Tigist Alemu",
+              })
+            }
+            className="inline-flex items-center gap-1.5 rounded-2xl bg-black px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer"
+          >
+            <Download className="size-4" /> Download Triage Chart PDF
+          </button>
           <button
             onClick={() => {
               setCodeBlueActive(true);
@@ -395,7 +422,40 @@ function NurseContent() {
       {/* SUB-TAB 3: BEDSIDE VITALS & NOTES */}
       {activeTab === "care" && (
         <div className="mx-auto max-w-4xl space-y-6">
-          <Panel title="Bedside Clinical Vitals Entry & Nursing SOAP" subtitle="Record vital signs for Abebech Tadesse (ICU-01)">
+          <Panel
+            title="Bedside Clinical Vitals Entry & Nursing SOAP"
+            subtitle="Record vital signs for Abebech Tadesse (ICU-01)"
+            action={
+              <button
+                type="button"
+                onClick={() => {
+                  const selectedPatient = assignedPatients.find((p) => p.id === selectedPatientId);
+                  const news2 = 1;
+                  generateTriageChart({
+                    patientName: selectedPatient?.name || assignedPatients[0]?.name || "Patient",
+                    mrn: selectedPatient?.mrn || assignedPatients[0]?.mrn || "N/A",
+                    age: "45",
+                    gender: "Female",
+                    bp: `${systolic}/${diastolic}`,
+                    temp: `${temp || "37.2"}°C`,
+                    hr: `${pulse} bpm`,
+                    spo2: `${spo2}%`,
+                    rr: "18 /min",
+                    gcs: "15/15",
+                    news2Score: news2,
+                    news2Risk: news2 >= 7 ? "High" : news2 >= 5 ? "Medium" : news2 >= 3 ? "Low-Medium" : "Low",
+                    chiefComplaint: nursingNote || "As documented",
+                    allergies: "NKDA",
+                    nurseName: "Nurse Tigist Alemu",
+                  });
+                }}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-[#F5F5F7] px-3 py-1.5 text-[10px] font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
+                title="Download PDF"
+              >
+                <Download className="size-3" /> Download PDF
+              </button>
+            }
+          >
             <form className="space-y-5 text-xs font-semibold text-black" onSubmit={handleSaveVitals}>
               <div className="grid gap-4 sm:grid-cols-4">
                 <div className="space-y-1">
@@ -593,7 +653,35 @@ function NurseContent() {
       {/* SUB-TAB 7: SHIFT HANDOVER */}
       {activeTab === "handover" && (
         <div className="mx-auto max-w-3xl space-y-6">
-          <Panel title="AI-Generated Nursing Shift Handover Report" subtitle="Automated summary for incoming shift">
+          <Panel
+            title="AI-Generated Nursing Shift Handover Report"
+            subtitle="Automated summary for incoming shift"
+            action={
+              <button
+                type="button"
+                onClick={() =>
+                  generateMAR({
+                    patientName: assignedPatients[0]?.name || "Patient",
+                    mrn: assignedPatients[0]?.mrn || "N/A",
+                    ward: assignedPatients[0]?.bed?.split("-")[0] || "ICU",
+                    bed: assignedPatients[0]?.bed || "ICU-01",
+                    medications: dueMeds.map((m) => ({
+                      drug: m.drug,
+                      dose: (m as Record<string, any>).dose || "",
+                      route: m.route || "Oral",
+                      time: (m as Record<string, any>).time || m.dueTime || "",
+                      status: (m as Record<string, any>).status || "Administered",
+                    })),
+                    nurseName: "Nurse Tigist Alemu",
+                  })
+                }
+                className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-[#F5F5F7] px-3 py-1.5 text-[10px] font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
+                title="Download PDF"
+              >
+                <Download className="size-3" /> Download PDF
+              </button>
+            }
+          >
             <div className="space-y-4 text-xs font-semibold text-[#1D1D1F]">
               <div className="rounded-2xl border border-black/10 bg-[#FAFAFC] p-5 space-y-3">
                 <div className="flex items-center justify-between border-b border-black/5 pb-2">

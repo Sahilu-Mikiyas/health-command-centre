@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   CreditCard,
   DollarSign,
+  Download,
   FileCheck,
   FileSpreadsheet,
   FileText,
@@ -20,6 +21,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+
+import { generateFinancialClearance, generateTaxInvoice } from "@/lib/hip/pdf-engine";
 
 import { AppShell } from "@/components/hip/app-shell";
 import { HandoffBoard } from "@/components/hip/handoff-board";
@@ -99,6 +102,31 @@ function BillingContent() {
       subtitle="Charge capture · Cashier processing · Telebirr & CBE Birr · Third-party insurance claims · Financial clearance"
       actions={
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              generateTaxInvoice({
+                patientName: "Abebech Tadesse",
+                mrn: "MRN-8829",
+                invoiceNumber: "INV-88291",
+                items: lineItems.map((i) => ({
+                  description: i.description || (i as any).name,
+                  qty: i.qty || 1,
+                  unitPrice: typeof i.rate === "number" ? i.rate : parseFloat(i.rate) || (i as any).unitPrice || 0,
+                  total: i.total || 0,
+                })),
+                subtotal: grandTotal || 2840,
+                insuranceCoverage: Math.round((grandTotal || 2840) * 0.8),
+                copay: Math.round((grandTotal || 2840) * 0.2),
+                paymentMethod: "Telebirr",
+                transactionId: `TBR-${Date.now().toString().slice(-8)}`,
+                cashierName: "Cashier Selamawit",
+              })
+            }
+            className="inline-flex items-center gap-1.5 rounded-2xl bg-black px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer"
+          >
+            <Download className="size-4" /> Download Tax Invoice PDF
+          </button>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#E8F8EC] border border-[#B6ECC3] px-3.5 py-1 text-xs font-bold text-[#1D8A39]">
             <ShieldCheck className="size-3.5" /> Cashier Desk Online
           </span>
@@ -252,7 +280,31 @@ function BillingContent() {
       {/* SUB-TAB 2: CHARGE CAPTURE & INVOICING */}
       {activeTab === "invoicing" && (
         <div className="mx-auto max-w-4xl space-y-6">
-          <Panel title="Itemized Patient Invoice & Charge Capture" subtitle="Patient: Abebech Tadesse (MRN-8829)">
+          <Panel
+            title="Itemized Patient Invoice & Charge Capture"
+            subtitle="Patient: Abebech Tadesse (MRN-8829)"
+            action={
+              <button
+                onClick={() =>
+                  generateTaxInvoice({
+                    patientName: 'Abebech Tadesse', mrn: 'MRN-8829',
+                    invoiceNumber: 'INV-88291',
+                    items: lineItems.map(i => ({ description: i.description || (i as any).name, qty: i.qty || 1, unitPrice: typeof i.rate === 'number' ? i.rate : parseFloat(i.rate) || (i as any).unitPrice || 0, total: i.total || 0 })),
+                    subtotal: grandTotal || 2840,
+                    insuranceCoverage: Math.round((grandTotal || 2840) * 0.8),
+                    copay: Math.round((grandTotal || 2840) * 0.2),
+                    paymentMethod: 'Telebirr',
+                    transactionId: 'TBR-' + Date.now().toString().slice(-8),
+                    cashierName: 'Cashier Selamawit',
+                  })
+                }
+                className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-[#F5F5F7] px-3 py-1.5 text-[10px] font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
+                title="Download PDF"
+              >
+                <Download className="size-3" /> Download PDF
+              </button>
+            }
+          >
             <div className="space-y-4 text-xs font-semibold text-black">
               <div className="overflow-x-auto rounded-2xl border border-black/5">
                 <table className="w-full text-left text-xs">
@@ -367,7 +419,28 @@ function BillingContent() {
       {/* SUB-TAB 5: FINANCIAL CLEARANCE */}
       {activeTab === "clearance" && (
         <div className="mx-auto max-w-2xl space-y-6 text-center">
-          <Panel title="Inpatient Financial Discharge Clearance" subtitle="Verify zero-balance prior to exit">
+          <Panel
+            title="Inpatient Financial Discharge Clearance"
+            subtitle="Verify zero-balance prior to exit"
+            action={
+              <button
+                onClick={() =>
+                  generateFinancialClearance({
+                    patientName: 'Abebech Tadesse', mrn: 'MRN-8829',
+                    invoiceNumber: 'INV-88291',
+                    totalCharged: grandTotal || 2840,
+                    totalPaid: grandTotal || 2840,
+                    outstandingBalance: 0,
+                    cashierName: 'Cashier Selamawit',
+                  })
+                }
+                className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-[#F5F5F7] px-3 py-1.5 text-[10px] font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
+                title="Download PDF"
+              >
+                <Download className="size-3" /> Download PDF
+              </button>
+            }
+          >
             <div className="p-6 space-y-4">
               <div className="grid size-16 place-items-center rounded-full bg-[#E8F8EC] border-2 border-[#B6ECC3] text-[#1D8A39] mx-auto shadow-md">
                 <CheckCircle2 className="size-8" />
