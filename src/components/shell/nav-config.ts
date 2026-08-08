@@ -16,7 +16,7 @@ import {
   Users,
 } from "lucide-react";
 
-import type { AppRole } from "@/lib/hip/rbac";
+import { hasRouteAccess, type AppRole } from "@/lib/hip/rbac";
 
 export type NavItem = {
   label: string;
