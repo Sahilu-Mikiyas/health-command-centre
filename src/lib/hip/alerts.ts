@@ -33,6 +33,11 @@ const AUDIENCE: { match: RegExp; roles: AppRole[] }[] = [
   { match: /^vitals\./, roles: ["nurse", "doctor"] },
   { match: /^doctor\.referral/, roles: ["doctor", "receptionist"] },
   { match: /^doctor\./, roles: ["doctor", "nurse", "lab_tech", "radiologist", "pharmacist"] },
+  { match: /^order\.laboratory/, roles: ["lab_tech", "doctor"] },
+  { match: /^order\.imaging/, roles: ["radiologist", "doctor"] },
+  { match: /^order\.medication/, roles: ["pharmacist", "doctor"] },
+  { match: /^order\.procedure/, roles: ["doctor", "nurse"] },
+  { match: /^order\./, roles: ["doctor", "nurse"] },
   { match: /^laboratory\./, roles: ["lab_tech", "doctor", "nurse"] },
   { match: /^imaging\./, roles: ["radiologist", "doctor", "nurse"] },
   { match: /^procedure\./, roles: ["doctor", "nurse"] },
@@ -66,6 +71,9 @@ export function routeForEvent(eventType: string): string {
   if (/^ward\./.test(eventType)) return "/ward";
   if (/^pharmacy\./.test(eventType)) return "/pharmacy";
   if (/^billing\./.test(eventType)) return "/billing";
+  if (/^order\.laboratory/.test(eventType)) return "/laboratory";
+  if (/^order\.imaging/.test(eventType)) return "/radiology";
+  if (/^order\.medication/.test(eventType)) return "/pharmacy";
   if (/^(staff|license|hr)\./.test(eventType)) return "/hr";
   return "/doctor";
 }
@@ -85,6 +93,11 @@ const TITLES: Record<string, string> = {
   "billing.invoice_compiled": "Invoice compiled",
   "billing.payment_received": "Payment received",
   "billing.discharge_cleared": "Financial clearance issued — patient discharged",
+  "order.laboratory.requested": "New lab order received",
+  "order.imaging.requested": "New imaging order received",
+  "order.medication.requested": "New prescription received",
+  "order.procedure.requested": "New procedure order received",
+  "order.cancelled": "Order cancelled by the physician",
 };
 
 export function titleForEvent(event: HospitalEvent): string {
