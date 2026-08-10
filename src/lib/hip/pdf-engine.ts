@@ -127,7 +127,7 @@ function drawTable(doc: jsPDF, y: number, headers: string[], rows: string[][], c
   let x = startX;
   headers.forEach((h, i) => {
     doc.text(h, x + 2, y + 4.5);
-    x += colWidths[i];
+    x += colWidths[i] ?? 0;
   });
   y += rowH;
 
@@ -143,8 +143,8 @@ function drawTable(doc: jsPDF, y: number, headers: string[], rows: string[][], c
     doc.setFont("helvetica", "normal");
     x = startX;
     row.forEach((cell, i) => {
-      doc.text(cell.substring(0, Math.floor(colWidths[i] / 1.8)), x + 2, y + 4.5);
-      x += colWidths[i];
+      doc.text(cell.substring(0, Math.floor((colWidths[i] ?? 20) / 1.8)), x + 2, y + 4.5);
+      x += colWidths[i] ?? 0;
     });
     y += rowH;
   });
@@ -334,16 +334,16 @@ export function generateTriageChart(data: {
   vitals.forEach((row) => {
     doc.setTextColor(...COLORS.lightGray);
     doc.setFontSize(8);
-    doc.text(row[0], 18, y);
+    doc.text(row[0] ?? "", 18, y);
     doc.setTextColor(...COLORS.black);
     doc.setFont("helvetica", "bold");
-    doc.text(row[1], 55, y);
+    doc.text(row[1] ?? "", 55, y);
     doc.setTextColor(...COLORS.lightGray);
     doc.setFont("helvetica", "normal");
-    doc.text(row[2], 100, y);
+    doc.text(row[2] ?? "", 100, y);
     doc.setTextColor(...COLORS.black);
     doc.setFont("helvetica", "bold");
-    doc.text(row[3], 135, y);
+    doc.text(row[3] ?? "", 135, y);
     y += 6;
   });
 

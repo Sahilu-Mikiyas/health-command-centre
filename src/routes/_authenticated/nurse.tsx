@@ -667,10 +667,10 @@ function NurseContent() {
                     bed: assignedPatients[0]?.bed || "ICU-01",
                     medications: dueMeds.map((m) => ({
                       drug: m.drug,
-                      dose: (m as Record<string, any>).dose || "",
+                      dose: (m as Record<string, any>)['dose'] || "",
                       route: m.route || "Oral",
-                      time: (m as Record<string, any>).time || m.dueTime || "",
-                      status: (m as Record<string, any>).status || "Administered",
+                      time: (m as Record<string, any>)['time'] || m.dueTime || "",
+                      status: (m as Record<string, any>)['status'] || "Administered",
                     })),
                     nurseName: "Nurse Tigist Alemu",
                   })
