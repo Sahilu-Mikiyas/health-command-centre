@@ -6,8 +6,10 @@ import { toast } from "sonner";
 
 import { CommandPalette } from "@/components/hip/command-palette";
 import { LicenseWarningBanner } from "@/components/hip/license-gate";
+import { NotificationCenter } from "@/components/hip/notification-center";
 import { AppSidebar } from "@/components/shell/app-sidebar";
 import { navGroupsForRoles } from "@/components/shell/nav-config";
+import { useHospitalRealtime } from "@/hooks/use-hospital-realtime";
 import { supabase } from "@/integrations/supabase/client";
 import { myProfileQuery } from "@/lib/hip/queries";
 import { ROLE_LABELS, type AppRole } from "@/lib/hip/rbac";
@@ -28,6 +30,9 @@ export function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const { data: me } = useQuery(myProfileQuery);
+
+  // Hospital-wide realtime: every role sees every state change instantly.
+  useHospitalRealtime();
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -232,6 +237,8 @@ export function AppShell({
                 ⌘K
               </kbd>
             </button>
+
+            <NotificationCenter />
 
             {actions}
 
