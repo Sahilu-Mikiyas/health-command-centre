@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getDefaultRedirect, ROLE_LABELS, type AppRole } from "@/lib/hip/rbac";
 
 export const Route = createFileRoute("/auth")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Sign in | Furii Hospital Prototype" },
