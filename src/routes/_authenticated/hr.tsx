@@ -131,11 +131,11 @@ function HRContent() {
                   name: s.full_name,
                   role: ROLE_LABELS[s.role as AppRole] ?? s.role,
                   licenseId: s.license_number ?? "N/A",
-                  status: s.license_status,
+                  status: LICENSE_LABEL[classifyLicense(s.license_expiry, thresholds).state],
                   cmePoints: `${s.cme_credits} / ${s.cme_required} Credits`,
                 })),
                 department: "All Departments",
-                generatedBy: me?.full_name ?? "HR Manager",
+                generatedBy: me?.profile?.full_name ?? "HR Manager",
               })
             }
             className="inline-flex items-center gap-1.5 rounded-2xl bg-black px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer"
@@ -246,11 +246,11 @@ function HRContent() {
                       name: s.full_name,
                       role: ROLE_LABELS[s.role as AppRole] ?? s.role,
                       licenseId: s.license_number ?? "N/A",
-                      status: s.license_status,
+                      status: LICENSE_LABEL[classifyLicense(s.license_expiry, thresholds).state],
                       cmePoints: `${s.cme_credits} / ${s.cme_required} Credits`,
                     })),
                     department: "All Departments",
-                    generatedBy: me?.full_name ?? "HR Manager",
+                    generatedBy: me?.profile?.full_name ?? "HR Manager",
                   })
                 }
                 className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-[#F5F5F7] px-3 py-1.5 text-[10px] font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"

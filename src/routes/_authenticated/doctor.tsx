@@ -38,6 +38,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/hip/app-shell";
+import { DoctorInbox } from "@/components/hip/doctor-inbox";
 import { HandoffBoard } from "@/components/hip/handoff-board";
 import { Panel, Stat } from "@/components/hip/panel";
 import { RouteGuard } from "@/components/hip/route-guard";
@@ -83,6 +84,7 @@ function DoctorWorkspace() {
 
 type DoctorTab =
   | "consultation"
+  | "inbox"
   | "records"
   | "orders"
   | "prescribe"
@@ -292,6 +294,7 @@ function DoctorContent() {
       <div className="flex flex-wrap items-center gap-2 border-b border-black/5 pb-4 overflow-x-auto">
         {[
           { id: "consultation", label: "Consultation Cockpit", icon: Stethoscope },
+          { id: "inbox", label: "Results & Alerts Inbox", icon: Radio },
           { id: "records", label: "Medical Records Timeline", icon: FileText },
           { id: "orders", label: "Clinical Orders Entry", icon: Activity },
           { id: "prescribe", label: "Prescription Builder & Safety", icon: Pill },
@@ -612,6 +615,9 @@ function DoctorContent() {
           </div>
         </div>
       )}
+
+      {/* SUB-TAB: RESULTS & ALERTS INBOX */}
+      {activeTab === "inbox" && <DoctorInbox doctorLabel="Dr. Bethlehem Tadesse" />}
 
       {/* SUB-TAB 2: MEDICAL RECORDS TIMELINE */}
       {activeTab === "records" && (
