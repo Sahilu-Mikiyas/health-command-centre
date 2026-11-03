@@ -45,7 +45,9 @@ function OncologyWorkspace() {
 
   const reveal = () => {
     if (typeof window !== "undefined" && window.innerWidth < 1024) {
-      requestAnimationFrame(() => chartRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+      requestAnimationFrame(() =>
+        chartRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      );
     }
   };
 

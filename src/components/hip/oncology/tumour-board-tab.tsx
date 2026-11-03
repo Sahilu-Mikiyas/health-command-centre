@@ -3,7 +3,12 @@ import { Check, Gavel, Loader2, Users } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
-import { recordTumourBoard, stagingSummary, type OncNote, type OncologyChart } from "@/lib/hip/oncology";
+import {
+  recordTumourBoard,
+  stagingSummary,
+  type OncNote,
+  type OncologyChart,
+} from "@/lib/hip/oncology";
 import { cn } from "@/lib/utils";
 
 import {
@@ -41,7 +46,9 @@ function parseAttendees(objective: string | null): string[] {
   if (!objective) return [];
   try {
     const value = JSON.parse(objective) as { attendees?: unknown };
-    return Array.isArray(value.attendees) ? value.attendees.filter((a): a is string => typeof a === "string") : [];
+    return Array.isArray(value.attendees)
+      ? value.attendees.filter((a): a is string => typeof a === "string")
+      : [];
   } catch {
     return [];
   }
@@ -57,7 +64,9 @@ function DecisionCard({ note }: { note: OncNote }) {
           {note.author_label ? ` · ${note.author_label}` : ""}
         </p>
         {attendees.length ? (
-          <span className="text-[10px] font-bold text-[#86868B]">{attendees.length} specialties</span>
+          <span className="text-[10px] font-bold text-[#86868B]">
+            {attendees.length} specialties
+          </span>
         ) : null}
       </div>
       {note.subjective ? (
@@ -72,13 +81,19 @@ function DecisionCard({ note }: { note: OncNote }) {
       ) : null}
       {note.assessment ? (
         <div className="mt-3">
-          <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">Discussion</p>
-          <p className="whitespace-pre-line text-xs font-medium text-[#1D1D1F]">{note.assessment}</p>
+          <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">
+            Discussion
+          </p>
+          <p className="whitespace-pre-line text-xs font-medium text-[#1D1D1F]">
+            {note.assessment}
+          </p>
         </div>
       ) : null}
       {note.plan ? (
         <div className="mt-3 rounded-xl bg-[#F5E8FF] px-3 py-2">
-          <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#8922C7]">Recommendation</p>
+          <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#8922C7]">
+            Recommendation
+          </p>
           <p className="whitespace-pre-line text-xs font-bold text-black">{note.plan}</p>
         </div>
       ) : null}
@@ -90,7 +105,9 @@ export function TumourBoardTab({ chart }: { chart: OncologyChart }) {
   const invalidate = useInvalidateOncology();
   const decisions = chart.notes.filter((n) => n.note_type === "tumour_board");
 
-  const [caseSummary, setCaseSummary] = useState(() => (chart.staging ? stagingSummary(chart.staging) : ""));
+  const [caseSummary, setCaseSummary] = useState(() =>
+    chart.staging ? stagingSummary(chart.staging) : "",
+  );
   const [attendees, setAttendees] = useState<string[]>(["Medical Oncology"]);
   const [discussion, setDiscussion] = useState("");
   const [recommendation, setRecommendation] = useState("");
@@ -160,7 +177,9 @@ export function TumourBoardTab({ chart }: { chart: OncologyChart }) {
                     aria-pressed={on}
                     className={cn(
                       "inline-flex cursor-pointer items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold transition-all",
-                      on ? "bg-black text-white" : "border border-black/10 bg-white text-[#1D1D1F] hover:bg-[#F5F5F7]",
+                      on
+                        ? "bg-black text-white"
+                        : "border border-black/10 bg-white text-[#1D1D1F] hover:bg-[#F5F5F7]",
                     )}
                   >
                     {on ? <Check className="size-3" /> : null}
@@ -201,8 +220,16 @@ export function TumourBoardTab({ chart }: { chart: OncologyChart }) {
             ))}
           </div>
           <div className="flex justify-end pt-1">
-            <button type="submit" disabled={!valid || mutation.isPending} className={primaryButtonClass}>
-              {mutation.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Gavel className="size-3.5" />}
+            <button
+              type="submit"
+              disabled={!valid || mutation.isPending}
+              className={primaryButtonClass}
+            >
+              {mutation.isPending ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Gavel className="size-3.5" />
+              )}
               Sign MDT decision
             </button>
           </div>

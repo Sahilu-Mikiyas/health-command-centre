@@ -11,7 +11,13 @@ import {
   YAxis,
 } from "recharts";
 
-import { analyteSeries, FLAG_LABEL, latestAnalyte, panelById, type ResultFlag } from "@/lib/hip/lab-panels";
+import {
+  analyteSeries,
+  FLAG_LABEL,
+  latestAnalyte,
+  panelById,
+  type ResultFlag,
+} from "@/lib/hip/lab-panels";
 import { regimenById, type OncologyChart } from "@/lib/hip/oncology";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +46,13 @@ type MarkerSeries = {
   points: { t: number; value: number }[];
 };
 
-function MarkerChart({ series, cycles }: { series: MarkerSeries; cycles: { t: number; label: string }[] }) {
+function MarkerChart({
+  series,
+  cycles,
+}: {
+  series: MarkerSeries;
+  cycles: { t: number; label: string }[];
+}) {
   const { points, uln } = series;
   const first = points[0]!;
   const last = points[points.length - 1]!;
@@ -48,7 +60,8 @@ function MarkerChart({ series, cycles }: { series: MarkerSeries; cycles: { t: nu
   const maxT = first.t === last.t ? last.t + 7 * DAY : last.t;
   const pad = (maxT - minT) * 0.04;
   const maxV = Math.max(...points.map((p) => p.value), uln ?? 0);
-  const change = points.length > 1 && first.value > 0 ? ((last.value - first.value) / first.value) * 100 : null;
+  const change =
+    points.length > 1 && first.value > 0 ? ((last.value - first.value) / first.value) * 100 : null;
   const aboveUln = uln !== undefined && last.value > uln;
   const visibleCycles = cycles.filter((c) => c.t >= minT - pad && c.t <= maxT + pad);
 
@@ -59,11 +72,17 @@ function MarkerChart({ series, cycles }: { series: MarkerSeries; cycles: { t: nu
           <p className="text-xs font-black text-black">{series.label}</p>
           <p className="text-[10px] font-semibold text-[#86868B]">
             {series.unit}
-            {uln !== undefined ? ` · ULN ${uln}` : ""} · {points.length} result{points.length === 1 ? "" : "s"}
+            {uln !== undefined ? ` · ULN ${uln}` : ""} · {points.length} result
+            {points.length === 1 ? "" : "s"}
           </p>
         </div>
         <div className="text-right">
-          <p className={cn("numeric text-lg font-extrabold leading-none", aboveUln ? "text-[#D70015]" : "text-black")}>
+          <p
+            className={cn(
+              "numeric text-lg font-extrabold leading-none",
+              aboveUln ? "text-[#D70015]" : "text-black",
+            )}
+          >
             {last.value}
           </p>
           {change !== null ? (
@@ -98,7 +117,13 @@ function MarkerChart({ series, cycles }: { series: MarkerSeries; cycles: { t: nu
               width={44}
             />
             {visibleCycles.map((c) => (
-              <ReferenceLine key={`${c.label}-${c.t}`} x={c.t} stroke="#86868B" strokeOpacity={0.35} strokeDasharray="2 3" />
+              <ReferenceLine
+                key={`${c.label}-${c.t}`}
+                x={c.t}
+                stroke="#86868B"
+                strokeOpacity={0.35}
+                strokeDasharray="2 3"
+              />
             ))}
             {uln !== undefined ? (
               <ReferenceLine
@@ -116,7 +141,9 @@ function MarkerChart({ series, cycles }: { series: MarkerSeries; cycles: { t: nu
                 if (!active || !p) return null;
                 return (
                   <div className="rounded-xl border border-black/10 bg-white px-2.5 py-1.5 text-[11px] shadow-lg">
-                    <p className="font-semibold text-[#86868B]">{fmtDate(new Date(p.t).toISOString())}</p>
+                    <p className="font-semibold text-[#86868B]">
+                      {fmtDate(new Date(p.t).toISOString())}
+                    </p>
                     <p className="numeric font-extrabold text-black">
                       {series.label} {p.value} {series.unit}
                       {uln !== undefined && p.value > uln ? (
@@ -159,7 +186,10 @@ export function LabsTab({ chart }: { chart: OncologyChart }) {
         label: a.label,
         unit: a.unit,
         uln: a.high,
-        points: analyteSeries(chart.orders, a.code).map((p) => ({ t: new Date(p.at).getTime(), value: p.value })),
+        points: analyteSeries(chart.orders, a.code).map((p) => ({
+          t: new Date(p.at).getTime(),
+          value: p.value,
+        })),
       }))
       .filter((s) => s.points.length > 0);
   }, [chart.orders]);
@@ -219,12 +249,17 @@ export function LabsTab({ chart }: { chart: OncologyChart }) {
         )}
       </SectionCard>
 
-      <SectionCard title="Latest haematology & chemistry" icon={<FlaskConical className="size-3.5" />}>
+      <SectionCard
+        title="Latest haematology & chemistry"
+        icon={<FlaskConical className="size-3.5" />}
+      >
         {anyLatest ? (
           <div className="grid gap-4 lg:grid-cols-3">
             {latest.map((g) => (
               <div key={g.panel} className="min-w-0">
-                <p className="mb-1.5 text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">{g.title}</p>
+                <p className="mb-1.5 text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">
+                  {g.title}
+                </p>
                 <table className="w-full text-xs">
                   <tbody>
                     {g.rows.map(({ code, def, value }) => (
@@ -249,14 +284,19 @@ export function LabsTab({ chart }: { chart: OncologyChart }) {
                                       : "text-[#B86200]",
                                 )}
                               >
-                                {value.value} <span className="text-[10px] font-semibold text-[#86868B]">{value.unit}</span>
+                                {value.value}{" "}
+                                <span className="text-[10px] font-semibold text-[#86868B]">
+                                  {value.unit}
+                                </span>
                               </span>
                               {value.flag !== "N" ? (
                                 <Chip tone={FLAG_TONE[value.flag]}>{FLAG_LABEL[value.flag]}</Chip>
                               ) : null}
                             </div>
                           ) : (
-                            <span className="text-[11px] font-semibold text-[#86868B]">Not on file</span>
+                            <span className="text-[11px] font-semibold text-[#86868B]">
+                              Not on file
+                            </span>
                           )}
                         </td>
                       </tr>

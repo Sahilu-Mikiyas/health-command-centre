@@ -7,7 +7,7 @@ import { daysFromNow, STAGE_COLORS, STAGE_GROUPS, stageGroup, type StageGroup } 
 
 const ACTIVE_CHEMO_DAYS = 35;
 
-export function computeKpis(rows: OncologyListRow[]) {
+function computeKpis(rows: OncologyListRow[]) {
   const onChemo = rows.filter((r) => {
     const d = daysFromNow(r.lastCycleAt);
     return d !== null && d >= -ACTIVE_CHEMO_DAYS;
@@ -96,13 +96,17 @@ export function KpiStrip({ rows, loading }: { rows: OncologyListRow[]; loading: 
           Stage distribution
         </p>
         {k.total === 0 ? (
-          <p className="text-xs font-semibold text-[#86868B]">{loading ? "Loading…" : "No patients"}</p>
+          <p className="text-xs font-semibold text-[#86868B]">
+            {loading ? "Loading…" : "No patients"}
+          </p>
         ) : (
           <>
             <div
               className="flex h-3 w-full gap-[2px] overflow-hidden rounded-full"
               role="img"
-              aria-label={staged.map((g) => `${g === "Unstaged" ? g : `Stage ${g}`}: ${k.stages[g]}`).join(", ")}
+              aria-label={staged
+                .map((g) => `${g === "Unstaged" ? g : `Stage ${g}`}: ${k.stages[g]}`)
+                .join(", ")}
             >
               {staged.map((g) => (
                 <div
@@ -115,8 +119,14 @@ export function KpiStrip({ rows, loading }: { rows: OncologyListRow[]; loading: 
             </div>
             <div className="flex flex-wrap gap-x-2.5 gap-y-1">
               {staged.map((g) => (
-                <span key={g} className="inline-flex items-center gap-1 text-[10px] font-bold text-[#1D1D1F]">
-                  <span className="size-2 rounded-full" style={{ backgroundColor: STAGE_COLORS[g] }} />
+                <span
+                  key={g}
+                  className="inline-flex items-center gap-1 text-[10px] font-bold text-[#1D1D1F]"
+                >
+                  <span
+                    className="size-2 rounded-full"
+                    style={{ backgroundColor: STAGE_COLORS[g] }}
+                  />
                   {g === "Unstaged" ? "Unstaged" : g}
                   <span className="numeric text-[#86868B]">{k.stages[g]}</span>
                 </span>

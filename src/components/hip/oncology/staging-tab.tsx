@@ -27,7 +27,20 @@ import {
 const T_OPTIONS = ["TX", "T0", "Tis", "T1", "T2", "T3", "T4"];
 const N_OPTIONS = ["NX", "N0", "N1", "N2", "N3"];
 const M_OPTIONS = ["M0", "M1"];
-const STAGE_OPTIONS = ["0", "I", "IA", "IB", "II", "IIA", "IIB", "III", "IIIA", "IIIB", "IIIC", "IV"];
+const STAGE_OPTIONS = [
+  "0",
+  "I",
+  "IA",
+  "IB",
+  "II",
+  "IIA",
+  "IIB",
+  "III",
+  "IIIA",
+  "IIIB",
+  "IIIC",
+  "IV",
+];
 const GRADE_OPTIONS = [
   { value: "1", label: "G1 — well differentiated" },
   { value: "2", label: "G2 — moderately differentiated" },
@@ -63,13 +76,16 @@ const nextId = () => ++rowSeq;
 
 export function StagingTab({ chart, onSaved }: { chart: OncologyChart; onSaved: () => void }) {
   const existing = chart.staging;
-  const cancerCondition = chart.conditions.find((c) => isCancerCode(c.icd10) && c.status !== "resolved")
-    ?? chart.conditions.find((c) => isCancerCode(c.icd10));
+  const cancerCondition =
+    chart.conditions.find((c) => isCancerCode(c.icd10) && c.status !== "resolved") ??
+    chart.conditions.find((c) => isCancerCode(c.icd10));
   const invalidate = useInvalidateOncology();
 
   const initialSite = existing?.primarySite ?? "";
   const known = CANCER_SITES.find((s) => s.label === initialSite);
-  const [siteChoice, setSiteChoice] = useState(initialSite ? (known ? known.label : OTHER_SITE) : "");
+  const [siteChoice, setSiteChoice] = useState(
+    initialSite ? (known ? known.label : OTHER_SITE) : "",
+  );
   const [customSite, setCustomSite] = useState(known ? "" : initialSite);
   const [icd10, setIcd10] = useState(existing?.icd10 ?? cancerCondition?.icd10 ?? "");
   const [histology, setHistology] = useState(existing?.histology ?? "");
@@ -84,7 +100,11 @@ export function StagingTab({ chart, onSaved }: { chart: OncologyChart; onSaved: 
     existing?.diagnosedOn ?? cancerCondition?.onset_date ?? todayIso(),
   );
   const [markers, setMarkers] = useState<MarkerRow[]>(() =>
-    Object.entries(existing?.biomarkers ?? {}).map(([key, value]) => ({ id: nextId(), key, value })),
+    Object.entries(existing?.biomarkers ?? {}).map(([key, value]) => ({
+      id: nextId(),
+      key,
+      value,
+    })),
   );
 
   const primarySite = siteChoice === OTHER_SITE ? customSite.trim() : siteChoice;
@@ -101,7 +121,9 @@ export function StagingTab({ chart, onSaved }: { chart: OncologyChart; onSaved: 
     ecog,
     intent,
     biomarkers: Object.fromEntries(
-      markers.filter((r) => r.key.trim() && r.value.trim()).map((r) => [r.key.trim(), r.value.trim()]),
+      markers
+        .filter((r) => r.key.trim() && r.value.trim())
+        .map((r) => [r.key.trim(), r.value.trim()]),
     ),
     diagnosedOn,
   };
@@ -119,7 +141,11 @@ export function StagingTab({ chart, onSaved }: { chart: OncologyChart; onSaved: 
 
   const mutation = useMutation({
     mutationFn: () =>
-      saveStaging({ patientId: chart.patient.id, staging: draft, conditionId: cancerCondition?.id ?? null }),
+      saveStaging({
+        patientId: chart.patient.id,
+        staging: draft,
+        conditionId: cancerCondition?.id ?? null,
+      }),
     onSuccess: async () => {
       await invalidate();
       toast.success(`Staging saved — ${draft.primarySite} stage ${draft.stage}`);
@@ -146,8 +172,8 @@ export function StagingTab({ chart, onSaved }: { chart: OncologyChart; onSaved: 
     <form onSubmit={submit} className="space-y-4">
       {existing ? (
         <p className="rounded-2xl bg-[#F5F5F7] px-3 py-2 text-[11px] font-semibold text-[#86868B]">
-          Pre-filled from the latest signed staging. Saving creates a new signed staging note; history is
-          preserved.
+          Pre-filled from the latest signed staging. Saving creates a new signed staging note;
+          history is preserved.
         </p>
       ) : null}
 
@@ -185,7 +211,13 @@ export function StagingTab({ chart, onSaved }: { chart: OncologyChart; onSaved: 
           ) : null}
           <Field
             label="ICD-10 *"
-            hint={icdWarning ? <span className="text-[#B86200]">Not a C00–D09 neoplasm code</span> : "Auto-filled, editable"}
+            hint={
+              icdWarning ? (
+                <span className="text-[#B86200]">Not a C00–D09 neoplasm code</span>
+              ) : (
+                "Auto-filled, editable"
+              )
+            }
           >
             <input
               value={icd10}
@@ -242,7 +274,11 @@ export function StagingTab({ chart, onSaved }: { chart: OncologyChart; onSaved: 
           </Field>
           <Field
             label="Overall stage *"
-            hint={mismatch ? <span className="text-[#B86200]">M1 disease is usually stage IV</span> : undefined}
+            hint={
+              mismatch ? (
+                <span className="text-[#B86200]">M1 disease is usually stage IV</span>
+              ) : undefined
+            }
           >
             <select value={stage} onChange={(e) => setStage(e.target.value)} className={inputClass}>
               <option value="">—</option>
@@ -264,7 +300,11 @@ export function StagingTab({ chart, onSaved }: { chart: OncologyChart; onSaved: 
             </select>
           </Field>
           <Field label="ECOG performance status" className="col-span-2">
-            <select value={ecog} onChange={(e) => setEcog(Number(e.target.value))} className={inputClass}>
+            <select
+              value={ecog}
+              onChange={(e) => setEcog(Number(e.target.value))}
+              className={inputClass}
+            >
               {ECOG_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
@@ -326,14 +366,21 @@ export function StagingTab({ chart, onSaved }: { chart: OncologyChart; onSaved: 
         {markers.length ? (
           <div className="space-y-2">
             {markers.map((row) => {
-              const preset = BIOMARKER_PRESETS.find((p) => p.key.toLowerCase() === row.key.toLowerCase());
+              const preset = BIOMARKER_PRESETS.find(
+                (p) => p.key.toLowerCase() === row.key.toLowerCase(),
+              );
               const listId = `bm-${row.id}`;
               return (
-                <div key={row.id} className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)_auto] gap-2">
+                <div
+                  key={row.id}
+                  className="grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)_auto] gap-2"
+                >
                   <input
                     value={row.key}
                     onChange={(e) =>
-                      setMarkers((rows) => rows.map((r) => (r.id === row.id ? { ...r, key: e.target.value } : r)))
+                      setMarkers((rows) =>
+                        rows.map((r) => (r.id === row.id ? { ...r, key: e.target.value } : r)),
+                      )
                     }
                     placeholder="Marker"
                     aria-label="Biomarker name"
@@ -343,7 +390,9 @@ export function StagingTab({ chart, onSaved }: { chart: OncologyChart; onSaved: 
                     value={row.value}
                     list={preset ? listId : undefined}
                     onChange={(e) =>
-                      setMarkers((rows) => rows.map((r) => (r.id === row.id ? { ...r, value: e.target.value } : r)))
+                      setMarkers((rows) =>
+                        rows.map((r) => (r.id === row.id ? { ...r, value: e.target.value } : r)),
+                      )
                     }
                     placeholder="Result"
                     aria-label={`${row.key || "Biomarker"} result`}
@@ -377,7 +426,9 @@ export function StagingTab({ chart, onSaved }: { chart: OncologyChart; onSaved: 
 
       <div className="flex flex-col gap-3 rounded-3xl border border-black/5 bg-[#FAFAFC] p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">Registry summary</p>
+          <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">
+            Registry summary
+          </p>
           <p className="text-xs font-semibold text-black">
             {missing.length ? (
               <span className="text-[#86868B]">Required: {missing.join(", ")}</span>
@@ -386,8 +437,16 @@ export function StagingTab({ chart, onSaved }: { chart: OncologyChart; onSaved: 
             )}
           </p>
         </div>
-        <button type="submit" disabled={mutation.isPending || missing.length > 0} className={cn(primaryButtonClass, "shrink-0")}>
-          {mutation.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
+        <button
+          type="submit"
+          disabled={mutation.isPending || missing.length > 0}
+          className={cn(primaryButtonClass, "shrink-0")}
+        >
+          {mutation.isPending ? (
+            <Loader2 className="size-3.5 animate-spin" />
+          ) : (
+            <Save className="size-3.5" />
+          )}
           {existing ? "Save restaging" : "Save staging"}
         </button>
       </div>

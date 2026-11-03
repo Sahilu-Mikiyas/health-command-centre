@@ -2,7 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { CalendarClock, ChevronRight, Search, UserPlus, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { regimenById, type OncologyListRow } from "@/lib/hip/oncology";
 import { patientsQuery } from "@/lib/hip/queries";
 import { cn } from "@/lib/utils";
@@ -208,7 +214,12 @@ function PatientRow({
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="truncate text-sm font-bold">{row.patient.full_name}</p>
-            <p className={cn("text-[11px] font-semibold", selected ? "text-white/70" : "text-[#86868B]")}>
+            <p
+              className={cn(
+                "text-[11px] font-semibold",
+                selected ? "text-white/70" : "text-[#86868B]",
+              )}
+            >
               <span className="numeric">{row.patient.mrn}</span>
               {" · "}
               {ageFrom(row.patient.date_of_birth) ?? "—"} y · {sexLabel(row.patient.sex).charAt(0)}
@@ -224,24 +235,31 @@ function PatientRow({
           )}
         >
           {site}
-          {icd ? <span className={selected ? "text-white/60" : "text-[#86868B]"}> · {icd}</span> : null}
+          {icd ? (
+            <span className={selected ? "text-white/60" : "text-[#86868B]"}> · {icd}</span>
+          ) : null}
         </p>
 
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           {regimen && row.lastCycle !== null ? (
-            <Chip tone={selected ? "neutral" : "info"} className={selected ? "!bg-white/15 !text-white !border-white/20" : ""}>
+            <Chip
+              tone={selected ? "neutral" : "info"}
+              className={selected ? "!bg-white/15 !text-white !border-white/20" : ""}
+            >
               {regimen.id} · C{row.lastCycle}/{regimen.cycles}
             </Chip>
           ) : row.regimenId ? (
             <Chip>{row.regimenId}</Chip>
           ) : (
-            <Chip className={selected ? "!bg-white/15 !text-white/80 !border-white/20" : "text-[#86868B]"}>
+            <Chip
+              className={
+                selected ? "!bg-white/15 !text-white/80 !border-white/20" : "text-[#86868B]"
+              }
+            >
               No chemo yet
             </Chip>
           )}
-          {row.tumourBoardPending ? (
-            <Chip tone="warn">Tumour board</Chip>
-          ) : null}
+          {row.tumourBoardPending ? <Chip tone="warn">Tumour board</Chip> : null}
           {row.nextAppointment ? (
             <span
               className={cn(
@@ -327,8 +345,8 @@ function AddPatientDialog({
                     <div className="min-w-0">
                       <p className="truncate text-sm font-bold text-black">{p.full_name}</p>
                       <p className="text-[11px] font-semibold text-[#86868B]">
-                        <span className="numeric">{p.mrn}</span> · {ageFrom(p.date_of_birth) ?? "—"} y ·{" "}
-                        {sexLabel(p.sex)}
+                        <span className="numeric">{p.mrn}</span> · {ageFrom(p.date_of_birth) ?? "—"}{" "}
+                        y · {sexLabel(p.sex)}
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">

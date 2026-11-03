@@ -127,7 +127,13 @@ export const STAGE_COLORS: Record<StageGroup, string> = {
   Unstaged: "#D2D2D7",
 };
 
-export function StageBadge({ stage, className }: { stage: string | null | undefined; className?: string }) {
+export function StageBadge({
+  stage,
+  className,
+}: {
+  stage: string | null | undefined;
+  className?: string;
+}) {
   const group = stageGroup(stage);
   if (group === "Unstaged") {
     return (

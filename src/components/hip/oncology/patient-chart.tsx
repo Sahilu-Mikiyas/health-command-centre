@@ -50,7 +50,13 @@ export function PatientChart({
   tab: ChartTab;
   onTabChange: (tab: ChartTab) => void;
 }) {
-  const { data: chart, isLoading, error, refetch, isFetching } = useQuery({
+  const {
+    data: chart,
+    isLoading,
+    error,
+    refetch,
+    isFetching,
+  } = useQuery({
     ...oncologyChartQuery(patientId ?? ""),
     enabled: Boolean(patientId),
   });
@@ -83,7 +89,11 @@ export function PatientChart({
           title="Could not load the oncology chart"
           detail={error ? errorMessage(error) : "Patient not found."}
           action={
-            <button type="button" onClick={() => void refetch()} className={cn(secondaryButtonClass, "mt-2")}>
+            <button
+              type="button"
+              onClick={() => void refetch()}
+              className={cn(secondaryButtonClass, "mt-2")}
+            >
               <RefreshCw className="size-3.5" /> Retry
             </button>
           }
@@ -103,14 +113,18 @@ export function PatientChart({
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="truncate text-lg font-extrabold tracking-tight text-black">{patient.full_name}</h2>
+              <h2 className="truncate text-lg font-extrabold tracking-tight text-black">
+                {patient.full_name}
+              </h2>
               <StageBadge stage={staging?.stage} />
               {isFetching ? <RefreshCw className="size-3.5 animate-spin text-[#86868B]" /> : null}
             </div>
             <p className="text-xs font-semibold text-[#86868B]">
-              <span className="numeric">{patient.mrn}</span> · {ageFrom(patient.date_of_birth) ?? "—"} y ·{" "}
-              {sexLabel(patient.sex)}
-              {staging ? ` · ${staging.primarySite} (${staging.icd10}) · ${staging.t}${staging.n}${staging.m}` : ""}
+              <span className="numeric">{patient.mrn}</span> ·{" "}
+              {ageFrom(patient.date_of_birth) ?? "—"} y · {sexLabel(patient.sex)}
+              {staging
+                ? ` · ${staging.primarySite} (${staging.icd10}) · ${staging.t}${staging.n}${staging.m}`
+                : ""}
             </p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {lastCycle ? (
@@ -138,7 +152,11 @@ export function PatientChart({
           </Link>
         </div>
 
-        <nav className="-mx-1 mt-4 flex gap-1.5 overflow-x-auto px-1 pb-1" role="tablist" aria-label="Oncology chart">
+        <nav
+          className="-mx-1 mt-4 flex gap-1.5 overflow-x-auto px-1 pb-1"
+          role="tablist"
+          aria-label="Oncology chart"
+        >
           {TABS.map((t) => (
             <button
               key={t.id}
@@ -161,7 +179,9 @@ export function PatientChart({
       </header>
 
       <div className="flex-1 bg-[#FBFBFD] p-3 sm:p-5" role="tabpanel">
-        {tab === "summary" ? <SummaryTab chart={chart} onGoToStaging={() => onTabChange("staging")} /> : null}
+        {tab === "summary" ? (
+          <SummaryTab chart={chart} onGoToStaging={() => onTabChange("staging")} />
+        ) : null}
         {tab === "staging" ? (
           <StagingTab
             key={`${patient.id}:${chart.notes.find((n) => n.note_type === "oncology_staging")?.id ?? "new"}`}

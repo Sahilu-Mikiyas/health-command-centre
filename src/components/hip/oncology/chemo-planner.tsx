@@ -64,7 +64,9 @@ const EMETO_TONE: Record<Regimen["emetogenic"], "crit" | "warn" | "ok"> = {
 };
 
 /** Height/weight from the most recent chemo order instructions ("Ht 165 cm, Wt 62 kg"). */
-function lastAnthropometrics(chart: OncologyChart): { height: string; weight: string; at: string } | null {
+function lastAnthropometrics(
+  chart: OncologyChart,
+): { height: string; weight: string; at: string } | null {
   for (const order of chart.orders) {
     if (!order.code?.startsWith("CHEMO:")) continue;
     const ht = /Ht ([\d.]+) cm/.exec(order.instructions ?? "")?.[1];
@@ -86,7 +88,10 @@ function defaultRegimen(chart: OncologyChart): string {
   return suggested ?? REGIMENS[0]!.id;
 }
 
-const CHECK_ICON: Record<GateCheck["status"], { icon: typeof CheckCircle2; className: string; label: string }> = {
+const CHECK_ICON: Record<
+  GateCheck["status"],
+  { icon: typeof CheckCircle2; className: string; label: string }
+> = {
   pass: { icon: CheckCircle2, className: "text-[#1D8A39]", label: "Pass" },
   warn: { icon: AlertTriangle, className: "text-[#B86200]", label: "Caution" },
   fail: { icon: XCircle, className: "text-[#D70015]", label: "Fail" },
@@ -112,7 +117,9 @@ export function ChemoPlanner({ chart }: { chart: OncologyChart }) {
   const weightKg = Number(weight);
   const bsa = bsaMosteller(heightCm, weightKg);
   const reductionPct =
-    reductionChoice === "custom" ? Math.min(Math.max(Number(customReduction) || 0, 0), 75) : Number(reductionChoice);
+    reductionChoice === "custom"
+      ? Math.min(Math.max(Number(customReduction) || 0, 0), 75)
+      : Number(reductionChoice);
   const egfr = chart.patient.egfr;
   const usesAuc = regimen.drugs.some((d) => d.basis === "auc");
 
@@ -129,7 +136,9 @@ export function ChemoPlanner({ chart }: { chart: OncologyChart }) {
     missing: checks.filter((c) => c.status === "missing").length,
   };
 
-  const alreadyGiven = chart.cyclesGiven.some((c) => c.regimenId === regimen.id && c.cycle === cycle);
+  const alreadyGiven = chart.cyclesGiven.some(
+    (c) => c.regimenId === regimen.id && c.cycle === cycle,
+  );
   const anthropometricsInvalid =
     !(heightCm >= 100 && heightCm <= 230) || !(weightKg >= 25 && weightKg <= 250);
 
@@ -170,7 +179,9 @@ export function ChemoPlanner({ chart }: { chart: OncologyChart }) {
     onSuccess: async () => {
       await invalidate();
       const nextNote =
-        cycle < regimen.cycles ? ` Cycle ${cycle + 1} booked in ${regimen.cycleDays} days.` : " Final planned cycle.";
+        cycle < regimen.cycles
+          ? ` Cycle ${cycle + 1} booked in ${regimen.cycleDays} days.`
+          : " Final planned cycle.";
       toast.success(
         `${regimen.id} cycle ${cycle} prescribed — ${doses.length} order${doses.length === 1 ? "" : "s"} sent to Pharmacy.${nextNote}`,
       );
@@ -193,7 +204,11 @@ export function ChemoPlanner({ chart }: { chart: OncologyChart }) {
       <SectionCard title="Regimen & patient parameters" icon={<Syringe className="size-3.5" />}>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Field label="Regimen" className="sm:col-span-2 lg:col-span-3">
-            <select value={regimenId} onChange={(e) => changeRegimen(e.target.value)} className={inputClass}>
+            <select
+              value={regimenId}
+              onChange={(e) => changeRegimen(e.target.value)}
+              className={inputClass}
+            >
               {ranked.suggested.length ? (
                 <optgroup label={`Suggested for ${chart.staging?.primarySite}`}>
                   {ranked.suggested.map((r) => (
@@ -271,9 +286,12 @@ export function ChemoPlanner({ chart }: { chart: OncologyChart }) {
             />
           </Field>
           <div className="flex flex-col justify-center rounded-2xl bg-black px-3 py-2 text-white lg:col-span-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">BSA (Mosteller)</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">
+              BSA (Mosteller)
+            </span>
             <span className="numeric text-xl font-extrabold">
-              {bsa > 0 ? bsa.toFixed(2) : "—"} <span className="text-xs font-bold text-white/60">m²</span>
+              {bsa > 0 ? bsa.toFixed(2) : "—"}{" "}
+              <span className="text-xs font-bold text-white/60">m²</span>
             </span>
           </div>
           <div className="flex flex-col justify-center rounded-2xl bg-[#F5F5F7] px-3 py-2 lg:col-span-1">
@@ -410,7 +428,9 @@ export function ChemoPlanner({ chart }: { chart: OncologyChart }) {
             {counts.fail ? <Chip tone="crit">{counts.fail} fail</Chip> : null}
             {counts.warn ? <Chip tone="warn">{counts.warn} caution</Chip> : null}
             {counts.missing ? <Chip>{counts.missing} missing</Chip> : null}
-            {!counts.fail && !counts.warn && !counts.missing ? <Chip tone="ok">All clear</Chip> : null}
+            {!counts.fail && !counts.warn && !counts.missing ? (
+              <Chip tone="ok">All clear</Chip>
+            ) : null}
           </div>
         }
       >
@@ -423,14 +443,26 @@ export function ChemoPlanner({ chart }: { chart: OncologyChart }) {
                 key={c.label}
                 className={cn(
                   "flex items-start gap-2.5 rounded-2xl px-3 py-2.5",
-                  c.status === "fail" ? "bg-[#FDE8E7]" : c.status === "warn" ? "bg-[#FFF4E5]" : "bg-[#F5F5F7]",
+                  c.status === "fail"
+                    ? "bg-[#FDE8E7]"
+                    : c.status === "warn"
+                      ? "bg-[#FFF4E5]"
+                      : "bg-[#F5F5F7]",
                 )}
               >
-                <Icon className={cn("mt-0.5 size-4 shrink-0", meta.className)} aria-label={meta.label} />
+                <Icon
+                  className={cn("mt-0.5 size-4 shrink-0", meta.className)}
+                  aria-label={meta.label}
+                />
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-black">
                     {c.label}{" "}
-                    <span className={cn("text-[10px] font-black uppercase tracking-wider", meta.className)}>
+                    <span
+                      className={cn(
+                        "text-[10px] font-black uppercase tracking-wider",
+                        meta.className,
+                      )}
+                    >
                       {meta.label}
                     </span>
                   </p>
@@ -447,11 +479,12 @@ export function ChemoPlanner({ chart }: { chart: OncologyChart }) {
           <div className="space-y-2 rounded-2xl border border-[#F9BDBD] bg-[#FDE8E7] p-3">
             <p className="flex items-center gap-1.5 text-xs font-black text-[#D70015]">
               <AlertOctagon className="size-4" />
-              {failing.length} safety check{failing.length === 1 ? "" : "s"} failed — prescriber override required
+              {failing.length} safety check{failing.length === 1 ? "" : "s"} failed — prescriber
+              override required
             </p>
             <p className="text-[11px] font-semibold text-[#1D1D1F]">
-              Failed: {failing.map((f) => f.label).join(", ")}. The override reason is recorded on every order
-              and flagged to Pharmacy.
+              Failed: {failing.map((f) => f.label).join(", ")}. The override reason is recorded on
+              every order and flagged to Pharmacy.
             </p>
             <textarea
               value={overrideReason}
@@ -470,7 +503,10 @@ export function ChemoPlanner({ chart }: { chart: OncologyChart }) {
         {blockers.length ? (
           <ul className="space-y-1">
             {blockers.map((b) => (
-              <li key={b} className="flex items-center gap-1.5 text-[11px] font-bold text-[#B86200]">
+              <li
+                key={b}
+                className="flex items-center gap-1.5 text-[11px] font-bold text-[#B86200]"
+              >
                 <AlertTriangle className="size-3.5 shrink-0" /> {b}
               </li>
             ))}
@@ -485,7 +521,8 @@ export function ChemoPlanner({ chart }: { chart: OncologyChart }) {
                 Orders go to Pharmacy for independent double-check &amp; compounding
               </p>
               <p className="text-[11px] font-medium text-[#86868B]">
-                {doses.length} medication order{doses.length === 1 ? "" : "s"} · {regimen.id} C{cycle}
+                {doses.length} medication order{doses.length === 1 ? "" : "s"} · {regimen.id} C
+                {cycle}
                 {cycle < regimen.cycles ? ` · next cycle auto-booked +${regimen.cycleDays} d` : ""}
                 {prescriber ? ` · Prescriber: ${prescriber}` : ""}
               </p>
@@ -501,7 +538,11 @@ export function ChemoPlanner({ chart }: { chart: OncologyChart }) {
               needsOverride && "bg-[#D70015] hover:bg-[#B00012]",
             )}
           >
-            {mutation.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Syringe className="size-3.5" />}
+            {mutation.isPending ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <Syringe className="size-3.5" />
+            )}
             {needsOverride ? "Override & prescribe" : `Prescribe cycle ${cycle}`}
           </button>
         </div>
