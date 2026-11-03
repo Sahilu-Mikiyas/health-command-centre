@@ -21,6 +21,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/hip/app-shell";
+import { DemoDataPanel } from "@/components/hip/demo-data-panel";
+import { FacilitySwitcher } from "@/components/hip/facility-switcher";
 import { Panel, Stat } from "@/components/hip/panel";
 import { RouteGuard } from "@/components/hip/route-guard";
 import { StatusPill } from "@/components/hip/status-pill";
@@ -35,7 +37,7 @@ import { deleteStaff, provisionStaff, updateStaff } from "@/lib/hip/staff.functi
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
-      { title: "Super Admin Staff Operations | Furii Hospital Prototype" },
+      { title: "Super Admin Staff Operations | Furii Health" },
       {
         name: "description",
         content: "Super admin cockpit for staff management, full CRUD operations, role assignments, and role testing.",
@@ -378,6 +380,11 @@ function AdminWorkspace() {
         </div>
       }
     >
+      <div className="mb-6 grid gap-4 xl:grid-cols-2">
+        <FacilitySwitcher />
+        <DemoDataPanel />
+      </div>
+
       <PlatformCoverage staff={staffList ?? []} />
 
       {/* Active Role Testing Dock */}

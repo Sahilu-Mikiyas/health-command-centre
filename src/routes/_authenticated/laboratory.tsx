@@ -36,7 +36,7 @@ import { StatusPill } from "@/components/hip/status-pill";
 export const Route = createFileRoute("/_authenticated/laboratory")({
   head: () => ({
     meta: [
-      { title: "Laboratory & Diagnostics | Furii Hospital Prototype" },
+      { title: "Laboratory & Diagnostics | Furii Health" },
       {
         name: "description",
         content:

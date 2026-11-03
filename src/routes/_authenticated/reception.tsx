@@ -59,7 +59,7 @@ import { allocateBed, invoicesQuery, journeyQuery, type JourneyRow } from "@/lib
 export const Route = createFileRoute("/_authenticated/reception")({
   head: () => ({
     meta: [
-      { title: "Reception & Front Desk | Furii Hospital Prototype" },
+      { title: "Reception & Front Desk | Furii Health" },
       {
         name: "description",
         content:

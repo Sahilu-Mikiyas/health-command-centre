@@ -12,7 +12,7 @@ import { wardOccupancyQuery, type BedStatus } from "@/lib/hip/clinical-queries";
 export const Route = createFileRoute("/_authenticated/digital-twin")({
   head: () => ({
     meta: [
-      { title: "Digital Twin & Hospital Floorplan | Meridian HIP" },
+      { title: "Digital Twin & Hospital Floorplan | Furii Health" },
       {
         name: "description",
         content:

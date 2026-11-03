@@ -41,7 +41,7 @@ import { deleteStaff } from "@/lib/hip/staff.functions";
 export const Route = createFileRoute("/_authenticated/hr")({
   head: () => ({
     meta: [
-      { title: "HR & Staff Operations | Furii Hospital Intelligence Platform" },
+      { title: "HR & Staff Operations | Furii Health" },
       {
         name: "description",
         content:

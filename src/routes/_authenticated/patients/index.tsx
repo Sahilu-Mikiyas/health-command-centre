@@ -15,13 +15,13 @@ function age(dob: string) {
 export const Route = createFileRoute("/_authenticated/patients/")({
   head: () => ({
     meta: [
-      { title: "Patient Index | Meridian HIP" },
+      { title: "Patient Index | Furii Health" },
       {
         name: "description",
         content:
           "Search the hospital patient index by name or medical record number and open a longitudinal patient record.",
       },
-      { property: "og:title", content: "Patient Index | Meridian HIP" },
+      { property: "og:title", content: "Patient Index | Furii Health" },
       {
         property: "og:description",
         content: "Search patients by name or MRN and open the longitudinal record.",

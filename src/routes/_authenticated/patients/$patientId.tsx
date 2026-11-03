@@ -29,7 +29,7 @@ import { STAGE_LABELS } from "@/lib/hip/workflow";
 export const Route = createFileRoute("/_authenticated/patients/$patientId")({
   head: () => ({
     meta: [
-      { title: "Executive Patient CV | Meridian HIP" },
+      { title: "Executive Patient CV | Furii Health" },
       {
         name: "description",
         content: "Living Patient Record presented in an executive CV profile format.",

@@ -21,7 +21,7 @@ import {
 export const Route = createFileRoute("/_authenticated/command-centre")({
   head: () => ({
     meta: [
-      { title: "Command Centre | Meridian HIP" },
+      { title: "Command Centre | Furii Health" },
       {
         name: "description",
         content:

@@ -13,13 +13,13 @@ const severities = ["all", "info", "warning", "critical"] as const;
 export const Route = createFileRoute("/_authenticated/events")({
   head: () => ({
     meta: [
-      { title: "Event Monitor | Meridian HIP" },
+      { title: "Event Monitor | Furii Health" },
       {
         name: "description",
         content:
           "Append-only stream of every clinical and operational event across the hospital, filterable by severity and department.",
       },
-      { property: "og:title", content: "Event Monitor | Meridian HIP" },
+      { property: "og:title", content: "Event Monitor | Furii Health" },
       {
         property: "og:description",
         content: "Append-only stream of every hospital event, filterable by severity.",

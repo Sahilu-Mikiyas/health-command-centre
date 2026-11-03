@@ -16,7 +16,7 @@ import { StatusPill, statusFromRatio, type OpStatus } from "@/components/hip/sta
 export const Route = createFileRoute("/_authenticated/ward")({
   head: () => ({
     meta: [
-      { title: "Ward & Bed Management | Furii Hospital Prototype" },
+      { title: "Ward & Bed Management | Furii Health" },
       {
         name: "description",
         content:

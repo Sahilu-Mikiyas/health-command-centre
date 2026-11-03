@@ -40,7 +40,7 @@ import {
 export const Route = createFileRoute("/_authenticated/nurse")({
   head: () => ({
     meta: [
-      { title: "Nurse Workspace | Furii Hospital Prototype" },
+      { title: "Nurse Workspace | Furii Health" },
       {
         name: "description",
         content:
@@ -114,7 +114,6 @@ function vitalsLine(v: LatestVitals | undefined) {
 
 function news2Tone(score: number | null | undefined): "healthy" | "busy" | "critical" | "offline" {
   if (score == null) return "offline";
-  if (score >= 7) return "critical";
   if (score >= 5) return "critical";
   if (score >= 3) return "busy";
   return "healthy";

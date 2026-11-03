@@ -75,7 +75,7 @@ const REFERRAL_SPECIALTIES = [
 export const Route = createFileRoute("/_authenticated/doctor")({
   head: () => ({
     meta: [
-      { title: "Doctor Workspace | Furii Hospital Prototype" },
+      { title: "Doctor Workspace | Furii Health" },
       {
         name: "description",
         content:

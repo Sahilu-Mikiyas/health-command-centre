@@ -36,7 +36,7 @@ import { StatusPill } from "@/components/hip/status-pill";
 export const Route = createFileRoute("/_authenticated/pharmacy")({
   head: () => ({
     meta: [
-      { title: "AI Clinical Pharmacy | Furii Hospital Prototype" },
+      { title: "AI Clinical Pharmacy | Furii Health" },
       {
         name: "description",
         content:

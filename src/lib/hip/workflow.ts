@@ -230,7 +230,13 @@ async function setStage(encounterId: string, stage: JourneyStage, patch: Record<
 
 /** Step 1 — Reception: wristband + queue ticket, patient handed to Nurse Triage. */
 export async function receptionHandoff(encounterId: string, patientLabel: string) {
-  const ticket = `Q-${String(Math.floor(100 + Math.random() * 899))}`;
+  // Keep the ticket printed at check-in so the patient's slip matches the queue display.
+  const { data: current } = await supabase
+    .from("encounters")
+    .select("queue_ticket")
+    .eq("id", encounterId)
+    .maybeSingle();
+  const ticket = current?.queue_ticket ?? `Q-${String(Math.floor(100 + Math.random() * 899))}`;
   const band = `WB-${Date.now().toString().slice(-8)}`;
   await setStage(encounterId, "nurse", { queue_ticket: ticket, wristband_code: band });
   await emitEvent({

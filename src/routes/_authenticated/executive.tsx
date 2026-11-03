@@ -15,7 +15,7 @@ import { StatusPill, type OpStatus } from "@/components/hip/status-pill";
 export const Route = createFileRoute("/_authenticated/executive")({
   head: () => ({
     meta: [
-      { title: "Executive Cockpit & CEO | Furii Hospital Prototype" },
+      { title: "Executive Cockpit & CEO | Furii Health" },
       {
         name: "description",
         content:
