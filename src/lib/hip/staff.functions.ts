@@ -11,11 +11,18 @@ import {
 
 type AuthedContext = { supabase: { rpc: Function }; userId: string };
 
+/** Roles only an administrator may grant — HR cannot mint new executives or admins. */
+const EXECUTIVE_ROLES = new Set(["super_admin", "ceo", "medical_director"]);
+
 /** Super admin / CEO / medical director, or an HR manager — the people who own the roster. */
-async function assertStaffManager(context: AuthedContext) {
+async function assertStaffManager(context: AuthedContext, grantingRole?: string) {
   const admin = await (context.supabase.rpc as any)("is_admin", { _user_id: context.userId });
   if (admin.error) throw new Error(admin.error.message);
   if (admin.data) return;
+
+  if (grantingRole && EXECUTIVE_ROLES.has(grantingRole)) {
+    throw new Error("Only administrators can grant executive or super admin roles");
+  }
 
   const hr = await (context.supabase.rpc as any)("has_role", {
     _user_id: context.userId,
@@ -29,7 +36,7 @@ export const provisionStaff = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: ProvisionInput) => input)
   .handler(async ({ data, context }) => {
-    await assertStaffManager(context as never);
+    await assertStaffManager(context as never, data.role);
     return provisionStaffMember(data);
   });
 
@@ -37,7 +44,7 @@ export const updateStaff = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: StaffUpdateInput) => input)
   .handler(async ({ data, context }) => {
-    await assertStaffManager(context as never);
+    await assertStaffManager(context as never, data.role);
     return updateStaffMember(data);
   });
 

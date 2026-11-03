@@ -37,7 +37,9 @@ export function LicenseLockScreen({
             <BadgeCheck className="size-3.5 text-[#FF3B30]" /> {ROLE_LABELS[role] ?? "Clinical Staff"}
           </span>
           <h1 className="text-2xl font-black text-black">
-            {expired ? "Your practising licence has expired" : "Your licence expires in days"}
+            {expired
+              ? "Your practising licence has expired"
+              : `Your licence expires in ${days ?? 0} day${days === 1 ? "" : "s"}`}
           </h1>
           <p className="mx-auto max-w-md text-xs font-medium leading-relaxed text-[#86868B]">
             Clinical access is suspended until your professional licence is renewed. Regulation requires a

@@ -223,11 +223,9 @@ export const myProfileQuery = queryOptions({
 
     const grantedRoles = (roles.data ?? []).map((row) => row.role as string);
     const staffRole = staff.data?.role ? [staff.data.role as string] : [];
-    const metaRole = user.user_metadata?.['role'] ? [user.user_metadata['role'] as string] : [];
-
-    // Priority: granted DB roles -> staff roster role -> signup metadata role
-    const baseRoles =
-      grantedRoles.length > 0 ? grantedRoles : staffRole.length > 0 ? staffRole : metaRole;
+    // Priority: granted DB roles -> staff roster role. user_metadata is user-editable
+    // (supabase.auth.updateUser), so it is never trusted as a source of roles.
+    const baseRoles = grantedRoles.length > 0 ? grantedRoles : staffRole;
 
     const isSuperAdmin = baseRoles.includes("super_admin");
     const override =
