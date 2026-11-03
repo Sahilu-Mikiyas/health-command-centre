@@ -33,10 +33,25 @@ const ITEMS: Item[] = [
       "Structured lab panels carry LOINC per analyte; vitals mapped to LOINC with UCUM units.",
   },
   {
+    standard: "ICD-O-3",
+    scope: "Cancer registry coding",
+    status: "live",
+    detail:
+      "Topography, morphology, behaviour and basis of diagnosis recorded at staging; registry export and FHIR Condition carry the codes; MV% tracked.",
+  },
+  {
     standard: "DHIS2",
     scope: "Aggregate national reporting",
-    status: "roadmap",
-    detail: "Monthly aggregate data-set push (e.g. HMIS indicators) from the same coded data.",
+    status: "live",
+    detail:
+      "Monthly dataValueSet (JSON / CSV) generated from coded data, disaggregated by sex and age, with ICD-10 morbidity. Import via the DHIS2 Import/Export app; direct API push is next.",
+  },
+  {
+    standard: "Master Patient Index",
+    scope: "Patient identity",
+    status: "live",
+    detail:
+      "National ID (Fayda) captured at registration and exported as a FHIR identifier; duplicate check at registration plus a review queue for suspected duplicates.",
   },
   {
     standard: "PACS / DICOM",

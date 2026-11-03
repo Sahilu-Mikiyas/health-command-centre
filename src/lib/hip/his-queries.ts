@@ -6,6 +6,7 @@ import { queryOptions } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
 import { toEthiopianName } from "@/lib/hip/ethiopian-names";
+import { resolveIcdo3 } from "@/lib/hip/icdo3";
 import { readLabValues } from "@/lib/hip/lab-panels";
 import {
   CANCER_SITES,
@@ -286,6 +287,13 @@ export type RegistryRow = {
   firstTreatment: string | null;
   daysToTreatment: number | null;
   regimen: string;
+  icdo3Topography: string;
+  icdo3Morphology: string;
+  morphologyLabel: string;
+  basis: string;
+  basisLabel: string;
+  /** Some ICD-O-3 values were inferred (ICD-10 / histology text) rather than coded. */
+  icdo3Inferred: boolean;
 };
 
 function ageFrom(dob: string | null | undefined): number | null {
@@ -341,6 +349,7 @@ export function buildRegistry(
     }
     const regimenId = first?.regimenId ?? row.regimenId;
     const regimen = regimenId ? (regimenById(regimenId)?.name ?? regimenId) : "";
+    const o3 = resolveIcdo3(s, icd10);
     return {
       patientId: row.patient.id,
       mrn: row.patient.mrn,
@@ -358,6 +367,12 @@ export function buildRegistry(
       firstTreatment,
       daysToTreatment,
       regimen,
+      icdo3Topography: o3.topography,
+      icdo3Morphology: o3.morphology,
+      morphologyLabel: o3.morphologyLabel,
+      basis: o3.basis,
+      basisLabel: o3.basisLabel,
+      icdo3Inferred: o3.inferred,
     };
   });
 }
@@ -375,6 +390,10 @@ export function registryCsv(rows: RegistryRow[]): string {
     "Age",
     "Primary site",
     "ICD-10",
+    "ICD-O-3 topography",
+    "ICD-O-3 morphology",
+    "Morphology description",
+    "Basis of diagnosis",
     "Histology",
     "TNM",
     "Stage",
@@ -391,6 +410,10 @@ export function registryCsv(rows: RegistryRow[]): string {
       r.age,
       r.site,
       r.icd10,
+      r.icdo3Topography,
+      r.icdo3Morphology,
+      r.morphologyLabel,
+      r.basis,
       r.histology,
       r.tnm,
       r.stage,

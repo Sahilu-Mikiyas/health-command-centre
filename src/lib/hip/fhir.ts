@@ -6,7 +6,10 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 import { toEthiopianName } from "@/lib/hip/ethiopian-names";
+import { ICDO3_SYSTEM, resolveIcdo3 } from "@/lib/hip/icdo3";
 import { readLabValues, type ImagingResultValues, type ResultFlag } from "@/lib/hip/lab-panels";
+import { NATIONAL_ID_SYSTEM, nationalIdFor } from "@/lib/hip/mpi";
+import { isCancerCode, parseStaging } from "@/lib/hip/oncology";
 
 /* ----------------------------------- types ---------------------------------- */
 
@@ -55,6 +58,7 @@ export type FhirCondition = Base<"Condition"> & {
   verificationStatus: CodeableConcept;
   category: CodeableConcept[];
   code: CodeableConcept;
+  bodySite?: CodeableConcept[] | undefined;
   subject: Reference;
   onsetDateTime?: string | undefined;
   recordedDate?: string | undefined;
@@ -428,46 +432,62 @@ function check<T>(result: { data: T | null; error: { message: string } | null },
 
 /** Queries the patient's record and returns a validated FHIR R4 collection Bundle. */
 export async function buildPatientBundle(patientId: string): Promise<BundleResult> {
-  const [patientRes, conditionsRes, allergiesRes, vitalsRes, encountersRes, ordersRes] =
-    await Promise.all([
-      supabase
-        .from("patients")
-        .select(
-          "id,mrn,full_name,date_of_birth,sex,phone,blood_group,insurance_provider,insurance_number,created_at",
-        )
-        .eq("id", patientId)
-        .maybeSingle(),
-      supabase
-        .from("conditions")
-        .select("id,name,icd10,status,onset_date,created_at")
-        .eq("patient_id", patientId)
-        .limit(200),
-      supabase
-        .from("allergies")
-        .select("id,substance,reaction,severity,created_at")
-        .eq("patient_id", patientId)
-        .limit(100),
-      supabase
-        .from("vitals")
-        .select("id,recorded_at,heart_rate,systolic,diastolic,respiratory_rate,spo2,temperature_c")
-        .eq("patient_id", patientId)
-        .order("recorded_at", { ascending: false })
-        .limit(50),
-      supabase
-        .from("encounters")
-        .select("id,stage,priority,chief_complaint,bed_id,started_at,ended_at")
-        .eq("patient_id", patientId)
-        .order("started_at", { ascending: false })
-        .limit(100),
-      supabase
-        .from("orders")
-        .select(
-          "id,category,code,name,status,priority,instructions,result_summary,result_values,encounter_id,requested_at,verified_at,verified_by_label,requested_by_label",
-        )
-        .eq("patient_id", patientId)
-        .order("requested_at", { ascending: false })
-        .limit(300),
-    ]);
+  const [
+    patientRes,
+    conditionsRes,
+    allergiesRes,
+    vitalsRes,
+    encountersRes,
+    ordersRes,
+    stagingRes,
+    nationalId,
+  ] = await Promise.all([
+    supabase
+      .from("patients")
+      .select(
+        "id,mrn,full_name,date_of_birth,sex,phone,blood_group,insurance_provider,insurance_number,created_at",
+      )
+      .eq("id", patientId)
+      .maybeSingle(),
+    supabase
+      .from("conditions")
+      .select("id,name,icd10,status,onset_date,created_at")
+      .eq("patient_id", patientId)
+      .limit(200),
+    supabase
+      .from("allergies")
+      .select("id,substance,reaction,severity,created_at")
+      .eq("patient_id", patientId)
+      .limit(100),
+    supabase
+      .from("vitals")
+      .select("id,recorded_at,heart_rate,systolic,diastolic,respiratory_rate,spo2,temperature_c")
+      .eq("patient_id", patientId)
+      .order("recorded_at", { ascending: false })
+      .limit(50),
+    supabase
+      .from("encounters")
+      .select("id,stage,priority,chief_complaint,bed_id,started_at,ended_at")
+      .eq("patient_id", patientId)
+      .order("started_at", { ascending: false })
+      .limit(100),
+    supabase
+      .from("orders")
+      .select(
+        "id,category,code,name,status,priority,instructions,result_summary,result_values,encounter_id,requested_at,verified_at,verified_by_label,requested_by_label",
+      )
+      .eq("patient_id", patientId)
+      .order("requested_at", { ascending: false })
+      .limit(300),
+    supabase
+      .from("clinical_notes")
+      .select("objective,signed_at,created_at")
+      .eq("patient_id", patientId)
+      .eq("note_type", "oncology_staging")
+      .order("created_at", { ascending: false })
+      .limit(1),
+    nationalIdFor(patientId),
+  ]);
 
   if (patientRes.error) throw new Error(`Patient: ${patientRes.error.message}`);
   const p = patientRes.data as PatientDb | null;
@@ -506,6 +526,24 @@ export async function buildPatientBundle(patientId: string): Promise<BundleResul
         system: SYSTEMS.mrn,
         value: p.mrn,
       },
+      ...(nationalId
+        ? [
+            {
+              use: "official",
+              type: {
+                coding: [
+                  {
+                    system: SYSTEMS.v2_0203,
+                    code: "NI",
+                    display: "National unique individual identifier",
+                  },
+                ],
+              },
+              system: NATIONAL_ID_SYSTEM,
+              value: nationalId,
+            },
+          ]
+        : []),
     ],
     active: true,
     name: [{ use: "official", text: displayName, family, given }],
@@ -545,11 +583,26 @@ export async function buildPatientBundle(patientId: string): Promise<BundleResul
     });
   }
 
-  /* Conditions */
+  /* Conditions — the cancer diagnosis also carries its ICD-O-3 registry codes */
+  const staging = parseStaging(stagingRes.data?.[0]?.objective);
+  let icdo3Attached = false;
   for (const c of conditions) {
     const coding: Coding[] = c.icd10
       ? [{ system: SYSTEMS.icd10, code: c.icd10.toUpperCase(), display: c.name }]
       : [];
+    let bodySite: CodeableConcept[] | undefined;
+    if (staging && !icdo3Attached && isCancerCode(c.icd10)) {
+      const o3 = resolveIcdo3(staging, c.icd10);
+      if (o3.morphology) {
+        coding.push({ system: ICDO3_SYSTEM, code: o3.morphology, display: o3.morphologyLabel });
+      }
+      if (o3.topography) {
+        bodySite = [
+          { coding: [{ system: ICDO3_SYSTEM, code: o3.topography }], text: staging.primarySite },
+        ];
+      }
+      icdo3Attached = true;
+    }
     const status = mapConditionStatus(c.status);
     resources.push({
       resourceType: "Condition",
@@ -568,6 +621,7 @@ export async function buildPatientBundle(patientId: string): Promise<BundleResul
         },
       ],
       code: { coding, text: c.name },
+      bodySite,
       subject,
       onsetDateTime: fhirDate(c.onset_date),
       recordedDate: fhirDateTime(c.created_at),
