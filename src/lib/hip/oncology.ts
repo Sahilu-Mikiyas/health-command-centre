@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toEthiopianName } from "@/lib/hip/ethiopian-names";
 import { latestAnalyte } from "@/lib/hip/lab-panels";
 import { emitEvent } from "@/lib/hip/mutations";
+import type { Icdo3Fields } from "@/lib/hip/icdo3";
 
 /* ------------------------------ regimen library ------------------------------ */
 
@@ -425,7 +426,7 @@ export type Staging = {
   intent: TreatmentIntent;
   biomarkers: Record<string, string>;
   diagnosedOn: string;
-};
+} & Icdo3Fields;
 
 export function stagingSummary(s: Staging): string {
   const markers = Object.entries(s.biomarkers)

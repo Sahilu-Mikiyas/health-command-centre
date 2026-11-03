@@ -33,6 +33,7 @@ import {
   registryCsv,
   type RegistryRow,
 } from "@/lib/hip/his-queries";
+import { MICROSCOPIC_BASIS } from "@/lib/hip/icdo3";
 import { oncologyPatientsQuery } from "@/lib/hip/oncology";
 
 const STAGE_ORDER: RegistryRow["stageGroup"][] = ["0", "I", "II", "III", "IV", "Unstaged"];
@@ -93,6 +94,9 @@ export function CancerRegistryPanel() {
       treated: registry.filter((r) => r.firstTreatment).length,
       medianDays: median(days),
       daysN: days.length,
+      morphCoded: registry.filter((r) => r.icdo3Morphology).length,
+      basisKnown: registry.filter((r) => r.basis && r.basis !== "9").length,
+      microscopic: registry.filter((r) => MICROSCOPIC_BASIS.has(r.basis)).length,
     };
   }, [registry]);
 
@@ -100,7 +104,7 @@ export function CancerRegistryPanel() {
     const term = search.trim().toLowerCase();
     if (!term) return registry;
     return registry.filter((r) =>
-      `${r.mrn} ${r.name} ${r.site} ${r.icd10} ${r.histology} ${r.stage} ${r.regimen}`
+      `${r.mrn} ${r.name} ${r.site} ${r.icd10} ${r.icdo3Topography} ${r.icdo3Morphology} ${r.histology} ${r.stage} ${r.regimen}`
         .toLowerCase()
         .includes(term),
     );
@@ -143,7 +147,7 @@ export function CancerRegistryPanel() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
         <Kpi
           label="Registered cases"
           value={registry.length.toLocaleString()}
@@ -163,6 +167,22 @@ export function CancerRegistryPanel() {
           label="Median diagnosis → chemo"
           value={stats.medianDays === null ? "—" : `${Math.round(stats.medianDays)} d`}
           hint={stats.daysN ? `n = ${stats.daysN} treated cases` : "No dated first cycles yet"}
+        />
+        <Kpi
+          label="ICD-O-3 morphology"
+          value={`${Math.round((stats.morphCoded / registry.length) * 100)}%`}
+          hint={`${stats.morphCoded} of ${registry.length} coded or suggested`}
+        />
+        <Kpi
+          label="Microscopically verified"
+          value={
+            stats.basisKnown ? `${Math.round((stats.microscopic / stats.basisKnown) * 100)}%` : "—"
+          }
+          hint={
+            stats.basisKnown
+              ? `MV% · ${stats.basisKnown} with basis recorded`
+              : "Record basis of diagnosis when staging"
+          }
         />
       </div>
 
@@ -289,7 +309,7 @@ export function CancerRegistryPanel() {
                 <th className="px-4 py-2.5">Patient</th>
                 <th className="px-3 py-2.5">Sex / age</th>
                 <th className="px-3 py-2.5">Site · ICD-10</th>
-                <th className="px-3 py-2.5">Histology</th>
+                <th className="px-3 py-2.5">Histology · ICD-O-3</th>
                 <th className="px-3 py-2.5">TNM · stage</th>
                 <th className="px-3 py-2.5">Intent</th>
                 <th className="px-3 py-2.5">Diagnosed</th>
@@ -320,8 +340,19 @@ export function CancerRegistryPanel() {
                     <p className="font-semibold text-[#1D1D1F]">{r.site}</p>
                     <p className="font-mono text-[11px] text-[#86868B]">{r.icd10 || "—"}</p>
                   </td>
-                  <td className="max-w-40 truncate px-3 py-3 text-[#1D1D1F]">
-                    {r.histology || "—"}
+                  <td className="max-w-48 px-3 py-3">
+                    <p className="truncate text-[#1D1D1F]">{r.histology || "—"}</p>
+                    <p
+                      className="font-mono text-[11px] text-[#86868B]"
+                      title={
+                        r.icdo3Inferred
+                          ? "Partly inferred from ICD-10 / histology text; confirm when restaging"
+                          : r.basisLabel
+                      }
+                    >
+                      {r.icdo3Topography || "—"} · {r.icdo3Morphology || "—"}
+                      {r.icdo3Inferred ? "*" : ""}
+                    </p>
                   </td>
                   <td className="px-3 py-3">
                     <span className="font-mono text-[11px] text-[#86868B]">{r.tnm || "—"}</span>{" "}

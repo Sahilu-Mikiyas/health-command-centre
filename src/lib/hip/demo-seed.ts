@@ -176,6 +176,8 @@ type MedicationSpec = {
 type DemoCase = {
   mrn: string;
   fullName: string;
+  /** National ID (Fayda), recorded on the consent event like reception does. */
+  nationalId?: string;
   age: number;
   monthDay: string;
   sex: "male" | "female";
@@ -251,6 +253,7 @@ const INTERNAL_MEDICINE: DemoCase[] = [
   {
     mrn: "DEMO-IM-0001",
     fullName: "Tesfaye Girma",
+    nationalId: "4729 1856 3021",
     age: 58,
     monthDay: "03-14",
     sex: "male",
@@ -295,6 +298,7 @@ const INTERNAL_MEDICINE: DemoCase[] = [
   {
     mrn: "DEMO-IM-0002",
     fullName: "Meseret Alemayehu",
+    nationalId: "6618 0273 9945",
     age: 64,
     monthDay: "07-02",
     sex: "female",
@@ -340,6 +344,7 @@ const INTERNAL_MEDICINE: DemoCase[] = [
   {
     mrn: "DEMO-IM-0003",
     fullName: "Dereje Tsegaye",
+    nationalId: "3150 7742 6608",
     age: 47,
     monthDay: "11-21",
     sex: "male",
@@ -399,6 +404,7 @@ const INTERNAL_MEDICINE: DemoCase[] = [
   {
     mrn: "DEMO-IM-0004",
     fullName: "Hirut Wolde",
+    nationalId: "9084 3316 2275",
     age: 32,
     monthDay: "05-09",
     sex: "female",
@@ -418,6 +424,7 @@ const INTERNAL_MEDICINE: DemoCase[] = [
   {
     mrn: "DEMO-IM-0005",
     fullName: "Getnet Ayele",
+    nationalId: "2267 9051 4483",
     age: 61,
     monthDay: "09-30",
     sex: "male",
@@ -445,6 +452,7 @@ const INTERNAL_MEDICINE: DemoCase[] = [
   {
     mrn: "DEMO-IM-0006",
     fullName: "Zenebech Mekonnen",
+    nationalId: "5531 6620 1897",
     age: 70,
     monthDay: "01-17",
     sex: "female",
@@ -475,6 +483,24 @@ const INTERNAL_MEDICINE: DemoCase[] = [
       },
     ],
   },
+  {
+    // Deliberate duplicate of DEMO-IM-0001 (re-registered with a spelling variant and
+    // a differently formatted phone) so the patient-identity check has something to catch.
+    mrn: "DEMO-IM-0007",
+    fullName: "Tesfaye Girima",
+    age: 58,
+    monthDay: "03-14",
+    sex: "male",
+    phone: "0911402318",
+    bloodGroup: "O+",
+    insurance: null,
+    coveragePct: null,
+    egfr: null,
+    conditions: [],
+    allergies: [],
+    vitals: [],
+    labs: [],
+  },
 ];
 
 /* --------------------------------- oncology --------------------------------- */
@@ -483,6 +509,7 @@ const ONCOLOGY: DemoCase[] = [
   {
     mrn: "DEMO-ONC-0001",
     fullName: "Selamawit Tesfaye",
+    nationalId: "7402 2389 5516",
     age: 46,
     monthDay: "04-12",
     sex: "female",
@@ -516,6 +543,9 @@ const ONCOLOGY: DemoCase[] = [
         intent: "adjuvant",
         biomarkers: { ER: "positive (90%)", PR: "positive (70%)", HER2: "negative (IHC 1+)" },
         diagnosedOn: dateOnly(120),
+        icdo3Topography: "C50.9",
+        icdo3Morphology: "8500",
+        basisOfDiagnosis: "7",
       },
     },
     tumourBoard: {
@@ -538,6 +568,7 @@ const ONCOLOGY: DemoCase[] = [
   {
     mrn: "DEMO-ONC-0002",
     fullName: "Rahel Gebremedhin",
+    nationalId: "1985 4470 3362",
     age: 39,
     monthDay: "08-25",
     sex: "female",
@@ -569,6 +600,9 @@ const ONCOLOGY: DemoCase[] = [
         intent: "neoadjuvant",
         biomarkers: { ER: "negative", PR: "negative", HER2: "positive (IHC 3+)" },
         diagnosedOn: dateOnly(12),
+        icdo3Topography: "C50.9",
+        icdo3Morphology: "8500",
+        basisOfDiagnosis: "5",
       },
     },
     appointments: [
@@ -584,6 +618,7 @@ const ONCOLOGY: DemoCase[] = [
   {
     mrn: "DEMO-ONC-0003",
     fullName: "Kebede Wolde",
+    nationalId: "8843 1127 6094",
     age: 57,
     monthDay: "02-03",
     sex: "male",
@@ -620,6 +655,9 @@ const ONCOLOGY: DemoCase[] = [
         intent: "adjuvant",
         biomarkers: { MMR: "proficient (pMMR)", KRAS: "wild-type" },
         diagnosedOn: dateOnly(110),
+        icdo3Topography: "C18.9",
+        icdo3Morphology: "8140",
+        basisOfDiagnosis: "7",
       },
     },
     tumourBoard: {
@@ -642,6 +680,7 @@ const ONCOLOGY: DemoCase[] = [
   {
     mrn: "DEMO-ONC-0004",
     fullName: "Birtukan Assefa",
+    nationalId: "3376 5598 0412",
     age: 44,
     monthDay: "06-18",
     sex: "female",
@@ -675,6 +714,9 @@ const ONCOLOGY: DemoCase[] = [
         intent: "curative",
         biomarkers: { HPV: "16 positive", HIV: "negative" },
         diagnosedOn: dateOnly(75),
+        icdo3Topography: "C53.9",
+        icdo3Morphology: "8070",
+        basisOfDiagnosis: "7",
       },
     },
     tumourBoard: {
@@ -703,6 +745,7 @@ const ONCOLOGY: DemoCase[] = [
   {
     mrn: "DEMO-ONC-0005",
     fullName: "Alemayehu Tadesse",
+    nationalId: "6129 8834 7750",
     age: 68,
     monthDay: "12-05",
     sex: "male",
@@ -739,6 +782,9 @@ const ONCOLOGY: DemoCase[] = [
         intent: "curative",
         biomarkers: { "PSA at diagnosis": "48.2 ng/mL", "Bone scan": "negative" },
         diagnosedOn: dateOnly(180),
+        icdo3Topography: "C61.9",
+        icdo3Morphology: "8140",
+        basisOfDiagnosis: "7",
       },
     },
     tumourBoard: {
@@ -771,6 +817,7 @@ const ONCOLOGY: DemoCase[] = [
   {
     mrn: "DEMO-ONC-0006",
     fullName: "Mulu Kassahun",
+    nationalId: "4050 2261 9938",
     age: 55,
     monthDay: "10-11",
     sex: "female",
@@ -804,6 +851,9 @@ const ONCOLOGY: DemoCase[] = [
         intent: "adjuvant",
         biomarkers: { BRCA1: "pending", "CA-125 at diagnosis": "410 U/mL" },
         diagnosedOn: dateOnly(95),
+        icdo3Topography: "C56.9",
+        icdo3Morphology: "8461",
+        basisOfDiagnosis: "7",
       },
     },
     tumourBoard: {
@@ -825,6 +875,7 @@ const ONCOLOGY: DemoCase[] = [
   {
     mrn: "DEMO-ONC-0007",
     fullName: "Yonas Berhane",
+    nationalId: "9917 6043 2281",
     age: 49,
     monthDay: "03-27",
     sex: "male",
@@ -855,6 +906,9 @@ const ONCOLOGY: DemoCase[] = [
         intent: "curative",
         biomarkers: { CD20: "positive", IPI: "2 (LDH ↑, stage III)", HBsAg: "negative" },
         diagnosedOn: dateOnly(40),
+        icdo3Topography: "C77.9",
+        icdo3Morphology: "9680",
+        basisOfDiagnosis: "7",
       },
     },
     tumourBoard: {
@@ -870,6 +924,7 @@ const ONCOLOGY: DemoCase[] = [
   {
     mrn: "DEMO-ONC-0008",
     fullName: "Fikru Negash",
+    nationalId: "2734 0985 6617",
     age: 63,
     monthDay: "07-14",
     sex: "male",
@@ -903,6 +958,9 @@ const ONCOLOGY: DemoCase[] = [
         intent: "palliative",
         biomarkers: { EGFR: "wild-type", ALK: "negative", "PD-L1": "10%" },
         diagnosedOn: dateOnly(60),
+        icdo3Topography: "C34.9",
+        icdo3Morphology: "8140",
+        basisOfDiagnosis: "7",
       },
     },
     tumourBoard: {
@@ -952,6 +1010,23 @@ async function insertCase(c: DemoCase, ctx: Ctx): Promise<void> {
     .single();
   fail(`${c.mrn} patient`, patientError);
   const patientId = patient.id;
+  if (c.nationalId) {
+    // Best effort: a missing consent event only means the case shows no national ID.
+    await emitEvent({
+      eventType: "patient.consent_recorded",
+      departmentCode: "RECEPTION",
+      entityType: "patient",
+      entityId: patientId,
+      payload: {
+        mrn: c.mrn,
+        national_id: c.nationalId.replace(/\D/g, ""),
+        data_recording_consent: true,
+        consent_text:
+          "Patient consents to digital health data recording under hospital privacy guidelines.",
+        recorded_at: new Date().toISOString(),
+      },
+    }).catch(() => undefined);
+  }
 
   try {
     await insertChildren(c, patientId, ctx);
@@ -1353,7 +1428,7 @@ async function seedPack(
   return { created, skipped };
 }
 
-/** Six internal-medicine & diagnostics cases (T2DM, CKD, CAP, IDA, hypertensive urgency, K⁺ 6.8). */
+/** Six internal-medicine & diagnostics cases (T2DM, CKD, CAP, IDA, hypertensive urgency, K⁺ 6.8), plus one deliberate duplicate registration. */
 export function seedInternalMedicineDemo(onProgress?: (msg: string) => void): Promise<DemoResult> {
   return seedPack("internal_medicine", INTERNAL_MEDICINE, onProgress);
 }

@@ -54,6 +54,11 @@ import {
   generateAppointmentSlip,
   generateQueueTicket,
 } from "@/lib/hip/pdf-engine";
+import {
+  checkRegistrationDuplicates,
+  normaliseNationalId,
+  type RegistrationCandidate,
+} from "@/lib/hip/mpi";
 import { allocateBed, invoicesQuery, journeyQuery, type JourneyRow } from "@/lib/hip/workflow";
 
 export const Route = createFileRoute("/_authenticated/reception")({
@@ -200,6 +205,15 @@ function ReceptionContent() {
     queryClient.invalidateQueries({ queryKey: ["beds"] });
   };
 
+  // Duplicate check runs before a new MRN is minted; staff can still register anyway.
+  type RegistrationInput = Parameters<typeof registerPatient>[0] & {
+    nationalId: string;
+    consent: boolean;
+  };
+  const [pendingRegistration, setPendingRegistration] = useState<RegistrationInput | null>(null);
+  const [duplicateCandidates, setDuplicateCandidates] = useState<RegistrationCandidate[]>([]);
+  const [checkingDuplicates, setCheckingDuplicates] = useState(false);
+
   // Mutations
   const registerMut = useMutation({
     mutationFn: async ({
@@ -216,7 +230,7 @@ function ReceptionContent() {
         entityId: patient.id,
         payload: {
           mrn: patient.mrn,
-          national_id: nationalId || null,
+          national_id: normaliseNationalId(nationalId) || null,
           data_recording_consent: consent,
           consent_text:
             "Patient consents to digital health data recording under hospital privacy guidelines.",
@@ -226,6 +240,8 @@ function ReceptionContent() {
       return patient;
     },
     onSuccess: (data) => {
+      setPendingRegistration(null);
+      setDuplicateCandidates([]);
       toast.success(`Registered ${data.full_name} with MRN ${data.mrn}`);
       invalidate();
       setPatientSearch(data.mrn);
@@ -702,18 +718,34 @@ function ReceptionContent() {
           <Panel title="Comprehensive Patient Registration" subtitle="Creates the permanent digital MRN record">
             <form
               className="space-y-5 text-xs font-semibold text-black"
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
                 const form = new FormData(e.currentTarget);
-                registerMut.mutate({
-                  fullName: String(form.get("fullName")),
+                const input: RegistrationInput = {
+                  fullName: String(form.get("fullName")).trim(),
                   dateOfBirth: String(form.get("dateOfBirth")),
                   sex: String(form.get("sex") || "female"),
                   phone: String(form.get("phone") || ""),
                   insuranceProvider: String(form.get("insurance") || ""),
                   nationalId: String(form.get("nationalId") || "").trim(),
                   consent: form.get("consent") === "on",
-                });
+                };
+                setCheckingDuplicates(true);
+                let candidates: RegistrationCandidate[] = [];
+                try {
+                  candidates = await checkRegistrationDuplicates(input);
+                } catch {
+                  // The identity check must never block registration.
+                  candidates = [];
+                } finally {
+                  setCheckingDuplicates(false);
+                }
+                if (candidates.length) {
+                  setPendingRegistration(input);
+                  setDuplicateCandidates(candidates);
+                  return;
+                }
+                registerMut.mutate(input);
               }}
             >
               <div className="grid gap-4 sm:grid-cols-2">
@@ -775,7 +807,7 @@ function ReceptionContent() {
                   <input
                     name="nationalId"
                     type="text"
-                    placeholder="ETH-9920184"
+                    placeholder="Fayda ID or passport no."
                     className="w-full rounded-2xl border border-black/10 bg-[#F5F5F7] p-3 text-xs font-bold text-black focus:bg-white focus:outline-none focus:ring-2 focus:ring-black"
                   />
                 </div>
@@ -810,9 +842,85 @@ function ReceptionContent() {
                 </label>
               </div>
 
+              {pendingRegistration && duplicateCandidates.length ? (
+                <div
+                  role="alert"
+                  className="space-y-3 rounded-2xl border border-[#FFD8A8] bg-[#FFF5E6] p-4"
+                >
+                  <div>
+                    <p className="text-xs font-extrabold text-[#8A4B00]">
+                      This patient may already have a record
+                    </p>
+                    <p className="text-[11px] font-semibold text-[#8A4B00]/80">
+                      Using the existing MRN keeps one complete history per patient. Register a new
+                      record only if this is a different person.
+                    </p>
+                  </div>
+                  <ul className="space-y-2">
+                    {duplicateCandidates.map((c) => (
+                      <li
+                        key={c.id}
+                        className="flex flex-col gap-2 rounded-xl bg-white p-3 sm:flex-row sm:items-center sm:justify-between"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-black">
+                            {c.name}{" "}
+                            <span className="font-mono text-[11px] text-[#86868B]">{c.mrn}</span>
+                            <span
+                              className={
+                                c.level === "possible"
+                                  ? "ml-2 rounded-full bg-[#F5F5F7] px-2 py-0.5 text-[10px] font-black uppercase text-[#515154]"
+                                  : "ml-2 rounded-full bg-[#FDE8E7] px-2 py-0.5 text-[10px] font-black uppercase text-[#D70015]"
+                              }
+                            >
+                              {c.level} match
+                            </span>
+                          </p>
+                          <p className="text-[11px] font-semibold text-[#86868B]">
+                            {c.reasons.join(" · ")}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPatientSearch(c.mrn);
+                            setPendingRegistration(null);
+                            setDuplicateCandidates([]);
+                            setActiveTab("checkin");
+                          }}
+                          className="shrink-0 cursor-pointer rounded-xl bg-black px-3 py-2 text-[11px] font-bold text-white hover:bg-slate-800"
+                        >
+                          Use this record
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={registerMut.isPending}
+                      onClick={() => registerMut.mutate(pendingRegistration)}
+                      className="cursor-pointer rounded-xl border border-black/10 bg-white px-3 py-2 text-[11px] font-bold text-black hover:bg-[#F5F5F7]"
+                    >
+                      Different person — register new MRN
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPendingRegistration(null);
+                        setDuplicateCandidates([]);
+                      }}
+                      className="cursor-pointer rounded-xl px-3 py-2 text-[11px] font-bold text-[#86868B] hover:bg-white"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
               <button
                 type="submit"
-                disabled={registerMut.isPending}
+                disabled={registerMut.isPending || checkingDuplicates}
                 className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-black py-3.5 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all scale-105 cursor-pointer"
               >
                 <UserPlus className="size-4" /> Save Registration & Generate MRN

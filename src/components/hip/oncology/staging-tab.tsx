@@ -12,6 +12,14 @@ import {
   type Staging,
   type TreatmentIntent,
 } from "@/lib/hip/oncology";
+import {
+  BASIS_OF_DIAGNOSIS,
+  BEHAVIOURS,
+  MORPHOLOGIES,
+  morphologyCode,
+  suggestMorphology,
+  topographyFromIcd10,
+} from "@/lib/hip/icdo3";
 import { cn } from "@/lib/utils";
 
 import {
@@ -99,6 +107,10 @@ export function StagingTab({ chart, onSaved }: { chart: OncologyChart; onSaved: 
   const [diagnosedOn, setDiagnosedOn] = useState(
     existing?.diagnosedOn ?? cancerCondition?.onset_date ?? todayIso(),
   );
+  const [topography, setTopography] = useState(existing?.icdo3Topography ?? "");
+  const [morphology, setMorphology] = useState(existing?.icdo3Morphology ?? "");
+  const [behaviour, setBehaviour] = useState(existing?.icdo3Behaviour ?? "3");
+  const [basis, setBasis] = useState(existing?.basisOfDiagnosis ?? "");
   const [markers, setMarkers] = useState<MarkerRow[]>(() =>
     Object.entries(existing?.biomarkers ?? {}).map(([key, value]) => ({
       id: nextId(),
@@ -108,6 +120,10 @@ export function StagingTab({ chart, onSaved }: { chart: OncologyChart; onSaved: 
   );
 
   const primarySite = siteChoice === OTHER_SITE ? customSite.trim() : siteChoice;
+  const suggestedTopography = topographyFromIcd10(icd10);
+  const suggestedMorphology = suggestMorphology(histology);
+  const topographyValue = topography.trim().toUpperCase() || suggestedTopography;
+  const morphologyValue = morphology || suggestedMorphology;
 
   const draft: Staging = {
     primarySite,
@@ -126,7 +142,12 @@ export function StagingTab({ chart, onSaved }: { chart: OncologyChart; onSaved: 
         .map((r) => [r.key.trim(), r.value.trim()]),
     ),
     diagnosedOn,
+    icdo3Topography: topographyValue,
+    icdo3Morphology: morphologyValue,
+    icdo3Behaviour: behaviour,
+    basisOfDiagnosis: basis,
   };
+  const fullMorphology = morphologyCode(morphologyValue, behaviour, grade);
 
   const missing = [
     !primarySite && "primary site",
@@ -135,6 +156,7 @@ export function StagingTab({ chart, onSaved }: { chart: OncologyChart; onSaved: 
     !n && "N",
     !m && "M",
     !stage && "stage",
+    !basis && "basis of diagnosis",
   ].filter(Boolean) as string[];
   const icdWarning = draft.icd10 && !isCancerCode(draft.icd10);
   const mismatch = m === "M1" && stage && stage !== "IV";
@@ -243,6 +265,76 @@ export function StagingTab({ chart, onSaved }: { chart: OncologyChart; onSaved: 
               className={inputClass}
             />
           </Field>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Registry coding (ICD-O-3)">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Field
+            label="Topography"
+            hint={
+              topography ? "Entered by clinician" : suggestedTopography ? "From ICD-10" : undefined
+            }
+          >
+            <input
+              value={topography}
+              onChange={(e) => setTopography(e.target.value)}
+              placeholder={suggestedTopography || "C50.9"}
+              className={cn(inputClass, "uppercase")}
+            />
+          </Field>
+          <Field
+            label="Morphology"
+            className="sm:col-span-2"
+            hint={
+              !morphology && suggestedMorphology ? "Suggested from histology — confirm" : undefined
+            }
+          >
+            <select
+              value={morphologyValue}
+              onChange={(e) => setMorphology(e.target.value)}
+              className={inputClass}
+            >
+              <option value="">Not coded</option>
+              {MORPHOLOGIES.map((o) => (
+                <option key={o.code} value={o.code}>
+                  {o.code} — {o.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Behaviour">
+            <select
+              value={behaviour}
+              onChange={(e) => setBehaviour(e.target.value)}
+              className={inputClass}
+            >
+              {BEHAVIOURS.map((o) => (
+                <option key={o.code} value={o.code}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field
+            label="Basis of diagnosis *"
+            className="sm:col-span-2"
+            hint="Histology (7) is the registry gold standard"
+          >
+            <select value={basis} onChange={(e) => setBasis(e.target.value)} className={inputClass}>
+              <option value="">Select…</option>
+              {BASIS_OF_DIAGNOSIS.map((o) => (
+                <option key={o.code} value={o.code}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <div className="flex items-end sm:col-span-2">
+            <p className="rounded-2xl bg-[#F5F5F7] px-3 py-2 text-[11px] font-bold text-[#1D1D1F]">
+              ICD-O-3: {topographyValue || "—"} · {fullMorphology || "—"}
+            </p>
+          </div>
         </div>
       </SectionCard>
 
