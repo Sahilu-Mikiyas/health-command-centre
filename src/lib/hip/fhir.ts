@@ -10,21 +10,39 @@ import { readLabValues, type ImagingResultValues, type ResultFlag } from "@/lib/
 
 /* ----------------------------------- types ---------------------------------- */
 
-export type Coding = { system?: string | undefined; code?: string | undefined; display?: string | undefined };
+export type Coding = {
+  system?: string | undefined;
+  code?: string | undefined;
+  display?: string | undefined;
+};
 export type CodeableConcept = { coding?: Coding[] | undefined; text?: string | undefined };
 export type Reference = { reference?: string | undefined; display?: string | undefined };
-export type Quantity = { value: number; unit?: string | undefined; system?: string | undefined; code?: string | undefined };
+export type Quantity = {
+  value: number;
+  unit?: string | undefined;
+  system?: string | undefined;
+  code?: string | undefined;
+};
 export type Narrative = { status: "generated"; div: string };
 
 type Base<T extends string> = {
   resourceType: T;
   id: string;
-  meta?: { lastUpdated?: string | undefined; profile?: string[] | undefined; source?: string | undefined };
+  meta?: {
+    lastUpdated?: string | undefined;
+    profile?: string[] | undefined;
+    source?: string | undefined;
+  };
   text?: Narrative | undefined;
 };
 
 export type FhirPatient = Base<"Patient"> & {
-  identifier: { use?: string | undefined; type?: CodeableConcept | undefined; system: string; value: string }[];
+  identifier: {
+    use?: string | undefined;
+    type?: CodeableConcept | undefined;
+    system: string;
+    value: string;
+  }[];
   active: boolean;
   name: { use: string; text: string; family?: string | undefined; given?: string[] | undefined }[];
   gender: "male" | "female" | "other" | "unknown";
@@ -49,7 +67,10 @@ export type FhirAllergyIntolerance = Base<"AllergyIntolerance"> & {
   code: CodeableConcept;
   patient: Reference;
   recordedDate?: string | undefined;
-  reaction?: { manifestation: CodeableConcept[] | undefined; severity?: "mild" | "moderate" | "severe" | undefined }[];
+  reaction?: {
+    manifestation: CodeableConcept[] | undefined;
+    severity?: "mild" | "moderate" | "severe" | undefined;
+  }[];
 };
 
 export type FhirObservation = Base<"Observation"> & {
@@ -208,7 +229,9 @@ function mapConditionStatus(status: string | null | undefined): string {
   return "active";
 }
 
-function mapCriticality(severity: string | null | undefined): FhirAllergyIntolerance["criticality"] {
+function mapCriticality(
+  severity: string | null | undefined,
+): FhirAllergyIntolerance["criticality"] {
   const value = (severity ?? "").toLowerCase();
   if (value === "severe" || value === "life-threatening" || value === "high") return "high";
   if (value === "mild" || value === "moderate" || value === "low") return "low";
@@ -287,21 +310,19 @@ const UCUM: Record<string, string> = {
   "mIU/mL": "m[IU]/mL",
   "U/mL": "U/mL",
   "%": "%",
-  "fL": "fL",
-  "pg": "pg",
-  "s": "s",
-  "sec": "s",
-  "INR": "{INR}",
-  "ratio": "{ratio}",
+  fL: "fL",
+  pg: "pg",
+  s: "s",
+  sec: "s",
+  INR: "{INR}",
+  ratio: "{ratio}",
   "mL/min/1.73m²": "mL/min/{1.73_m2}",
   "mL/min": "mL/min",
 };
 
 function quantity(value: number, unit: string): Quantity {
   const code = UCUM[unit.trim()];
-  return code
-    ? { value, unit, system: SYSTEMS.ucum, code }
-    : { value, unit };
+  return code ? { value, unit, system: SYSTEMS.ucum, code } : { value, unit };
 }
 
 const VITAL_SIGNS_CATEGORY: CodeableConcept[] = [
@@ -318,7 +339,8 @@ const LAB_CATEGORY: CodeableConcept[] = [
   },
 ];
 
-type VitalKey = "heart_rate" | "systolic" | "diastolic" | "respiratory_rate" | "spo2" | "temperature_c";
+type VitalKey =
+  "heart_rate" | "systolic" | "diastolic" | "respiratory_rate" | "spo2" | "temperature_c";
 
 export const VITAL_LOINC: {
   key: VitalKey;
@@ -328,9 +350,27 @@ export const VITAL_LOINC: {
   ucum: string;
 }[] = [
   { key: "heart_rate", loinc: "8867-4", display: "Heart rate", unit: "beats/min", ucum: "/min" },
-  { key: "systolic", loinc: "8480-6", display: "Systolic blood pressure", unit: "mmHg", ucum: "mm[Hg]" },
-  { key: "diastolic", loinc: "8462-4", display: "Diastolic blood pressure", unit: "mmHg", ucum: "mm[Hg]" },
-  { key: "respiratory_rate", loinc: "9279-1", display: "Respiratory rate", unit: "breaths/min", ucum: "/min" },
+  {
+    key: "systolic",
+    loinc: "8480-6",
+    display: "Systolic blood pressure",
+    unit: "mmHg",
+    ucum: "mm[Hg]",
+  },
+  {
+    key: "diastolic",
+    loinc: "8462-4",
+    display: "Diastolic blood pressure",
+    unit: "mmHg",
+    ucum: "mm[Hg]",
+  },
+  {
+    key: "respiratory_rate",
+    loinc: "9279-1",
+    display: "Respiratory rate",
+    unit: "breaths/min",
+    ucum: "/min",
+  },
   {
     key: "spo2",
     loinc: "59408-5",
@@ -460,7 +500,9 @@ export async function buildPatientBundle(patientId: string): Promise<BundleResul
     identifier: [
       {
         use: "usual",
-        type: { coding: [{ system: SYSTEMS.v2_0203, code: "MR", display: "Medical record number" }] },
+        type: {
+          coding: [{ system: SYSTEMS.v2_0203, code: "MR", display: "Medical record number" }],
+        },
         system: SYSTEMS.mrn,
         value: p.mrn,
       },
@@ -493,7 +535,9 @@ export async function buildPatientBundle(patientId: string): Promise<BundleResul
       status: "final",
       category: LAB_CATEGORY,
       code: {
-        coding: [{ system: SYSTEMS.loinc, code: "882-1", display: "ABO and Rh group [Type] in Blood" }],
+        coding: [
+          { system: SYSTEMS.loinc, code: "882-1", display: "ABO and Rh group [Type] in Blood" },
+        ],
         text: "Blood group",
       },
       subject,
@@ -515,7 +559,11 @@ export async function buildPatientBundle(patientId: string): Promise<BundleResul
       category: [
         {
           coding: [
-            { system: SYSTEMS.conditionCategory, code: "problem-list-item", display: "Problem List Item" },
+            {
+              system: SYSTEMS.conditionCategory,
+              code: "problem-list-item",
+              display: "Problem List Item",
+            },
           ],
         },
       ],
@@ -562,7 +610,12 @@ export async function buildPatientBundle(patientId: string): Promise<BundleResul
         },
         subject,
         effectiveDateTime: fhirDateTime(v.recorded_at),
-        valueQuantity: { value: Number(value), unit: spec.unit, system: SYSTEMS.ucum, code: spec.ucum },
+        valueQuantity: {
+          value: Number(value),
+          unit: spec.unit,
+          system: SYSTEMS.ucum,
+          code: spec.ucum,
+        },
       });
     }
   }
@@ -611,7 +664,9 @@ export async function buildPatientBundle(patientId: string): Promise<BundleResul
           ? [{ text: "chemotherapy" }]
           : [
               {
-                coding: [{ system: SYSTEMS.medReqCategory, code: "outpatient", display: "Outpatient" }],
+                coding: [
+                  { system: SYSTEMS.medReqCategory, code: "outpatient", display: "Outpatient" },
+                ],
               },
             ],
         medicationCodeableConcept: {
@@ -661,9 +716,7 @@ export async function buildPatientBundle(patientId: string): Promise<BundleResul
         resourceType: "DiagnosticReport",
         id: o.id,
         status,
-        category: [
-          { coding: [{ system: SYSTEMS.v2_0074, code: "LAB", display: "Laboratory" }] },
-        ],
+        category: [{ coding: [{ system: SYSTEMS.v2_0074, code: "LAB", display: "Laboratory" }] }],
         code: { text: o.name },
         subject,
         encounter: encounterRef(o.encounter_id),
@@ -684,9 +737,7 @@ export async function buildPatientBundle(patientId: string): Promise<BundleResul
         resourceType: "DiagnosticReport",
         id: o.id,
         status: o.verified_at ? "final" : "preliminary",
-        category: [
-          { coding: [{ system: SYSTEMS.v2_0074, code: "RAD", display: "Radiology" }] },
-        ],
+        category: [{ coding: [{ system: SYSTEMS.v2_0074, code: "RAD", display: "Radiology" }] }],
         code: { text: imaging?.modality ? `${o.name} (${imaging.modality})` : o.name },
         subject,
         encounter: encounterRef(o.encounter_id),
@@ -791,7 +842,11 @@ export function validateBundle(bundle: FhirBundle): ValidationIssue[] {
   bundle.entry.forEach((entry, index) => {
     const path = `Bundle.entry[${index}]`;
     if (!URN_UUID.test(entry.fullUrl)) {
-      issues.push({ severity: "error", path: `${path}.fullUrl`, message: "fullUrl must be urn:uuid" });
+      issues.push({
+        severity: "error",
+        path: `${path}.fullUrl`,
+        message: "fullUrl must be urn:uuid",
+      });
     }
     if (fullUrls.has(entry.fullUrl)) {
       issues.push({ severity: "error", path: `${path}.fullUrl`, message: "duplicate fullUrl" });
@@ -806,7 +861,11 @@ export function validateBundle(bundle: FhirBundle): ValidationIssue[] {
     for (const field of REQUIRED[type] ?? []) {
       const value = r[field];
       if (value === undefined || value === null || (Array.isArray(value) && value.length === 0)) {
-        issues.push({ severity: "error", path: `${path}.${field}`, message: "required element missing" });
+        issues.push({
+          severity: "error",
+          path: `${path}.${field}`,
+          message: "required element missing",
+        });
       }
     }
     walk(r, path, (key, value, at) => {
@@ -815,32 +874,55 @@ export function validateBundle(bundle: FhirBundle): ValidationIssue[] {
           issues.push({ severity: "error", path: at, message: `unresolved reference ${value}` });
         }
       }
-      if ((key === "birthDate" || key === "onsetDate") && typeof value === "string" && !DATE.test(value)) {
+      if (
+        (key === "birthDate" || key === "onsetDate") &&
+        typeof value === "string" &&
+        !DATE.test(value)
+      ) {
         issues.push({ severity: "error", path: at, message: "invalid FHIR date" });
       }
       if (
-        ["effectiveDateTime", "authoredOn", "issued", "recordedDate", "start", "end", "lastUpdated"].includes(
-          key,
-        ) &&
+        [
+          "effectiveDateTime",
+          "authoredOn",
+          "issued",
+          "recordedDate",
+          "start",
+          "end",
+          "lastUpdated",
+        ].includes(key) &&
         typeof value === "string" &&
         !DATETIME.test(value)
       ) {
         issues.push({ severity: "error", path: at, message: "invalid FHIR dateTime" });
       }
-      if (key === "onsetDateTime" && typeof value === "string" && !DATE.test(value) && !DATETIME.test(value)) {
+      if (
+        key === "onsetDateTime" &&
+        typeof value === "string" &&
+        !DATE.test(value) &&
+        !DATETIME.test(value)
+      ) {
         issues.push({ severity: "error", path: at, message: "invalid FHIR dateTime" });
       }
     });
     if (type === "Condition") {
       const code = r["code"] as CodeableConcept | undefined;
       if (!code?.coding?.some((c) => c.system === SYSTEMS.icd10)) {
-        issues.push({ severity: "warning", path: `${path}.code`, message: "no ICD-10 coding (text only)" });
+        issues.push({
+          severity: "warning",
+          path: `${path}.code`,
+          message: "no ICD-10 coding (text only)",
+        });
       }
     }
     if (type === "Observation") {
       const code = r["code"] as CodeableConcept | undefined;
       if (!code?.coding?.some((c) => c.system === SYSTEMS.loinc)) {
-        issues.push({ severity: "warning", path: `${path}.code`, message: "no LOINC coding (local code)" });
+        issues.push({
+          severity: "warning",
+          path: `${path}.code`,
+          message: "no LOINC coding (local code)",
+        });
       }
       const qty = r["valueQuantity"] as Quantity | undefined;
       if (qty && !qty.code) {
@@ -851,7 +933,11 @@ export function validateBundle(bundle: FhirBundle): ValidationIssue[] {
         });
       }
       if (qty && typeof qty.value !== "number") {
-        issues.push({ severity: "error", path: `${path}.valueQuantity.value`, message: "value must be a number" });
+        issues.push({
+          severity: "error",
+          path: `${path}.valueQuantity.value`,
+          message: "value must be a number",
+        });
       }
     }
   });

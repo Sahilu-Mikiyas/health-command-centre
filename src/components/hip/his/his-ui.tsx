@@ -2,54 +2,25 @@ import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, Inbox, Loader2, Search, UserRound, X } from "lucide-react";
 import { useDeferredValue, useState, type ReactNode } from "react";
 
+import { fmtDate } from "@/components/hip/his/his-format";
 import { Input } from "@/components/ui/input";
 import { patientsQuery, type PatientRow } from "@/lib/hip/queries";
 import { cn } from "@/lib/utils";
 
-/** Shared chart palette — matches the app's Apple-style tokens. */
-export const HIS_COLORS = {
-  ink: "#1D1D1F",
-  muted: "#86868B",
-  grid: "#E8E8ED",
-  blue: "#0071E3",
-  green: "#1D8A39",
-  red: "#D70015",
-  orange: "#FF9500",
-  purple: "#AF52DE",
-  teal: "#30B0C7",
-  slate: "#C7C7CC",
-} as const;
-
-export const SERIES = [
-  HIS_COLORS.blue,
-  HIS_COLORS.green,
-  HIS_COLORS.orange,
-  HIS_COLORS.purple,
-  HIS_COLORS.teal,
-  HIS_COLORS.red,
-];
-
-export const tooltipStyle = {
-  contentStyle: {
-    borderRadius: 14,
-    border: "1px solid rgba(0,0,0,0.08)",
-    boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
-    fontSize: 12,
-    fontWeight: 600,
-  },
-  labelStyle: { color: HIS_COLORS.muted, fontWeight: 700 },
-  cursor: { fill: "rgba(0,0,0,0.04)" },
-};
-
-export const axisProps = {
-  tick: { fontSize: 11, fill: HIS_COLORS.muted, fontWeight: 600 },
-  axisLine: false,
-  tickLine: false,
-} as const;
-
-export function LoadingState({ label = "Loading live data…", className }: { label?: string; className?: string }) {
+export function LoadingState({
+  label = "Loading live data…",
+  className,
+}: {
+  label?: string | undefined;
+  className?: string | undefined;
+}) {
   return (
-    <div className={cn("flex min-h-32 items-center justify-center gap-2 text-xs font-semibold text-[#86868B]", className)}>
+    <div
+      className={cn(
+        "flex min-h-32 items-center justify-center gap-2 text-xs font-semibold text-[#86868B]",
+        className,
+      )}
+    >
       <Loader2 className="size-4 animate-spin" />
       {label}
     </div>
@@ -105,7 +76,7 @@ export function QueryBody<T>({
 }: {
   query: { data: T | undefined; isLoading: boolean; error: unknown };
   children: (data: T) => ReactNode;
-  loadingLabel?: string;
+  loadingLabel?: string | undefined;
 }) {
   if (query.isLoading) return <LoadingState label={loadingLabel} />;
   if (query.error) return <ErrorState error={query.error} />;
@@ -113,37 +84,26 @@ export function QueryBody<T>({
   return <>{children(query.data)}</>;
 }
 
-export function SectionIntro({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
+export function SectionIntro({
+  icon,
+  title,
+  children,
+}: {
+  icon: ReactNode;
+  title: string;
+  children: ReactNode;
+}) {
   return (
     <div className="flex items-start gap-3 rounded-2xl border border-black/5 bg-[#F5F5F7] p-4">
-      <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-white text-black shadow-2xs">{icon}</div>
+      <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-white text-black shadow-2xs">
+        {icon}
+      </div>
       <div className="min-w-0">
         <p className="text-sm font-bold text-[#1D1D1F]">{title}</p>
         <p className="mt-0.5 text-xs leading-relaxed text-[#86868B]">{children}</p>
       </div>
     </div>
   );
-}
-
-export function fmtNumber(value: number | null | undefined): string {
-  if (value === null || value === undefined) return "—";
-  return value.toLocaleString();
-}
-
-export function fmtMinutes(minutes: number | null): string {
-  if (minutes === null) return "—";
-  if (minutes < 60) return `${minutes} min`;
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  if (h < 48) return m ? `${h} h ${m} min` : `${h} h`;
-  return `${Math.round(h / 24)} d`;
-}
-
-export function fmtDate(value: string | null | undefined): string {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString([], { year: "numeric", month: "short", day: "2-digit" });
 }
 
 /** Search-as-you-type patient selector backed by the shared `patientsQuery`. */
@@ -218,7 +178,9 @@ export function PatientPicker({
               <span className="min-w-0 flex-1 truncate text-sm font-semibold text-[#1D1D1F]">
                 {patient.full_name}
               </span>
-              <span className="numeric shrink-0 text-xs font-bold text-[#86868B]">{patient.mrn}</span>
+              <span className="numeric shrink-0 text-xs font-bold text-[#86868B]">
+                {patient.mrn}
+              </span>
             </button>
           ))
         )}

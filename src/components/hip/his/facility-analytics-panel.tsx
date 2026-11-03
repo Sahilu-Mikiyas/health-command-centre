@@ -14,14 +14,13 @@ import {
 } from "recharts";
 
 import {
-  EmptyState,
   HIS_COLORS,
-  QueryBody,
   axisProps,
   fmtMinutes,
   fmtNumber,
   tooltipStyle,
-} from "@/components/hip/his/his-ui";
+} from "@/components/hip/his/his-format";
+import { EmptyState, QueryBody } from "@/components/hip/his/his-ui";
 import { Panel } from "@/components/hip/panel";
 import { facilityAnalyticsQuery } from "@/lib/hip/his-queries";
 
@@ -58,11 +57,23 @@ export function FacilityAnalyticsPanel() {
               ) : (
                 <div className="h-[260px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={data.encountersByDay} margin={{ top: 8, right: 12, bottom: 0, left: -16 }}>
+                    <LineChart
+                      data={data.encountersByDay}
+                      margin={{ top: 8, right: 12, bottom: 0, left: -16 }}
+                    >
                       <CartesianGrid vertical={false} stroke={HIS_COLORS.grid} />
-                      <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={16} />
+                      <XAxis
+                        dataKey="label"
+                        {...axisProps}
+                        interval="preserveStartEnd"
+                        minTickGap={16}
+                      />
                       <YAxis allowDecimals={false} {...axisProps} />
-                      <Tooltip {...tooltipStyle} cursor={{ stroke: HIS_COLORS.grid }} formatter={(v) => [v, "Encounters"]} />
+                      <Tooltip
+                        {...tooltipStyle}
+                        cursor={{ stroke: HIS_COLORS.grid }}
+                        formatter={(v) => [v, "Encounters"]}
+                      />
                       <Line
                         type="monotone"
                         dataKey="count"
@@ -80,7 +91,10 @@ export function FacilityAnalyticsPanel() {
             <Panel title="Results turnaround" subtitle="Median requested → verified">
               <div className="space-y-3">
                 {data.tat.map((t) => (
-                  <div key={t.category} className="flex items-center gap-4 rounded-2xl bg-[#F5F5F7] p-4">
+                  <div
+                    key={t.category}
+                    className="flex items-center gap-4 rounded-2xl bg-[#F5F5F7] p-4"
+                  >
                     <div
                       className="grid size-10 shrink-0 place-items-center rounded-xl text-white"
                       style={{ background: CATEGORY_COLOR[t.category] }}
@@ -101,7 +115,8 @@ export function FacilityAnalyticsPanel() {
                   </div>
                 ))}
                 <p className="text-[11px] font-semibold text-[#86868B]">
-                  Based on the latest {fmtNumber(data.sampledOrders)} orders with a verification timestamp.
+                  Based on the latest {fmtNumber(data.sampledOrders)} orders with a verification
+                  timestamp.
                 </p>
               </div>
             </Panel>
@@ -117,7 +132,10 @@ export function FacilityAnalyticsPanel() {
                 <div className="h-[220px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                      data={data.ordersByCategory.map((d) => ({ ...d, label: CATEGORY_LABEL[d.category] }))}
+                      data={data.ordersByCategory.map((d) => ({
+                        ...d,
+                        label: CATEGORY_LABEL[d.category],
+                      }))}
                       margin={{ top: 8, right: 8, bottom: 0, left: -16 }}
                     >
                       <CartesianGrid vertical={false} stroke={HIS_COLORS.grid} />

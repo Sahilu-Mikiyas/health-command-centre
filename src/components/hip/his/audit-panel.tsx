@@ -3,16 +3,8 @@ import { Fingerprint, History, Lock, RefreshCw } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
-import {
-  EmptyState,
-  HIS_COLORS,
-  PatientPicker,
-  QueryBody,
-  SectionIntro,
-  axisProps,
-  fmtNumber,
-  tooltipStyle,
-} from "@/components/hip/his/his-ui";
+import { HIS_COLORS, axisProps, fmtNumber, tooltipStyle } from "@/components/hip/his/his-format";
+import { EmptyState, PatientPicker, QueryBody, SectionIntro } from "@/components/hip/his/his-ui";
 import { Panel } from "@/components/hip/panel";
 import { StatusDot } from "@/components/hip/status-pill";
 import { Timeline } from "@/components/hip/timeline";
@@ -64,11 +56,13 @@ export function AuditPanel({
   return (
     <div className="space-y-6">
       <SectionIntro icon={<Lock className="size-4" />} title="Append-only event ledger">
-        Every clinical and operational action — registration, orders, results, dispensing, billing — is written
-        once to the <span className="font-semibold text-[#1D1D1F]">events</span> ledger with actor, department,
-        entity and timestamp. Staff accounts are granted only SELECT and INSERT, and a database trigger rejects any
-        UPDATE or DELETE — so the history cannot be silently rewritten. Field-level <span className="font-semibold text-[#1D1D1F]">data
-        provenance</span> records where each value came from and whether it was verified.
+        Every clinical and operational action — registration, orders, results, dispensing, billing —
+        is written once to the <span className="font-semibold text-[#1D1D1F]">events</span> ledger
+        with actor, department, entity and timestamp. Staff accounts are granted only SELECT and
+        INSERT, and a database trigger rejects any UPDATE or DELETE — so the history cannot be
+        silently rewritten. Field-level{" "}
+        <span className="font-semibold text-[#1D1D1F]">data provenance</span> records where each
+        value came from and whether it was verified.
       </SectionIntro>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
@@ -92,7 +86,9 @@ export function AuditPanel({
                   {option}
                 </button>
               ))}
-              {events.isFetching ? <RefreshCw className="ml-1 size-3.5 animate-spin text-[#86868B]" /> : null}
+              {events.isFetching ? (
+                <RefreshCw className="ml-1 size-3.5 animate-spin text-[#86868B]" />
+              ) : null}
             </div>
           }
           bodyClassName="max-h-[520px] overflow-y-auto"
@@ -107,9 +103,15 @@ export function AuditPanel({
                     id: event.id,
                     time: stamp(event.occurred_at),
                     title: event.event_type.replace(/[._]/g, " "),
-                    detail: [event.department_code, event.actor_label, event.entity_type].filter(Boolean).join(" · "),
+                    detail: [event.department_code, event.actor_label, event.entity_type]
+                      .filter(Boolean)
+                      .join(" · "),
                     tone:
-                      event.severity === "critical" ? "crit" : event.severity === "warning" ? "warn" : "default",
+                      event.severity === "critical"
+                        ? "crit"
+                        : event.severity === "warning"
+                          ? "warn"
+                          : "default",
                   }))}
                 />
               )
@@ -133,13 +135,17 @@ export function AuditPanel({
                         <StatusDot status="busy" pulse={false} /> {fmtNumber(data.warning)} warning
                       </span>
                       <span className="flex items-center gap-1.5">
-                        <StatusDot status="critical" pulse={false} /> {fmtNumber(data.critical)} critical
+                        <StatusDot status="critical" pulse={false} /> {fmtNumber(data.critical)}{" "}
+                        critical
                       </span>
                     </div>
                     <div style={{ height: data.top.length * 30 + 30 }}>
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart
-                          data={data.top.map((d) => ({ ...d, label: d.type.replace(/[._]/g, " ") }))}
+                          data={data.top.map((d) => ({
+                            ...d,
+                            label: d.type.replace(/[._]/g, " "),
+                          }))}
                           layout="vertical"
                           margin={{ top: 0, right: 16, bottom: 0, left: 0 }}
                         >
@@ -147,7 +153,12 @@ export function AuditPanel({
                           <XAxis type="number" allowDecimals={false} {...axisProps} />
                           <YAxis type="category" dataKey="label" width={130} {...axisProps} />
                           <Tooltip {...tooltipStyle} formatter={(v) => [v, "Events"]} />
-                          <Bar dataKey="count" fill={HIS_COLORS.ink} radius={[0, 6, 6, 0]} barSize={14} />
+                          <Bar
+                            dataKey="count"
+                            fill={HIS_COLORS.ink}
+                            radius={[0, 6, 6, 0]}
+                            barSize={14}
+                          />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
@@ -169,7 +180,9 @@ export function AuditPanel({
                 ) : (
                   <div className="space-y-3">
                     <div className="flex items-baseline justify-between">
-                      <span className="text-xs font-bold text-[#1D1D1F]">{fmtNumber(data.total)} attributed fields</span>
+                      <span className="text-xs font-bold text-[#1D1D1F]">
+                        {fmtNumber(data.total)} attributed fields
+                      </span>
                       <span className="numeric text-xs font-bold text-[#1D8A39]">
                         {Math.round((data.verified / data.total) * 100)}% verified
                       </span>
@@ -210,7 +223,10 @@ export function AuditPanel({
               <QueryBody query={trail} loadingLabel="Reconstructing trail…">
                 {(items) =>
                   items.length === 0 ? (
-                    <EmptyState title="No recorded activity" hint="No ledger entries reference this patient yet." />
+                    <EmptyState
+                      title="No recorded activity"
+                      hint="No ledger entries reference this patient yet."
+                    />
                   ) : (
                     <ol className="max-h-[440px] space-y-2 overflow-y-auto pr-1">
                       {items.map((item) => (

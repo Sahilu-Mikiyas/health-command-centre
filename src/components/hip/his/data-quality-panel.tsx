@@ -2,14 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Tags } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
-import {
-  EmptyState,
-  HIS_COLORS,
-  QueryBody,
-  axisProps,
-  fmtNumber,
-  tooltipStyle,
-} from "@/components/hip/his/his-ui";
+import { HIS_COLORS, axisProps, fmtNumber, tooltipStyle } from "@/components/hip/his/his-format";
+import { EmptyState, QueryBody } from "@/components/hip/his/his-ui";
 import { MetricRing } from "@/components/hip/metric-ring";
 import { Panel } from "@/components/hip/panel";
 import { dataQualityQuery, type QualityMetric } from "@/lib/hip/his-queries";
@@ -45,11 +39,17 @@ export function DataQualityPanel() {
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-      <Panel title="Clinical data quality" subtitle="Completeness of the master patient index & clinical coding">
+      <Panel
+        title="Clinical data quality"
+        subtitle="Completeness of the master patient index & clinical coding"
+      >
         <QueryBody query={quality}>
           {(data) =>
             data.sampled.patients === 0 ? (
-              <EmptyState title="No patients registered yet" hint="Data-quality scoring starts once patients are on record." />
+              <EmptyState
+                title="No patients registered yet"
+                hint="Data-quality scoring starts once patients are on record."
+              />
             ) : (
               <div className="grid gap-6 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center">
                 <div className="flex flex-col items-center gap-2">
@@ -68,8 +68,8 @@ export function DataQualityPanel() {
                   ))}
                   <p className="pt-1 text-[11px] font-semibold text-[#86868B]">
                     Computed live over {fmtNumber(data.sampled.patients)} patients,{" "}
-                    {fmtNumber(data.sampled.conditions)} diagnoses and {fmtNumber(data.sampled.labs)} resulted lab
-                    orders. Green ≥ 90%, amber ≥ 70%.
+                    {fmtNumber(data.sampled.conditions)} diagnoses and{" "}
+                    {fmtNumber(data.sampled.labs)} resulted lab orders. Green ≥ 90%, amber ≥ 70%.
                   </p>
                 </div>
               </div>
@@ -78,7 +78,10 @@ export function DataQualityPanel() {
         </QueryBody>
       </Panel>
 
-      <Panel title="Top 10 ICD-10 diagnoses" subtitle="Coded problem-list entries across all patients">
+      <Panel
+        title="Top 10 ICD-10 diagnoses"
+        subtitle="Coded problem-list entries across all patients"
+      >
         <QueryBody query={quality}>
           {(data) =>
             data.topIcd10.length === 0 ? (
@@ -106,7 +109,12 @@ export function DataQualityPanel() {
                         return row ? `${row.code} · ${row.name}` : String(label);
                       }}
                     />
-                    <Bar dataKey="count" fill={HIS_COLORS.blue} radius={[0, 6, 6, 0]} barSize={18} />
+                    <Bar
+                      dataKey="count"
+                      fill={HIS_COLORS.blue}
+                      radius={[0, 6, 6, 0]}
+                      barSize={18}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

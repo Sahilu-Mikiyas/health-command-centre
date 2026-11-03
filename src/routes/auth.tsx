@@ -169,7 +169,7 @@ function AuthPage() {
                 autoComplete="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="bezawithabte9@gmail.com"
+                placeholder="name@furii.health"
               />
             </div>
             <div className="space-y-1.5">

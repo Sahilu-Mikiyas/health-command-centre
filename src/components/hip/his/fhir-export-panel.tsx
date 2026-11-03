@@ -14,7 +14,8 @@ import {
 import { useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
-import { EmptyState, ErrorState, HIS_COLORS, PatientPicker } from "@/components/hip/his/his-ui";
+import { HIS_COLORS } from "@/components/hip/his/his-format";
+import { EmptyState, ErrorState, PatientPicker } from "@/components/hip/his/his-ui";
 import { Panel } from "@/components/hip/panel";
 import { buildPatientBundle, type BundleResult } from "@/lib/hip/fhir";
 import { downloadText } from "@/lib/hip/his-queries";
@@ -37,7 +38,8 @@ const TYPE_COLORS: Record<string, string> = {
 /** Lightweight JSON syntax colouring — keys, strings, numbers, literals. */
 function highlight(json: string): ReactNode[] {
   const out: ReactNode[] = [];
-  const re = /("(?:\\.|[^"\\])*")(\s*:)?|\b(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\b|\b(true|false|null)\b/g;
+  const re =
+    /("(?:\\.|[^"\\])*")(\s*:)?|\b(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\b|\b(true|false|null)\b/g;
   let last = 0;
   let match: RegExpExecArray | null;
   let i = 0;
@@ -79,7 +81,9 @@ export function FhirExportPanel({
   const generate = useMutation({
     mutationFn: (patientId: string) => buildPatientBundle(patientId),
     onSuccess: (result) =>
-      toast.success(`FHIR R4 Bundle generated — ${result.bundle.total} resources for ${result.mrn}`),
+      toast.success(
+        `FHIR R4 Bundle generated — ${result.bundle.total} resources for ${result.mrn}`,
+      ),
     onError: (error) => toast.error(error instanceof Error ? error.message : "FHIR export failed"),
   });
 
@@ -108,16 +112,21 @@ export function FhirExportPanel({
             onClick={() => patient && generate.mutate(patient.id)}
             className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-black px-4 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-[#1D1D1F] disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {generate.isPending ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4" />}
+            {generate.isPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <Sparkles className="size-4" />
+            )}
             Generate FHIR Bundle
           </button>
           <div className="rounded-2xl bg-[#F5F5F7] p-4 text-xs leading-relaxed text-[#86868B]">
             <p className="mb-1 font-bold text-[#1D1D1F]">What gets exported</p>
-            Patient (MRN identifier), Coverage, Encounter (AMB/IMP), Condition (ICD-10), AllergyIntolerance,
-            vital-sign Observations (LOINC + UCUM), lab Observations with H/L/HH/LL interpretation, lab &amp;
-            imaging DiagnosticReport, MedicationRequest (chemotherapy tagged). Entries use{" "}
-            <code className="font-mono text-[#1D1D1F]">urn:uuid</code> fullUrls with resolvable internal
-            references.
+            Patient (MRN identifier), Coverage, Encounter (AMB/IMP), Condition (ICD-10),
+            AllergyIntolerance, vital-sign Observations (LOINC + UCUM), lab Observations with
+            H/L/HH/LL interpretation, lab &amp; imaging DiagnosticReport, MedicationRequest
+            (chemotherapy tagged). Entries use{" "}
+            <code className="font-mono text-[#1D1D1F]">urn:uuid</code> fullUrls with resolvable
+            internal references.
           </div>
         </div>
 
@@ -202,7 +211,11 @@ function BundleResultView({ result }: { result: BundleResult }) {
             onClick={copy}
             className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-white px-3 py-2 text-xs font-bold text-[#1D1D1F] hover:bg-[#F5F5F7]"
           >
-            {copied ? <Check className="size-3.5 text-[#1D8A39]" /> : <ClipboardCopy className="size-3.5" />}
+            {copied ? (
+              <Check className="size-3.5 text-[#1D8A39]" />
+            ) : (
+              <ClipboardCopy className="size-3.5" />
+            )}
             {copied ? "Copied" : "Copy"}
           </button>
           <button
@@ -223,10 +236,15 @@ function BundleResultView({ result }: { result: BundleResult }) {
             onClick={() => setFilter(filter === c.type ? "all" : c.type)}
             className={cn(
               "flex min-w-0 items-center gap-2 rounded-2xl border px-3 py-2.5 text-left transition-all",
-              filter === c.type ? "border-black bg-black text-white" : "border-black/5 bg-[#F5F5F7] hover:bg-[#E8E8ED]",
+              filter === c.type
+                ? "border-black bg-black text-white"
+                : "border-black/5 bg-[#F5F5F7] hover:bg-[#E8E8ED]",
             )}
           >
-            <span className="size-2.5 shrink-0 rounded-full" style={{ background: TYPE_COLORS[c.type] ?? HIS_COLORS.muted }} />
+            <span
+              className="size-2.5 shrink-0 rounded-full"
+              style={{ background: TYPE_COLORS[c.type] ?? HIS_COLORS.muted }}
+            />
             <span className="min-w-0 flex-1 truncate text-[11px] font-bold">{c.type}</span>
             <span className="numeric text-sm font-black">{c.count}</span>
           </button>
@@ -251,7 +269,8 @@ function BundleResultView({ result }: { result: BundleResult }) {
             <ShieldCheck className="size-4 text-[#1D8A39]" />
           )}
           <span className={errors.length ? "text-[#D70015]" : "text-[#1D8A39]"}>
-            Structural validation: {errors.length} error{errors.length === 1 ? "" : "s"}, {warnings.length} warning
+            Structural validation: {errors.length} error{errors.length === 1 ? "" : "s"},{" "}
+            {warnings.length} warning
             {warnings.length === 1 ? "" : "s"}
           </span>
           <span className="ml-auto text-[#86868B]">
@@ -268,7 +287,10 @@ function BundleResultView({ result }: { result: BundleResult }) {
         {showIssues && result.issues.length ? (
           <ul className="mt-2 max-h-40 space-y-1 overflow-y-auto font-mono text-[11px]">
             {result.issues.slice(0, 50).map((issue, i) => (
-              <li key={i} className={issue.severity === "error" ? "text-[#D70015]" : "text-[#B86200]"}>
+              <li
+                key={i}
+                className={issue.severity === "error" ? "text-[#D70015]" : "text-[#B86200]"}
+              >
                 [{issue.severity}] {issue.path}: {issue.message}
               </li>
             ))}
@@ -287,7 +309,9 @@ function BundleResultView({ result }: { result: BundleResult }) {
         >
           {showJson ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
           JSON {filter === "all" ? "Bundle" : `· ${filter} entries`}
-          <span className="ml-auto font-semibold text-[#86868B]">{lines.length.toLocaleString()} lines</span>
+          <span className="ml-auto font-semibold text-[#86868B]">
+            {lines.length.toLocaleString()} lines
+          </span>
         </button>
         {showJson ? (
           <>
@@ -296,7 +320,8 @@ function BundleResultView({ result }: { result: BundleResult }) {
             </pre>
             {truncated ? (
               <p className="border-t border-black/5 bg-[#FAFAFC] px-4 py-2 text-[11px] font-semibold text-[#86868B]">
-                Preview shows the first {MAX_LINES.toLocaleString()} lines — Download JSON for the complete bundle.
+                Preview shows the first {MAX_LINES.toLocaleString()} lines — Download JSON for the
+                complete bundle.
               </p>
             ) : null}
           </>

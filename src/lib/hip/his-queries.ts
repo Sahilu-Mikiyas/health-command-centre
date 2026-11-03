@@ -24,7 +24,10 @@ function countOf(result: Countable, label: string): number {
   return result.count ?? 0;
 }
 
-function rowsOf<T>(result: { data: T[] | null; error: { message: string } | null }, label: string): T[] {
+function rowsOf<T>(
+  result: { data: T[] | null; error: { message: string } | null },
+  label: string,
+): T[] {
   if (result.error) throw new Error(`${label}: ${result.error.message}`);
   return result.data ?? [];
 }
@@ -127,7 +130,13 @@ export const hisKpiQuery = queryOptions({
 
 /* ------------------------------ data quality ------------------------------ */
 
-export type QualityMetric = { key: string; label: string; numerator: number; denominator: number; pct: number };
+export type QualityMetric = {
+  key: string;
+  label: string;
+  numerator: number;
+  denominator: number;
+  pct: number;
+};
 
 export type DataQuality = {
   metrics: QualityMetric[];
@@ -158,7 +167,12 @@ export const dataQualityQuery = queryOptions({
     const labs = rowsOf(labsRes, "Lab orders");
 
     const filled = (v: string | null | undefined) => Boolean(v && v.trim());
-    const metric = (key: string, label: string, numerator: number, denominator: number): QualityMetric => ({
+    const metric = (
+      key: string,
+      label: string,
+      numerator: number,
+      denominator: number,
+    ): QualityMetric => ({
       key,
       label,
       numerator,
@@ -168,15 +182,30 @@ export const dataQualityQuery = queryOptions({
 
     const codedConditions = conditions.filter((c) => filled(c.icd10));
     const metrics: QualityMetric[] = [
-      metric("dob", "Date of birth", patients.filter((p) => filled(p.date_of_birth)).length, patients.length),
+      metric(
+        "dob",
+        "Date of birth",
+        patients.filter((p) => filled(p.date_of_birth)).length,
+        patients.length,
+      ),
       metric(
         "sex",
         "Sex recorded",
         patients.filter((p) => filled(p.sex) && p.sex.toLowerCase() !== "unknown").length,
         patients.length,
       ),
-      metric("phone", "Phone contact", patients.filter((p) => filled(p.phone)).length, patients.length),
-      metric("blood", "Blood group", patients.filter((p) => filled(p.blood_group)).length, patients.length),
+      metric(
+        "phone",
+        "Phone contact",
+        patients.filter((p) => filled(p.phone)).length,
+        patients.length,
+      ),
+      metric(
+        "blood",
+        "Blood group",
+        patients.filter((p) => filled(p.blood_group)).length,
+        patients.length,
+      ),
       metric(
         "insurance",
         "Insurance / payer",
@@ -271,7 +300,10 @@ function ageFrom(dob: string | null | undefined): number | null {
 }
 
 export function stageGroup(stage: string | null | undefined): RegistryRow["stageGroup"] {
-  const value = (stage ?? "").toUpperCase().replace(/^STAGE\s*/, "").trim();
+  const value = (stage ?? "")
+    .toUpperCase()
+    .replace(/^STAGE\s*/, "")
+    .trim();
   if (!value) return "Unstaged";
   if (value.startsWith("IV") || value.startsWith("4")) return "IV";
   if (value.startsWith("III") || value.startsWith("3")) return "III";
@@ -431,7 +463,9 @@ export const patientTrailQuery = (patientId: string) =>
       const [eventsRes, auditRes, provRes] = await Promise.all([
         supabase
           .from("events")
-          .select("id,event_type,severity,department_code,actor_label,entity_type,entity_id,occurred_at")
+          .select(
+            "id,event_type,severity,department_code,actor_label,entity_type,entity_id,occurred_at",
+          )
           .or(`entity_id.in.(${ids.join(",")}),payload->>patient_id.eq.${patientId}`)
           .order("occurred_at", { ascending: false })
           .limit(200),
@@ -495,7 +529,8 @@ export const provenanceSummaryQuery = queryOptions({
       .from("data_provenance")
       .select("source,confidence,verified_at")
       .limit(ROW_LIMIT);
-    if (res.error) return { total: 0, verified: 0, sources: [] as { source: string; count: number }[] };
+    if (res.error)
+      return { total: 0, verified: 0, sources: [] as { source: string; count: number }[] };
     const rows = res.data ?? [];
     const map = new Map<string, number>();
     for (const r of rows) map.set(r.source, (map.get(r.source) ?? 0) + 1);
@@ -567,7 +602,9 @@ export const facilityAnalyticsQuery = queryOptions({
     const tat = (["laboratory", "imaging"] as const).map((category) => {
       const minutes = orders
         .filter((o) => o.category === category && o.verified_at)
-        .map((o) => (new Date(o.verified_at!).getTime() - new Date(o.requested_at).getTime()) / 60_000)
+        .map(
+          (o) => (new Date(o.verified_at!).getTime() - new Date(o.requested_at).getTime()) / 60_000,
+        )
         .filter((m) => m >= 0);
       const med = median(minutes);
       return { category, medianMinutes: med === null ? null : Math.round(med), n: minutes.length };

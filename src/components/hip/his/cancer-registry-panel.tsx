@@ -16,15 +16,13 @@ import {
 } from "recharts";
 
 import {
-  EmptyState,
-  ErrorState,
   HIS_COLORS,
-  LoadingState,
   SERIES,
   axisProps,
   fmtDate,
   tooltipStyle,
-} from "@/components/hip/his/his-ui";
+} from "@/components/hip/his/his-format";
+import { EmptyState, ErrorState, LoadingState } from "@/components/hip/his/his-ui";
 import { Panel } from "@/components/hip/panel";
 import { Input } from "@/components/ui/input";
 import {
@@ -50,8 +48,12 @@ const STAGE_COLORS: Record<RegistryRow["stageGroup"], string> = {
 function Kpi({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
     <div className="min-w-0 rounded-2xl bg-[#F5F5F7] p-4">
-      <p className="truncate text-[10px] font-bold uppercase tracking-wider text-[#86868B]">{label}</p>
-      <p className="numeric mt-1 text-2xl font-extrabold leading-none tracking-tight text-black">{value}</p>
+      <p className="truncate text-[10px] font-bold uppercase tracking-wider text-[#86868B]">
+        {label}
+      </p>
+      <p className="numeric mt-1 text-2xl font-extrabold leading-none tracking-tight text-black">
+        {value}
+      </p>
       <p className="mt-1 truncate text-[11px] font-semibold text-[#86868B]">{hint}</p>
     </div>
   );
@@ -98,13 +100,19 @@ export function CancerRegistryPanel() {
     const term = search.trim().toLowerCase();
     if (!term) return registry;
     return registry.filter((r) =>
-      `${r.mrn} ${r.name} ${r.site} ${r.icd10} ${r.histology} ${r.stage} ${r.regimen}`.toLowerCase().includes(term),
+      `${r.mrn} ${r.name} ${r.site} ${r.icd10} ${r.histology} ${r.stage} ${r.regimen}`
+        .toLowerCase()
+        .includes(term),
     );
   }, [registry, search]);
 
   const exportCsv = () => {
     const stamp = new Date().toISOString().slice(0, 10);
-    downloadText(`cancer-registry-${stamp}.csv`, `﻿${registryCsv(registry)}`, "text/csv;charset=utf-8");
+    downloadText(
+      `cancer-registry-${stamp}.csv`,
+      `\uFEFF${registryCsv(registry)}`,
+      "text/csv;charset=utf-8",
+    );
   };
 
   if (cases.isLoading) {
@@ -136,7 +144,11 @@ export function CancerRegistryPanel() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi label="Registered cases" value={registry.length.toLocaleString()} hint="ICD-10 C00–D09" />
+        <Kpi
+          label="Registered cases"
+          value={registry.length.toLocaleString()}
+          hint="ICD-10 C00–D09"
+        />
         <Kpi
           label="Staged (TNM)"
           value={`${Math.round((stats.staged / registry.length) * 100)}%`}
@@ -158,7 +170,11 @@ export function CancerRegistryPanel() {
         <Panel title="Cases by primary site" subtitle="Top 10 sites" className="xl:col-span-1">
           <div style={{ height: Math.max(200, stats.sites.length * 30 + 40) }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.sites} layout="vertical" margin={{ top: 0, right: 16, bottom: 0, left: 0 }}>
+              <BarChart
+                data={stats.sites}
+                layout="vertical"
+                margin={{ top: 0, right: 16, bottom: 0, left: 0 }}
+              >
                 <CartesianGrid horizontal={false} stroke={HIS_COLORS.grid} />
                 <XAxis type="number" allowDecimals={false} {...axisProps} />
                 <YAxis type="category" dataKey="site" width={110} {...axisProps} />
@@ -176,7 +192,11 @@ export function CancerRegistryPanel() {
                 <CartesianGrid vertical={false} stroke={HIS_COLORS.grid} />
                 <XAxis dataKey="stage" {...axisProps} />
                 <YAxis allowDecimals={false} {...axisProps} />
-                <Tooltip {...tooltipStyle} formatter={(v) => [v, "Cases"]} labelFormatter={(l) => `Stage ${l}`} />
+                <Tooltip
+                  {...tooltipStyle}
+                  formatter={(v) => [v, "Cases"]}
+                  labelFormatter={(l) => `Stage ${l}`}
+                />
                 <Bar dataKey="count" radius={[6, 6, 0, 0]} barSize={36}>
                   {stats.stages.map((s) => (
                     <Cell key={s.stage} fill={STAGE_COLORS[s.stage]} />
@@ -204,7 +224,11 @@ export function CancerRegistryPanel() {
                     {stats.intents.map((entry, i) => (
                       <Cell
                         key={entry.intent}
-                        fill={entry.intent === "Not recorded" ? HIS_COLORS.slate : SERIES[i % SERIES.length]}
+                        fill={
+                          entry.intent === "Not recorded"
+                            ? HIS_COLORS.slate
+                            : SERIES[i % SERIES.length]
+                        }
                       />
                     ))}
                   </Pie>
@@ -218,10 +242,15 @@ export function CancerRegistryPanel() {
                   <span
                     className="size-2.5 shrink-0 rounded-full"
                     style={{
-                      background: entry.intent === "Not recorded" ? HIS_COLORS.slate : SERIES[i % SERIES.length],
+                      background:
+                        entry.intent === "Not recorded"
+                          ? HIS_COLORS.slate
+                          : SERIES[i % SERIES.length],
                     }}
                   />
-                  <span className="min-w-0 flex-1 truncate font-semibold text-[#1D1D1F]">{entry.intent}</span>
+                  <span className="min-w-0 flex-1 truncate font-semibold text-[#1D1D1F]">
+                    {entry.intent}
+                  </span>
                   <span className="numeric font-bold text-[#86868B]">{entry.count}</span>
                 </li>
               ))}
@@ -270,7 +299,10 @@ export function CancerRegistryPanel() {
             </thead>
             <tbody>
               {filtered.map((r) => (
-                <tr key={r.patientId} className="border-b border-black/5 last:border-b-0 hover:bg-[#F5F5F7]/60">
+                <tr
+                  key={r.patientId}
+                  className="border-b border-black/5 last:border-b-0 hover:bg-[#F5F5F7]/60"
+                >
                   <td className="px-4 py-3">
                     <Link
                       to="/patients/$patientId"
@@ -288,7 +320,9 @@ export function CancerRegistryPanel() {
                     <p className="font-semibold text-[#1D1D1F]">{r.site}</p>
                     <p className="font-mono text-[11px] text-[#86868B]">{r.icd10 || "—"}</p>
                   </td>
-                  <td className="max-w-40 truncate px-3 py-3 text-[#1D1D1F]">{r.histology || "—"}</td>
+                  <td className="max-w-40 truncate px-3 py-3 text-[#1D1D1F]">
+                    {r.histology || "—"}
+                  </td>
                   <td className="px-3 py-3">
                     <span className="font-mono text-[11px] text-[#86868B]">{r.tnm || "—"}</span>{" "}
                     <span
@@ -303,7 +337,9 @@ export function CancerRegistryPanel() {
                   <td className="numeric px-3 py-3 text-[#1D1D1F]">
                     {fmtDate(r.firstTreatment)}
                     {r.daysToTreatment !== null ? (
-                      <span className="ml-1 text-[11px] font-semibold text-[#86868B]">+{r.daysToTreatment} d</span>
+                      <span className="ml-1 text-[11px] font-semibold text-[#86868B]">
+                        +{r.daysToTreatment} d
+                      </span>
                     ) : null}
                   </td>
                   <td className="max-w-48 truncate px-4 py-3 text-[#1D1D1F]">{r.regimen || "—"}</td>
