@@ -82,6 +82,8 @@ export const ROUTE_PERMISSIONS: Record<string, AppRole[]> = {
   "/executive": ["super_admin", "ceo", "medical_director"],
   "/billing": ["super_admin", "ceo", "medical_director", "billing_clerk"],
   "/admin": ["super_admin"],
+  "/oncology": ["super_admin", "ceo", "medical_director", "doctor", "nurse", "pharmacist"],
+  "/his": ["super_admin", "ceo", "medical_director", "doctor", "hr_manager"],
 };
 
 /** Checks if the given roles list grants access to a route path. Default: super_admin. */

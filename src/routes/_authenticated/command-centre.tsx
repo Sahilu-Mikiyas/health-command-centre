@@ -4,6 +4,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/hip/app-shell";
 import { AlertCard } from "@/components/hip/alert-card";
 import { HospitalBrainPanel } from "@/components/hip/hospital-brain-panel";
+import { useFacility } from "@/lib/hip/facility";
 import { MetricRing } from "@/components/hip/metric-ring";
 import { Panel, Stat } from "@/components/hip/panel";
 import { StatusPill, statusFromRatio } from "@/components/hip/status-pill";
@@ -13,7 +14,6 @@ import {
   bedSummaryQuery,
   departmentsQuery,
   flowQuery,
-  hospitalQuery,
   recentEventsQuery,
   staffSummaryQuery,
 } from "@/lib/hip/queries";
@@ -33,7 +33,7 @@ export const Route = createFileRoute("/_authenticated/command-centre")({
 });
 
 function CommandCentre() {
-  const hospital = useQuery(hospitalQuery);
+  const facility = useFacility();
   const beds = useQuery(bedSummaryQuery);
   const flow = useQuery(flowQuery);
   const staff = useQuery(staffSummaryQuery);
@@ -46,7 +46,7 @@ function CommandCentre() {
   return (
     <AppShell
       title="Hospital Command Centre"
-      subtitle={hospital.data ? `${hospital.data.name} · live digital twin` : "Loading hospital…"}
+      subtitle={`${facility.name} · live operations`}
     >
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
         <div className="space-y-6 min-w-0">

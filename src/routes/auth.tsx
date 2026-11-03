@@ -8,17 +8,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { useFacility } from "@/lib/hip/facility";
 import { getDefaultRedirect, ROLE_LABELS, type AppRole } from "@/lib/hip/rbac";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Sign in | Furii Hospital Prototype" },
+      { title: "Sign in | Furii Health" },
       {
         name: "description",
         content:
-          "Secure staff access to the Furii Hospital Prototype command centre and clinical workspaces.",
+          "Secure staff access to Furii Health clinical workspaces, diagnostics and operations.",
       },
     ],
   }),
@@ -26,6 +27,7 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
+  const facility = useFacility();
   const router = useRouter();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
@@ -136,12 +138,8 @@ function AuthPage() {
           <span className="mx-auto mb-4 grid size-11 place-items-center rounded-2xl bg-black text-lg font-bold text-white shadow-md">
             F
           </span>
-          <h1 className="text-xl font-extrabold tracking-tight text-black">
-            Furii Hospital Prototype
-          </h1>
-          <p className="mt-1 text-sm font-medium text-[#86868B]">
-            Staff access to live hospital operations
-          </p>
+          <h1 className="text-xl font-extrabold tracking-tight text-black">{facility.name}</h1>
+          <p className="mt-1 text-sm font-medium text-[#86868B]">{facility.tagline}</p>
         </div>
 
         {sent ? (

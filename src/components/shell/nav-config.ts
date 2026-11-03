@@ -5,9 +5,11 @@ import {
   Building2,
   Cpu,
   FlaskConical,
+  Network,
   HeartPulse,
   LayoutDashboard,
   Radio,
+  Ribbon,
   Scan,
   ShieldCheck,
   Stethoscope,
@@ -16,6 +18,7 @@ import {
   Users,
 } from "lucide-react";
 
+import { FACILITIES, type FacilityProfile } from "@/lib/hip/facility";
 import { hasRouteAccess, type AppRole } from "@/lib/hip/rbac";
 
 export type NavItem = {
@@ -43,6 +46,8 @@ export const NAV_ITEMS: Record<string, NavItem> = {
   "/billing": { label: "Billing & Ledger", to: "/billing", icon: Banknote, phase: 1 },
   "/hr": { label: "HR & Staff Operations", to: "/hr", icon: UserCheck, phase: 1 },
   "/admin": { label: "Super Admin", to: "/admin", icon: ShieldCheck, phase: 1 },
+  "/oncology": { label: "Oncology Workspace", to: "/oncology", icon: Ribbon, phase: 1 },
+  "/his": { label: "HIS & Interoperability", to: "/his", icon: Network, phase: 1 },
 };
 
 function group(label: string, paths: string[]): NavGroup {
@@ -65,7 +70,7 @@ export const ROLE_NAV: Record<AppRole, NavGroup[]> = {
       "/radiology",
       "/pharmacy",
     ]),
-    group("Finance & Platform", ["/billing", "/hr", "/patients", "/admin"]),
+    group("Finance & Platform", ["/billing", "/hr", "/patients", "/admin", "/oncology", "/his"]),
   ],
   ceo: [
     group("Executive Oversight", ["/executive", "/command-centre", "/digital-twin", "/events"]),
@@ -145,23 +150,37 @@ function primaryRoleOf(roles: string[] | undefined): AppRole {
 }
 
 /** Sidebar groups for the current effective roles — every item is permission-checked. */
-export function navGroupsForRoles(roles: string[] | undefined): NavGroup[] {
+export function navGroupsForRoles(
+  roles: string[] | undefined,
+  facility: FacilityProfile = FACILITIES.internal_medicine,
+): NavGroup[] {
   const list = (roles && roles.length > 0 ? roles : ["super_admin"]) as AppRole[];
   const primary = primaryRoleOf(list);
+  const allowed = (item: NavItem | undefined): item is NavItem => Boolean(item) && hasRouteAccess(list, item!.to);
+  const relabel = (item: NavItem): NavItem =>
+    item.to === "/ward" ? { ...item, label: facility.wardLabel } : item;
+
+  const featured = facility.featured.map((path) => NAV_ITEMS[path]).filter(allowed).map(relabel);
+  const featuredPaths = new Set(featured.map((item) => item.to));
   const quick = (ROLE_QUICK_ACCESS[primary] ?? [])
     .map((path) => NAV_ITEMS[path])
-    .filter((item): item is NavItem => Boolean(item) && hasRouteAccess(list, item!.to));
-
-  const quickPaths = new Set(quick.map((item) => item.to));
+    .filter(allowed)
+    .filter((item) => !featuredPaths.has(item.to))
+    .map(relabel);
+  const taken = new Set([...featuredPaths, ...quick.map((item) => item.to)]);
 
   const groups = (ROLE_NAV[primary] ?? ROLE_NAV.receptionist)
     .map((group) => ({
       label: group.label,
-      items: group.items.filter((item) => hasRouteAccess(list, item.to) && !quickPaths.has(item.to)),
+      items: group.items.filter((item) => hasRouteAccess(list, item.to) && !taken.has(item.to)).map(relabel),
     }))
     .filter((group) => group.items.length > 0);
 
-  return quick.length > 0 ? [{ label: "Quick Access", items: quick }, ...groups] : groups;
+  return [
+    ...(quick.length > 0 ? [{ label: "Quick Access", items: quick }] : []),
+    ...(featured.length > 0 ? [{ label: facility.featuredLabel, items: featured }] : []),
+    ...groups,
+  ];
 }
 
 /** Legacy flat export kept for the command palette / mobile fallbacks. */

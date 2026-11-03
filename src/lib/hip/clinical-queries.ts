@@ -39,6 +39,8 @@ export type OrderRow = {
   instructions: string | null;
   requested_by_label: string | null;
   requested_at: string;
+  result_summary: string | null;
+  is_critical: boolean;
 };
 
 export type NoteRow = {
@@ -149,7 +151,8 @@ export const ordersQuery = (patientId: string) =>
       const { data, error } = await supabase
         .from("orders")
         .select(
-          "id,patient_id,encounter_id,category,name,code,priority,status,instructions,requested_by_label,requested_at",
+          "id,patient_id,encounter_id,category,name,code,priority,status,instructions,requested_by_label,requested_at," +
+            "result_summary,is_critical",
         )
         .eq("patient_id", patientId)
         .order("requested_at", { ascending: false });
@@ -173,3 +176,154 @@ export const notesQuery = (patientId: string) =>
       return (data ?? []) as unknown as NoteRow[];
     },
   });
+
+/* ----------------------- bed occupancy (ward / twin) ----------------------- */
+
+export type BedStatus = "available" | "occupied" | "cleaning" | "reserved" | "maintenance";
+
+export type OccupancyBed = {
+  id: string;
+  label: string;
+  status: BedStatus;
+  patient_id: string | null;
+  room: string | null;
+  ward_id: string | null;
+  patient: {
+    id: string;
+    full_name: string;
+    mrn: string;
+    date_of_birth: string;
+    sex: string;
+  } | null;
+  chief_complaint: string | null;
+  admitted_at: string | null;
+};
+
+export type BedCounts = {
+  total: number;
+  occupied: number;
+  available: number;
+  cleaning: number;
+  reserved: number;
+  maintenance: number;
+  /** occupied / total, 0–100, rounded (same definition as the status ribbon). */
+  occupancyPct: number;
+};
+
+export type WardOccupancy = BedCounts & {
+  id: string;
+  name: string;
+  floor: number;
+  beds: OccupancyBed[];
+};
+
+export function countBeds(beds: { status: string }[]): BedCounts {
+  const count = (status: BedStatus) => beds.filter((bed) => bed.status === status).length;
+  const total = beds.length;
+  const occupied = count("occupied");
+  return {
+    total,
+    occupied,
+    available: count("available"),
+    cleaning: count("cleaning"),
+    reserved: count("reserved"),
+    maintenance: count("maintenance"),
+    occupancyPct: total > 0 ? Math.round((occupied / total) * 100) : 0,
+  };
+}
+
+type RawBed = {
+  id: string;
+  label: string;
+  status: BedStatus;
+  patient_id: string | null;
+  rooms: { name: string; wards: { id: string; name: string; floor: number } | null } | null;
+};
+
+/**
+ * Every bed in the hospital grouped by ward, with the occupying patient where one is linked
+ * (beds.patient_id or an open encounter's bed_id). Single source for ward + digital-twin screens.
+ */
+export const wardOccupancyQuery = queryOptions({
+  queryKey: ["beds", "by-ward"],
+  queryFn: async () => {
+    const [bedsRes, encountersRes] = await Promise.all([
+      supabase
+        .from("beds")
+        .select("id,label,status,patient_id,rooms(name,wards(id,name,floor))")
+        .order("label")
+        .range(0, 4999),
+      supabase
+        .from("encounters")
+        .select("bed_id,patient_id,chief_complaint,started_at")
+        .not("bed_id", "is", null)
+        .is("ended_at", null),
+    ]);
+    if (bedsRes.error) throw new Error(bedsRes.error.message);
+    const rawBeds = (bedsRes.data ?? []) as unknown as RawBed[];
+    const encounters = (encountersRes.data ?? []) as {
+      bed_id: string | null;
+      patient_id: string;
+      chief_complaint: string | null;
+      started_at: string;
+    }[];
+    const encounterByBed = new Map(encounters.map((e) => [e.bed_id, e]));
+
+    const patientIds = new Set<string>();
+    for (const bed of rawBeds) {
+      const pid = bed.patient_id ?? encounterByBed.get(bed.id)?.patient_id ?? null;
+      if (pid) patientIds.add(pid);
+    }
+    const patientById = new Map<string, NonNullable<OccupancyBed["patient"]>>();
+    if (patientIds.size > 0) {
+      const { data } = await supabase
+        .from("patients")
+        .select("id,full_name,mrn,date_of_birth,sex")
+        .in("id", [...patientIds]);
+      for (const p of data ?? []) {
+        patientById.set(p.id, { ...p, full_name: toEthiopianName(p.full_name) });
+      }
+    }
+
+    const beds: OccupancyBed[] = rawBeds.map((bed) => {
+      const encounter = encounterByBed.get(bed.id);
+      const pid = bed.patient_id ?? encounter?.patient_id ?? null;
+      return {
+        id: bed.id,
+        label: bed.label,
+        status: bed.status,
+        patient_id: pid,
+        room: bed.rooms?.name ?? null,
+        ward_id: bed.rooms?.wards?.id ?? null,
+        patient: pid ? (patientById.get(pid) ?? null) : null,
+        chief_complaint: encounter?.chief_complaint ?? null,
+        admitted_at: encounter?.started_at ?? null,
+      };
+    });
+
+    const wardMap = new Map<
+      string,
+      { id: string; name: string; floor: number; beds: OccupancyBed[] }
+    >();
+    rawBeds.forEach((raw, index) => {
+      const bed = beds[index]!;
+      const ward = raw.rooms?.wards;
+      const key = ward?.id ?? "unassigned";
+      if (!wardMap.has(key)) {
+        wardMap.set(key, {
+          id: key,
+          name: ward?.name ?? "Unassigned",
+          floor: ward?.floor ?? 0,
+          beds: [],
+        });
+      }
+      wardMap.get(key)!.beds.push(bed);
+    });
+
+    const wards: WardOccupancy[] = [...wardMap.values()]
+      .map((ward) => ({ ...ward, ...countBeds(ward.beds) }))
+      .sort((a, b) => a.floor - b.floor || a.name.localeCompare(b.name));
+
+    return { beds, wards, totals: countBeds(beds) };
+  },
+});

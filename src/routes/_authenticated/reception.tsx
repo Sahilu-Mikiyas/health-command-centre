@@ -35,15 +35,26 @@ import { HandoffBoard } from "@/components/hip/handoff-board";
 import { Panel, Stat } from "@/components/hip/panel";
 import { RouteGuard } from "@/components/hip/route-guard";
 import { StatusPill } from "@/components/hip/status-pill";
+import { supabase } from "@/integrations/supabase/client";
 import { activeEncountersQuery, appointmentsQuery } from "@/lib/hip/clinical-queries";
+import { toEthiopianName } from "@/lib/hip/ethiopian-names";
+import { staffDirectoryQuery } from "@/lib/hip/hr-queries";
 import {
   bookAppointment,
   checkInAppointment,
+  checkInWalkIn,
+  emitEvent,
+  getEncounterSlip,
   registerPatient,
   updateAppointmentStatus,
 } from "@/lib/hip/mutations";
 import { departmentsQuery, patientsQuery } from "@/lib/hip/queries";
-import { generateAppointmentSlip, generateQueueTicket } from "@/lib/hip/pdf-engine";
+import {
+  generateAdmissionSlip,
+  generateAppointmentSlip,
+  generateQueueTicket,
+} from "@/lib/hip/pdf-engine";
+import { allocateBed, invoicesQuery, journeyQuery, type JourneyRow } from "@/lib/hip/workflow";
 
 export const Route = createFileRoute("/_authenticated/reception")({
   head: () => ({
@@ -81,6 +92,27 @@ function todayISO() {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 }
 
+function ageFromDob(dob: string | null | undefined) {
+  if (!dob) return "—";
+  const birth = new Date(dob);
+  if (Number.isNaN(birth.getTime())) return "—";
+  const now = new Date();
+  let age = now.getFullYear() - birth.getFullYear();
+  const m = now.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < birth.getDate())) age -= 1;
+  return `${age}y`;
+}
+
+const AVAILABILITY_LABEL: Record<string, string> = {
+  active: "Available",
+  busy: "In Consultation",
+  on_call: "On Call",
+  on_leave: "On Leave",
+  offline: "Offline",
+};
+
+type CheckInSlip = Awaited<ReturnType<typeof getEncounterSlip>>;
+
 function ReceptionContent() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<SubTab>("overview");
@@ -103,7 +135,14 @@ function ReceptionContent() {
     bed: string;
     bloodGroup: string;
     admDate: string;
+    age: string;
+    gender: string;
+    diagnosis: string;
+    isolation: boolean;
   } | null>(null);
+
+  const [walkInDeptId, setWalkInDeptId] = useState("");
+  const [admitWardId, setAdmitWardId] = useState("");
 
   const [dischargeDoc, setDischargeDoc] = useState<{
     patientName: string;
@@ -118,20 +157,78 @@ function ReceptionContent() {
   const encounters = useQuery({ ...activeEncountersQuery, refetchInterval: 15000 });
   const departments = useQuery(departmentsQuery);
   const patients = useQuery(patientsQuery(patientSearch));
+  const journey = useQuery({ ...journeyQuery, refetchInterval: 15000 });
+  const staff = useQuery(staffDirectoryQuery);
+  const wards = useQuery({
+    queryKey: ["wards"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("wards").select("id,name,floor").order("name");
+      if (error) throw new Error(error.message);
+      return data ?? [];
+    },
+  });
+  const selectedWardId = admitWardId || wards.data?.[0]?.id || "";
+  const availableBeds = useQuery({
+    queryKey: ["beds", "available", selectedWardId],
+    enabled: !!selectedWardId,
+    queryFn: async () => {
+      const { data: rooms, error: roomError } = await supabase
+        .from("rooms")
+        .select("id,name")
+        .eq("ward_id", selectedWardId);
+      if (roomError) throw new Error(roomError.message);
+      const roomIds = (rooms ?? []).map((r) => r.id);
+      if (roomIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("beds")
+        .select("id,label")
+        .eq("status", "available")
+        .in("room_id", roomIds)
+        .order("label")
+        .limit(200);
+      if (error) throw new Error(error.message);
+      return data ?? [];
+    },
+  });
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["appointments"] });
     queryClient.invalidateQueries({ queryKey: ["encounters"] });
     queryClient.invalidateQueries({ queryKey: ["events"] });
     queryClient.invalidateQueries({ queryKey: ["patients"] });
+    queryClient.invalidateQueries({ queryKey: ["workflow"] });
+    queryClient.invalidateQueries({ queryKey: ["beds"] });
   };
 
   // Mutations
   const registerMut = useMutation({
-    mutationFn: registerPatient,
+    mutationFn: async ({
+      nationalId,
+      consent,
+      ...input
+    }: Parameters<typeof registerPatient>[0] & { nationalId: string; consent: boolean }) => {
+      const patient = await registerPatient(input);
+      // patients has no national-ID column: the consent record (and ID) lives on the audit stream.
+      await emitEvent({
+        eventType: "patient.consent_recorded",
+        departmentCode: "RECEPTION",
+        entityType: "patient",
+        entityId: patient.id,
+        payload: {
+          mrn: patient.mrn,
+          national_id: nationalId || null,
+          data_recording_consent: consent,
+          consent_text:
+            "Patient consents to digital health data recording under hospital privacy guidelines.",
+          recorded_at: new Date().toISOString(),
+        },
+      });
+      return patient;
+    },
     onSuccess: (data) => {
       toast.success(`Registered ${data.full_name} with MRN ${data.mrn}`);
       invalidate();
+      setPatientSearch(data.mrn);
       setActiveTab("checkin");
     },
     onError: (err: Error) => toast.error(err.message),
@@ -147,19 +244,107 @@ function ReceptionContent() {
     onError: (err: Error) => toast.error(err.message),
   });
 
+  // The slip is read back from the stored encounter so ticket + MRN match the database.
+  const showCheckInSlip = (slip: CheckInSlip) => {
+    const pName = toEthiopianName(slip.patients?.full_name ?? "Patient");
+    const ticketNo = slip.queue_ticket ?? "—";
+    setPrintedTicket({
+      ticketNo,
+      patientName: pName,
+      mrn: slip.patients?.mrn ?? "—",
+      dept: slip.departments?.name ?? "General Consultation",
+      time: new Date(slip.started_at).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    });
+    toast.success(`Checked in ${pName}. Ticket ${ticketNo} issued.`);
+    invalidate();
+  };
+
   const checkInMut = useMutation({
-    mutationFn: checkInAppointment,
-    onSuccess: (_data, variables) => {
-      const pName = patients.data?.find((p) => p.id === variables.patient_id)?.full_name ?? "Patient";
-      const ticketNum = `T-${Math.floor(100 + Math.random() * 900)}`;
-      setPrintedTicket({
-        ticketNo: ticketNum,
-        patientName: pName,
-        mrn: "MRN-8829",
-        dept: "General Consultation",
-        time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    mutationFn: async (appointment: Parameters<typeof checkInAppointment>[0]) =>
+      getEncounterSlip((await checkInAppointment(appointment)).id),
+    onSuccess: showCheckInSlip,
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const walkInMut = useMutation({
+    mutationFn: async (input: Parameters<typeof checkInWalkIn>[0]) =>
+      getEncounterSlip((await checkInWalkIn(input)).id),
+    onSuccess: showCheckInSlip,
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const announceMut = useMutation({
+    mutationFn: async (input: {
+      encounterId: string;
+      ticket: string | null;
+      patientName: string;
+      mrn: string | null;
+      destination: string;
+    }) => {
+      await emitEvent({
+        eventType: "queue.called",
+        departmentCode: "RECEPTION",
+        entityType: "encounter",
+        entityId: input.encounterId,
+        payload: {
+          ticket: input.ticket,
+          patient: input.patientName,
+          mrn: input.mrn,
+          destination: input.destination,
+        },
       });
-      toast.success(`Checked in ${pName}. Ticket ${ticketNum} issued.`);
+      return input;
+    },
+    onSuccess: (input) => {
+      toast.success(
+        `Calling ${input.ticket ? `ticket ${input.ticket} — ` : ""}${input.patientName} to ${input.destination}`,
+      );
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const admitMut = useMutation({
+    mutationFn: async (input: {
+      encounterId: string;
+      patientId: string;
+      bedId: string;
+      bedLabel: string;
+      wardName: string;
+      isolation: boolean;
+      chiefComplaint: string | null;
+    }) => {
+      await allocateBed({
+        encounterId: input.encounterId,
+        patientId: input.patientId,
+        bedId: input.bedId,
+        isolation: input.isolation,
+      });
+      const { data: patient, error } = await supabase
+        .from("patients")
+        .select("full_name,mrn,sex,date_of_birth,blood_group")
+        .eq("id", input.patientId)
+        .single();
+      if (error) throw new Error(error.message);
+      return { input, patient };
+    },
+    onSuccess: ({ input, patient }) => {
+      setAdmissionWristband({
+        patientName: toEthiopianName(patient.full_name),
+        mrn: patient.mrn,
+        ward: input.wardName,
+        bed: input.bedLabel,
+        bloodGroup: patient.blood_group ?? "Unknown",
+        admDate: new Date().toLocaleDateString(),
+        age: ageFromDob(patient.date_of_birth),
+        gender: patient.sex,
+        diagnosis: input.chiefComplaint ?? "—",
+        isolation: input.isolation,
+      });
+      toast.success(`Admitted to ${input.wardName} · ${input.bedLabel}`);
       invalidate();
     },
     onError: (err: Error) => toast.error(err.message),
@@ -175,11 +360,26 @@ function ReceptionContent() {
   const waitingList = (encounters.data ?? []).filter((e) => e.stage === "waiting");
   const inConsultationList = (encounters.data ?? []).filter((e) => ["nurse", "doctor"].includes(e.stage));
 
-  const doctorsList = [
-    { name: "Dr. Bethlehem Tadesse", spec: "Internal Medicine", status: "Available", room: "Room 101" },
-    { name: "Dr. Getachew Reda", spec: "General Surgery", status: "In Consultation", room: "Room 104" },
-    { name: "Dr. Almaz Tefera", spec: "Pediatrics", status: "On Call", room: "Ward B" },
-  ];
+  const deptName = (id: string | null | undefined) =>
+    (departments.data ?? []).find((d) => d.id === id)?.name ?? null;
+
+  const doctorsList = (staff.data ?? [])
+    .filter((s) => s.role === "doctor")
+    .slice(0, 6)
+    .map((s) => ({
+      id: s.id,
+      name: s.full_name,
+      spec: s.job_title,
+      status: AVAILABILITY_LABEL[s.availability] ?? s.availability,
+      room: deptName(s.department_id) ?? "Clinic",
+    }));
+
+  const journeyById = new Map((journey.data ?? []).map((j) => [j.id, j]));
+  // Admission candidates: live encounters not yet holding a bed.
+  const admissionCandidates = (journey.data ?? []).filter(
+    (j) => !j.bed_id && j.stage !== "complete" && j.stage !== "billing",
+  );
+  const nextSlipAppointment = apptList.find((a) => a.status === "booked") ?? apptList[0] ?? null;
 
   return (
     <AppShell
@@ -189,16 +389,30 @@ function ReceptionContent() {
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() =>
+            onClick={() => {
+              if (!nextSlipAppointment) {
+                toast.error(`No appointments on ${day} to print a slip for.`);
+                return;
+              }
+              const when = new Date(nextSlipAppointment.scheduled_at);
               generateAppointmentSlip({
-                patientName: "Abebech Tadesse",
-                mrn: "MRN-8829",
-                appointmentDate: day,
-                appointmentTime: "10:00 AM",
-                department: "General Consultation",
-                physician: "Dr. Bethlehem Tadesse",
-                room: "Room 101",
-              })
+                patientName: nextSlipAppointment.patients?.full_name ?? "Patient",
+                mrn: nextSlipAppointment.patients?.mrn ?? "—",
+                appointmentDate: when.toLocaleDateString(),
+                appointmentTime: when.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                }),
+                department: nextSlipAppointment.departments?.name ?? "General Consultation",
+                physician: "Assigned at triage",
+                room: "Reception will direct you",
+                ...(nextSlipAppointment.reason ? { notes: nextSlipAppointment.reason } : {}),
+              });
+            }}
+            title={
+              nextSlipAppointment
+                ? `Slip for ${nextSlipAppointment.patients?.full_name ?? "next patient"}`
+                : "No appointments for this day"
             }
             className="inline-flex items-center gap-1.5 rounded-2xl border border-black/10 bg-[#F5F5F7] px-3.5 py-2 text-xs font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
           >
@@ -224,10 +438,10 @@ function ReceptionContent() {
                 <button
                   onClick={() =>
                     generateQueueTicket({
-                      ticketNumber: (printedTicket as any).ticket || printedTicket.ticketNo,
-                      patientName: (printedTicket as any).name || printedTicket.patientName,
+                      ticketNumber: printedTicket.ticketNo,
+                      patientName: printedTicket.patientName,
                       mrn: printedTicket.mrn,
-                      department: (printedTicket as any).department || printedTicket.dept,
+                      department: printedTicket.dept,
                     })
                   }
                   className="inline-flex items-center gap-1.5 rounded-xl border border-black/10 bg-[#F5F5F7] px-3 py-1.5 text-[10px] font-bold text-black hover:bg-black hover:text-white transition-all cursor-pointer"
@@ -247,7 +461,9 @@ function ReceptionContent() {
               </span>
               <h2 className="text-4xl font-black text-black numeric">{printedTicket.ticketNo}</h2>
               <p className="text-sm font-bold text-black">{printedTicket.patientName}</p>
-              <p className="text-xs font-semibold text-[#86868B]">{printedTicket.dept} · {printedTicket.time}</p>
+              <p className="text-xs font-semibold text-[#86868B]">
+                {printedTicket.mrn} · {printedTicket.dept} · {printedTicket.time}
+              </p>
               <div className="pt-2 border-t border-black/5 flex items-center justify-center gap-2 text-[10px] font-bold text-[#86868B]">
                 <QrCode className="size-8 text-black" />
                 <span>Scan for Live Queue Position</span>
@@ -256,7 +472,12 @@ function ReceptionContent() {
 
             <button
               onClick={() => {
-                toast.success("Printing queue ticket...");
+                generateQueueTicket({
+                  ticketNumber: printedTicket.ticketNo,
+                  patientName: printedTicket.patientName,
+                  mrn: printedTicket.mrn,
+                  department: printedTicket.dept,
+                });
                 setPrintedTicket(null);
               }}
               className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-black py-3 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer"
@@ -298,12 +519,24 @@ function ReceptionContent() {
 
             <button
               onClick={() => {
-                toast.success("Printing wristband on thermal printer...");
+                generateAdmissionSlip({
+                  patientName: admissionWristband.patientName,
+                  mrn: admissionWristband.mrn,
+                  age: admissionWristband.age,
+                  gender: admissionWristband.gender,
+                  ward: admissionWristband.ward,
+                  bed: admissionWristband.bed,
+                  admittingDoctor: "Per encounter record",
+                  primaryNurse: "Ward duty nurse",
+                  admissionDate: admissionWristband.admDate,
+                  diagnosis: admissionWristband.diagnosis,
+                  isolation: admissionWristband.isolation ? "Isolation required" : "None",
+                });
                 setAdmissionWristband(null);
               }}
               className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-black py-3 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer"
             >
-              <Printer className="size-4" /> Print Thermal Wristband
+              <Printer className="size-4" /> Print Admission Slip & Wristband
             </button>
           </div>
         </div>
@@ -410,12 +643,28 @@ function ReceptionContent() {
             {/* Live Doctor Availability Matrix */}
             <Panel title="Attending Doctor Availability Matrix" subtitle="Real-time consultation status">
               <div className="grid gap-3 sm:grid-cols-3">
+                {doctorsList.length === 0 && (
+                  <p className="col-span-full py-6 text-center text-xs font-semibold text-[#86868B]">
+                    {staff.isLoading
+                      ? "Loading doctor roster…"
+                      : "No doctors on the staff roster yet."}
+                  </p>
+                )}
                 {doctorsList.map((doc) => (
-                  <div key={doc.name} className="rounded-2xl border border-black/5 bg-[#F5F5F7] p-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-black">{doc.room}</span>
+                  <div
+                    key={doc.id}
+                    className="rounded-2xl border border-black/5 bg-[#F5F5F7] p-4 space-y-2"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-bold text-black truncate">{doc.room}</span>
                       <StatusPill
-                        status={doc.status === "Available" ? "healthy" : doc.status === "In Consultation" ? "busy" : "info"}
+                        status={
+                          doc.status === "Available"
+                            ? "healthy"
+                            : doc.status === "Offline" || doc.status === "On Leave"
+                              ? "offline"
+                              : "busy"
+                        }
                         label={doc.status}
                       />
                     </div>
@@ -462,6 +711,8 @@ function ReceptionContent() {
                   sex: String(form.get("sex") || "female"),
                   phone: String(form.get("phone") || ""),
                   insuranceProvider: String(form.get("insurance") || ""),
+                  nationalId: String(form.get("nationalId") || "").trim(),
+                  consent: form.get("consent") === "on",
                 });
               }}
             >
@@ -547,8 +798,15 @@ function ReceptionContent() {
                   <FileText className="size-4 text-black" /> Patient Consent & Privacy Agreement
                 </span>
                 <label className="flex items-center gap-2 text-xs font-semibold text-[#515154] cursor-pointer">
-                  <input type="checkbox" required defaultChecked className="rounded border-black/20" />
-                  Patient consents to digital health data recording under hospital privacy guidelines.
+                  <input
+                    name="consent"
+                    type="checkbox"
+                    required
+                    defaultChecked
+                    className="rounded border-black/20"
+                  />
+                  Patient consents to digital health data recording under hospital privacy
+                  guidelines.
                 </label>
               </div>
 
@@ -753,13 +1011,45 @@ function ReceptionContent() {
                     type="text"
                     value={patientSearch}
                     onChange={(e) => setPatientSearch(e.target.value)}
-                    placeholder="Type Abebech Tadesse or MRN-8829..."
+                    placeholder="Type patient name or MRN…"
                     className="w-full rounded-2xl border border-black/10 bg-[#F5F5F7] pl-10 p-3 text-xs font-bold text-black focus:bg-white focus:outline-none"
                   />
                 </div>
               </div>
 
+              <div className="space-y-1">
+                <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">
+                  Walk-in Department
+                </label>
+                <select
+                  value={walkInDeptId}
+                  onChange={(e) => setWalkInDeptId(e.target.value)}
+                  className="w-full rounded-2xl border border-black/10 bg-[#F5F5F7] p-3 text-xs font-bold text-black focus:bg-white focus:outline-none"
+                >
+                  <option value="">General Consultation</option>
+                  {(departments.data ?? []).map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="space-y-3">
+                {!patients.isLoading && (patients.data ?? []).length === 0 && (
+                  <div className="rounded-2xl border border-dashed border-black/10 bg-[#FAFAFC] p-5 text-center space-y-3">
+                    <p className="text-xs font-semibold text-[#86868B]">
+                      No registered patient matches “{patientSearch}”. Walk-ins must be registered
+                      before a ticket can be issued.
+                    </p>
+                    <button
+                      onClick={() => setActiveTab("registration")}
+                      className="inline-flex items-center gap-2 rounded-full bg-black px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer"
+                    >
+                      <UserPlus className="size-4" /> Register New Patient
+                    </button>
+                  </div>
+                )}
                 {(patients.data ?? []).slice(0, 5).map((patient) => (
                   <div
                     key={patient.id}
@@ -774,14 +1064,14 @@ function ReceptionContent() {
 
                     <button
                       onClick={() =>
-                        checkInMut.mutate({
-                          id: `walkin-${Date.now()}`,
-                          patient_id: patient.id,
-                          department_id: null,
+                        walkInMut.mutate({
+                          patientId: patient.id,
+                          departmentId: walkInDeptId || null,
                           reason: "Walk-in Triage & Consultation",
                         })
                       }
-                      className="inline-flex items-center gap-2 rounded-full bg-black px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all scale-105 cursor-pointer shrink-0"
+                      disabled={walkInMut.isPending}
+                      className="inline-flex items-center gap-2 rounded-full bg-black px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all scale-105 cursor-pointer shrink-0 disabled:opacity-50"
                     >
                       <Ticket className="size-4" /> Issue Ticket & Check In
                     </button>
@@ -798,32 +1088,54 @@ function ReceptionContent() {
         <div className="space-y-6">
           <Panel title="Live Waiting Room Tracker" subtitle="Patients checked in and awaiting clinician review">
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {waitingList.map((encounter) => (
-                <div key={encounter.id} className="rounded-2xl border border-black/5 bg-[#F5F5F7] p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="rounded-full bg-[#E5F1FF] text-[#0066CC] border border-[#B8DAFF] px-2.5 py-0.5 text-[10px] font-bold">
-                      Waiting Room
-                    </span>
-                    <span className="text-[10px] font-bold text-[#86868B]">
-                      Checked in {new Date(encounter.started_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </span>
-                  </div>
-
-                  <div>
-                    <h4 className="font-extrabold text-black text-sm">{encounter.patients?.full_name ?? "Patient"}</h4>
-                    <p className="text-xs font-semibold text-[#86868B]">{encounter.patients?.mrn}</p>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      toast.success(`Broadcasting call to ${encounter.patients?.full_name} to Room 101`);
-                    }}
-                    className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-black/10 bg-white py-2 text-xs font-bold text-black hover:bg-[#F5F5F7] shadow-2xs cursor-pointer"
+              {waitingList.map((encounter) => {
+                const ticket = journeyById.get(encounter.id)?.queue_ticket ?? null;
+                const destination = encounter.departments?.name ?? "Nurse Triage";
+                return (
+                  <div
+                    key={encounter.id}
+                    className="rounded-2xl border border-black/5 bg-[#F5F5F7] p-4 space-y-3"
                   >
-                    <Volume2 className="size-3.5 text-black" /> Announce Call to Consultation Room
-                  </button>
-                </div>
-              ))}
+                    <div className="flex items-center justify-between">
+                      <span className="rounded-full bg-[#E5F1FF] text-[#0066CC] border border-[#B8DAFF] px-2.5 py-0.5 text-[10px] font-bold">
+                        {ticket ? `Ticket ${ticket}` : "Waiting Room"}
+                      </span>
+                      <span className="text-[10px] font-bold text-[#86868B]">
+                        Checked in{" "}
+                        {new Date(encounter.started_at).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+
+                    <div>
+                      <h4 className="font-extrabold text-black text-sm">
+                        {encounter.patients?.full_name ?? "Patient"}
+                      </h4>
+                      <p className="text-xs font-semibold text-[#86868B]">
+                        {encounter.patients?.mrn}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() =>
+                        announceMut.mutate({
+                          encounterId: encounter.id,
+                          ticket,
+                          patientName: encounter.patients?.full_name ?? "Patient",
+                          mrn: encounter.patients?.mrn ?? null,
+                          destination,
+                        })
+                      }
+                      disabled={announceMut.isPending}
+                      className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl border border-black/10 bg-white py-2 text-xs font-bold text-black hover:bg-[#F5F5F7] shadow-2xs cursor-pointer disabled:opacity-50"
+                    >
+                      <Volume2 className="size-3.5 text-black" /> Announce Call to {destination}
+                    </button>
+                  </div>
+                );
+              })}
 
               {waitingList.length === 0 && (
                 <p className="col-span-full py-8 text-center text-xs font-semibold text-[#86868B]">
@@ -844,21 +1156,24 @@ function ReceptionContent() {
               onSubmit={(e) => {
                 e.preventDefault();
                 const form = new FormData(e.currentTarget);
-                const pId = String(form.get("patientId"));
-                const pObj = (patients.data ?? []).find((p) => p.id === pId);
-                const ward = String(form.get("ward"));
-                const bed = String(form.get("bed"));
-
-                setAdmissionWristband({
-                  patientName: pObj?.full_name ?? "Abebech Tadesse",
-                  mrn: pObj?.mrn ?? "MRN-8829",
-                  ward,
-                  bed,
-                  bloodGroup: pObj?.blood_group ?? "O+",
-                  admDate: new Date().toLocaleDateString(),
+                const encounterId = String(form.get("encounterId") || "");
+                const bedId = String(form.get("bedId") || "");
+                const enc = admissionCandidates.find((j) => j.id === encounterId);
+                const bed = (availableBeds.data ?? []).find((b) => b.id === bedId);
+                const ward = (wards.data ?? []).find((w) => w.id === selectedWardId);
+                if (!enc || !bed || !ward) {
+                  toast.error("Select a checked-in patient, a ward and an available bed");
+                  return;
+                }
+                admitMut.mutate({
+                  encounterId: enc.id,
+                  patientId: enc.patient_id,
+                  bedId: bed.id,
+                  bedLabel: bed.label,
+                  wardName: ward.name,
+                  isolation: form.get("isolation") === "on",
+                  chiefComplaint: enc.chief_complaint,
                 });
-
-                toast.success(`Admitted to ${ward} - Bed ${bed}`);
               }}
             >
               <div className="space-y-1">
@@ -866,16 +1181,22 @@ function ReceptionContent() {
                   Patient for Admission *
                 </label>
                 <select
-                  name="patientId"
+                  name="encounterId"
                   required
                   className="w-full rounded-2xl border border-black/10 bg-[#F5F5F7] p-3 text-xs font-bold text-black focus:bg-white focus:outline-none"
                 >
-                  {(patients.data ?? []).map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.full_name} ({p.mrn})
+                  <option value="">Select checked-in patient…</option>
+                  {admissionCandidates.map((j) => (
+                    <option key={j.id} value={j.id}>
+                      {j.patients?.full_name ?? "Patient"} ({j.patients?.mrn ?? "—"}) · {j.stage}
                     </option>
                   ))}
                 </select>
+                {!journey.isLoading && admissionCandidates.length === 0 && (
+                  <p className="text-[11px] font-medium text-[#86868B]">
+                    No checked-in patients without a bed. Check the patient in first.
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -884,32 +1205,50 @@ function ReceptionContent() {
                     Assign Ward *
                   </label>
                   <select
-                    name="ward"
+                    name="wardId"
                     required
+                    value={selectedWardId}
+                    onChange={(e) => setAdmitWardId(e.target.value)}
                     className="w-full rounded-2xl border border-black/10 bg-[#F5F5F7] p-3 text-xs font-bold text-black focus:bg-white focus:outline-none"
                   >
-                    <option value="Intensive Care Unit (ICU)">Intensive Care Unit (ICU)</option>
-                    <option value="General Medical Ward A">General Medical Ward A</option>
-                    <option value="Emergency Ward">Emergency Ward</option>
+                    {(wards.data ?? []).map((w) => (
+                      <option key={w.id} value={w.id}>
+                        {w.name} · Floor {w.floor}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">
-                    Assign Bed Number *
+                    Available Bed * ({(availableBeds.data ?? []).length} free)
                   </label>
-                  <input
-                    name="bed"
-                    type="text"
+                  <select
+                    key={selectedWardId}
+                    name="bedId"
                     required
-                    defaultValue="Bed-04"
                     className="w-full rounded-2xl border border-black/10 bg-[#F5F5F7] p-3 text-xs font-bold text-black focus:bg-white focus:outline-none"
-                  />
+                  >
+                    <option value="">
+                      {availableBeds.isLoading ? "Loading beds…" : "Select bed…"}
+                    </option>
+                    {(availableBeds.data ?? []).map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
+              <label className="flex items-center gap-2 text-xs font-semibold text-[#515154] cursor-pointer">
+                <input name="isolation" type="checkbox" className="rounded border-black/20" />
+                Isolation precautions required
+              </label>
+
               <button
                 type="submit"
+                disabled={admitMut.isPending}
                 className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-black py-3.5 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer"
               >
                 <IdCard className="size-4" /> Process Admission & Generate Wristband
@@ -922,33 +1261,133 @@ function ReceptionContent() {
       {/* SUB-TAB 7: DISCHARGE DESK */}
       {activeTab === "discharge" && (
         <div className="mx-auto max-w-3xl space-y-6">
-          <Panel title="Discharge Desk & Financial Clearance" subtitle="Verify clearance prior to patient exit">
-            <div className="space-y-4">
-              <div className="rounded-2xl border border-black/5 bg-[#FAFAFC] p-4 flex items-center justify-between">
-                <div>
-                  <h4 className="font-extrabold text-black text-sm">Abebech Tadesse (MRN-8829)</h4>
-                  <p className="text-xs font-semibold text-[#86868B]">Attending: Dr. Bethlehem Tadesse · Discharged Today</p>
-                </div>
-
-                <button
-                  onClick={() =>
-                    setDischargeDoc({
-                      patientName: "Abebech Tadesse",
-                      mrn: "MRN-8829",
-                      doctor: "Dr. Bethlehem Tadesse",
-                      billingStatus: "Copay Paid ($189.00)",
-                      pharmacyStatus: "Medications Dispensed (Sumatriptan 50mg)",
-                    })
-                  }
-                  className="inline-flex items-center gap-2 rounded-full bg-black px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer shrink-0"
-                >
-                  <FileCheck className="size-4" /> Verify Clearance & Print Packet
-                </button>
-              </div>
-            </div>
+          <Panel
+            title="Discharge Desk & Financial Clearance"
+            subtitle="Verify clearance prior to patient exit"
+          >
+            <DischargeDeskList journey={journey.data ?? []} onOpen={setDischargeDoc} />
           </Panel>
         </div>
       )}
     </AppShell>
+  );
+}
+
+/* ------------------------------ Discharge desk ------------------------------ */
+
+type DischargeDocInput = {
+  patientName: string;
+  mrn: string;
+  doctor: string;
+  billingStatus: string;
+  pharmacyStatus: string;
+};
+
+const INVOICE_STATUS_LABEL: Record<string, string> = {
+  awaiting_payment: "Awaiting Payment",
+  paid: "Paid",
+  cleared: "Cleared & Discharged",
+  draft: "Draft",
+};
+
+const etbAmount = (value: number) =>
+  `${Number(value || 0).toLocaleString("en-US", { minimumFractionDigits: 2 })} ETB`;
+
+/** Real encounters at billing / discharge, with their invoice amounts in ETB. */
+function DischargeDeskList({
+  journey,
+  onOpen,
+}: {
+  journey: JourneyRow[];
+  onOpen: (doc: DischargeDocInput) => void;
+}) {
+  const invoices = useQuery({ ...invoicesQuery, refetchInterval: 15000 });
+  const invoiceRows = invoices.data ?? [];
+  const invoicedEncounters = new Set(invoiceRows.map((inv) => inv.encounter_id).filter(Boolean));
+  const openByEncounter = new Map(journey.map((row) => [row.id, row]));
+
+  const awaitingInvoice = journey.filter(
+    (row) => row.stage === "billing" && !invoicedEncounters.has(row.id),
+  );
+  const invoiceItems = invoiceRows.filter((inv) => {
+    const encounter = inv.encounter_id ? openByEncounter.get(inv.encounter_id) : undefined;
+    return (
+      inv.status === "cleared" || encounter?.stage === "billing" || encounter?.stage === "complete"
+    );
+  });
+
+  if (invoices.isLoading) {
+    return (
+      <p className="text-xs font-semibold text-[#86868B]">Loading billing & discharge queue…</p>
+    );
+  }
+  if (invoiceItems.length === 0 && awaitingInvoice.length === 0) {
+    return (
+      <p className="text-xs font-semibold text-[#86868B]">
+        No patients at billing or discharge right now.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {invoiceItems.map((inv) => {
+        const balance = Math.max(Number(inv.patient_due || 0) - Number(inv.paid_amount || 0), 0);
+        const statusLabel = INVOICE_STATUS_LABEL[inv.status] ?? inv.status;
+        const name = inv.patients?.full_name ?? "Unknown patient";
+        const mrn = inv.patients?.mrn ?? "—";
+        return (
+          <div
+            key={inv.id}
+            className="rounded-2xl border border-black/5 bg-[#FAFAFC] p-4 flex items-center justify-between gap-3"
+          >
+            <div className="min-w-0">
+              <h4 className="font-extrabold text-black text-sm">
+                {name} ({mrn})
+              </h4>
+              <p className="text-xs font-semibold text-[#86868B]">
+                {statusLabel} · Patient due {etbAmount(inv.patient_due)} · Paid{" "}
+                {etbAmount(inv.paid_amount)}
+                {balance > 0 ? ` · Balance ${etbAmount(balance)}` : ""}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() =>
+                onOpen({
+                  patientName: name,
+                  mrn,
+                  doctor: "See clinical record",
+                  billingStatus: `${statusLabel} (${etbAmount(inv.paid_amount)} of ${etbAmount(inv.patient_due)} paid)`,
+                  pharmacyStatus: "Pharmacy handoff complete",
+                })
+              }
+              className="inline-flex items-center gap-2 rounded-full bg-black px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all cursor-pointer shrink-0"
+            >
+              <FileCheck className="size-4" /> Verify Clearance & Print Packet
+            </button>
+          </div>
+        );
+      })}
+
+      {awaitingInvoice.map((row) => (
+        <div
+          key={row.id}
+          className="rounded-2xl border border-black/5 bg-[#FAFAFC] p-4 flex items-center justify-between gap-3"
+        >
+          <div className="min-w-0">
+            <h4 className="font-extrabold text-black text-sm">
+              {row.patients?.full_name ?? "Unknown patient"} ({row.patients?.mrn ?? "—"})
+            </h4>
+            <p className="text-xs font-semibold text-[#86868B]">
+              At billing · Invoice not yet generated
+              {row.departments ? ` · ${row.departments.name}` : ""}
+            </p>
+          </div>
+          <StatusPill status="busy" label="Awaiting invoice" />
+        </div>
+      ))}
+    </div>
   );
 }

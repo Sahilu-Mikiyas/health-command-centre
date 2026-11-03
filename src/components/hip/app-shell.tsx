@@ -11,6 +11,7 @@ import { AppSidebar } from "@/components/shell/app-sidebar";
 import { navGroupsForRoles } from "@/components/shell/nav-config";
 import { useHospitalRealtime } from "@/hooks/use-hospital-realtime";
 import { supabase } from "@/integrations/supabase/client";
+import { useFacility } from "@/lib/hip/facility";
 import { myProfileQuery } from "@/lib/hip/queries";
 import { ROLE_LABELS, type AppRole } from "@/lib/hip/rbac";
 
@@ -30,6 +31,7 @@ export function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const { data: me } = useQuery(myProfileQuery);
+  const facility = useFacility();
 
   // Hospital-wide realtime: every role sees every state change instantly.
   useHospitalRealtime();
@@ -166,7 +168,7 @@ export function AppShell({
             >
               <X className="size-5" />
             </button>
-            {navGroupsForRoles(me?.roles).map((group) => (
+            {navGroupsForRoles(me?.roles, facility).map((group) => (
               <div key={group.label}>
                 <p className="pb-2 text-[10px] uppercase font-bold tracking-widest text-[#86868B]">
                   {group.label}

@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { applyFacilityFromUrl } from "@/lib/hip/facility";
 
 
 function NotFoundComponent() {
@@ -80,14 +81,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Furii Hospital Prototype" },
+      { title: "Furii Health" },
       {
         name: "description",
         content:
-          "Furii Hospital Prototype: a live hospital intelligence platform uniting command centre, clinical workspaces and operational events.",
+          "Furii Health: a hospital information and intelligence platform uniting clinical workspaces, diagnostics, oncology and operational command.",
       },
-      { name: "author", content: "Furii Hospital Prototype" },
-      { property: "og:title", content: "Furii Hospital Prototype" },
+      { name: "author", content: "Furii Health" },
+      { property: "og:title", content: "Furii Health" },
       {
         property: "og:description",
         content: "A live hospital intelligence platform for clinical and operational command.",
@@ -127,6 +128,10 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+
+  useEffect(() => {
+    applyFacilityFromUrl();
+  }, []);
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {

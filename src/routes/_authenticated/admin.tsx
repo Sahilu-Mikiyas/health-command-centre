@@ -158,6 +158,35 @@ function PlatformCoverage({ staff }: { staff: StaffMember[] }) {
   );
 }
 
+/** Random temporary password (14 chars, unambiguous alphabet, at least one of each class). */
+function generateTempPassword(length = 14) {
+  const lower = "abcdefghijkmnpqrstuvwxyz";
+  const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const digits = "23456789";
+  const symbols = "!@#$%^&*-_=+?";
+  const all = lower + upper + digits + symbols;
+  const pick = (set: string, n: number) => {
+    const bytes = new Uint32Array(n);
+    crypto.getRandomValues(bytes);
+    return Array.from(bytes, (b) => set[b % set.length]);
+  };
+  const chars = [
+    ...pick(lower, 1),
+    ...pick(upper, 1),
+    ...pick(digits, 1),
+    ...pick(symbols, 1),
+    ...pick(all, length - 4),
+  ];
+  // Fisher-Yates shuffle with crypto randomness.
+  const order = new Uint32Array(chars.length);
+  crypto.getRandomValues(order);
+  for (let i = chars.length - 1; i > 0; i--) {
+    const j = (order[i] ?? 0) % (i + 1);
+    [chars[i], chars[j]] = [chars[j] as string, chars[i] as string];
+  }
+  return chars.join("");
+}
+
 function AdminWorkspace() {
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -174,7 +203,16 @@ function AdminWorkspace() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("StaffPass123!");
+  // Blank = generate a random temporary password for this account.
+  const [password, setPassword] = useState("");
+  // Shown once after creation, then discarded.
+  const [issuedCredentials, setIssuedCredentials] = useState<{
+    name: string;
+    email: string;
+    role: string;
+    password: string;
+    generated: boolean;
+  } | null>(null);
   const [selectedRole, setSelectedRole] = useState<AppRole>("doctor");
   const [department, setDepartment] = useState("Emergency Department");
   const [licenseNumber, setLicenseNumber] = useState("");
@@ -202,11 +240,13 @@ function AdminWorkspace() {
   // Create Staff Mutation
   const createStaffMut = useMutation({
     mutationFn: async () => {
-      return provision({
+      const typed = password.trim();
+      const tempPassword = typed || generateTempPassword();
+      const result = await provision({
         data: {
           fullName: fullName.trim(),
           email: email.trim().toLowerCase(),
-          password: password.trim() || "StaffPass123!",
+          password: tempPassword,
           role: selectedRole as never,
           phone: phone.trim(),
           jobTitle: `${ROLE_LABELS[selectedRole]} · ${department}`,
@@ -217,11 +257,20 @@ function AdminWorkspace() {
           notes: notes.trim(),
         },
       });
+      return { result, tempPassword, generated: !typed };
     },
-    onSuccess: (result) => {
+    onSuccess: ({ result, tempPassword, generated }) => {
       toast.success(
-        `${fullName.trim()} can now sign in as ${ROLE_LABELS[selectedRole]} — email ${result.email}, password ${password.trim() || "StaffPass123!"}`,
+        `${fullName.trim()} can now sign in as ${ROLE_LABELS[selectedRole]} (${result.email})`,
       );
+      setIssuedCredentials({
+        name: fullName.trim(),
+        email: result.email,
+        role: ROLE_LABELS[selectedRole],
+        password: tempPassword,
+        generated,
+      });
+      setPassword("");
       setIsAddOpen(false);
       resetForm();
       queryClient.invalidateQueries({ queryKey: ["admin-staff-list"] });
@@ -374,6 +423,53 @@ function AdminWorkspace() {
         </div>
       </div>
 
+      {/* One-time credential hand-off */}
+      {issuedCredentials && (
+        <div className="rounded-2xl border border-[#B6ECC3] bg-[#E8F8EC] p-4 space-y-3 shadow-2xs">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <span className="text-xs font-extrabold text-[#1D8A39] flex items-center gap-1.5">
+                <Key className="size-4" /> Temporary credentials for {issuedCredentials.name}
+              </span>
+              <p className="text-[11px] font-medium text-[#1D8A39]">
+                Shown once only — hand these to {issuedCredentials.name} ({issuedCredentials.role}).
+                They must change the password at first sign-in.
+              </p>
+            </div>
+            <button
+              onClick={() => setIssuedCredentials(null)}
+              className="text-[#1D8A39] hover:text-black"
+              title="Dismiss (the password will not be shown again)"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto] items-center">
+            <div className="rounded-xl bg-white border border-black/5 px-3 py-2 text-xs font-bold text-black truncate">
+              {issuedCredentials.email}
+            </div>
+            <div className="rounded-xl bg-white border border-black/5 px-3 py-2 text-xs font-bold text-black font-mono select-all">
+              {issuedCredentials.password}
+            </div>
+            <button
+              onClick={() => {
+                void navigator.clipboard
+                  .writeText(
+                    `Email: ${issuedCredentials.email}\nTemporary password: ${issuedCredentials.password}`,
+                  )
+                  .then(
+                    () => toast.success("Credentials copied to clipboard"),
+                    () => toast.error("Copy failed — select the password and copy it manually"),
+                  );
+              }}
+              className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-black px-3 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-all cursor-pointer"
+            >
+              Copy
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Edit Staff Modal */}
       {editingStaff && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -508,14 +604,16 @@ function AdminWorkspace() {
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">Initial Login Password *</label>
+                  <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">
+                    Temporary Password (blank = auto-generate)
+                  </label>
                   <input
                     type="text"
-                    required
-                    minLength={6}
+                    minLength={12}
+                    autoComplete="off"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="StaffPass123!"
+                    placeholder="Leave blank for a random 14-char password"
                     className="w-full rounded-2xl border border-black/10 bg-[#F5F5F7] p-3 text-xs font-bold text-black focus:bg-white focus:outline-none font-mono"
                   />
                 </div>

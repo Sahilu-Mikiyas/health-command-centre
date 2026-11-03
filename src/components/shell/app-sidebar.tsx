@@ -3,6 +3,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { Activity, ShieldCheck } from "lucide-react";
 
 import { navGroupsForRoles } from "@/components/shell/nav-config";
+import { useFacility } from "@/lib/hip/facility";
 import { classifyLicense, formatExpiry, LICENSE_LABEL } from "@/lib/hip/license";
 import { myProfileQuery } from "@/lib/hip/queries";
 import { ROLE_LABELS, type AppRole } from "@/lib/hip/rbac";
@@ -13,7 +14,8 @@ export function AppSidebar() {
   const { data: me } = useQuery(myProfileQuery);
   const roles = me?.roles ?? ["super_admin"];
   const primaryRole = (roles[0] ?? "super_admin") as AppRole;
-  const groups = navGroupsForRoles(roles);
+  const facility = useFacility();
+  const groups = navGroupsForRoles(roles, facility);
   const license = classifyLicense(me?.staff?.license_expiry);
 
   return (
@@ -24,7 +26,9 @@ export function AppSidebar() {
           <Activity className="size-5" />
         </span>
         <div className="min-w-0 leading-tight">
-          <h2 className="truncate text-base font-black tracking-tight text-black">Furii Hospital</h2>
+          <h2 className="truncate text-base font-black tracking-tight text-black" title={facility.name}>
+            {facility.shortName}
+          </h2>
           <p className="truncate text-[10px] font-bold uppercase tracking-widest text-[#86868B]">
             {ROLE_LABELS[primaryRole] ?? "Hospital OS"}
           </p>

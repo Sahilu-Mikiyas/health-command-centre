@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
 import { StatusDot } from "@/components/hip/status-pill";
-import { bedSummaryQuery, flowQuery, hospitalQuery } from "@/lib/hip/queries";
+import { useFacility } from "@/lib/hip/facility";
+import { bedSummaryQuery, flowQuery } from "@/lib/hip/queries";
 
 function useClock() {
   const [now, setNow] = useState<Date | null>(null);
@@ -16,7 +17,7 @@ function useClock() {
 
 export function StatusRibbon() {
   const now = useClock();
-  const { data: hospital } = useQuery(hospitalQuery);
+  const facility = useFacility();
   const { data: beds } = useQuery(bedSummaryQuery);
   const { data: flow } = useQuery(flowQuery);
 
@@ -24,7 +25,7 @@ export function StatusRibbon() {
 
   return (
     <header className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-border bg-surface px-4 py-2.5">
-      <h1 className="text-sm font-semibold">{hospital?.name ?? "Meridian General Hospital"}</h1>
+      <h1 className="text-sm font-semibold">{facility.name}</h1>
 
       <span className="inline-flex items-center gap-2 text-xs text-ok">
         <StatusDot status="healthy" />

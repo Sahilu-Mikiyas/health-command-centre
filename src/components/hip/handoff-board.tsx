@@ -1,15 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, CheckCircle2, Loader2, Radio, ShieldAlert } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { Panel } from "@/components/hip/panel";
+import { ImagingReportEntry, LabResultEntry } from "@/components/hip/result-entry";
 import { StatusPill } from "@/components/hip/status-pill";
 import { useWorkflowSync } from "@/hooks/use-workflow-sync";
 import { supabase } from "@/integrations/supabase/client";
 import { myProfileQuery } from "@/lib/hip/queries";
 import {
   acceptWork,
+  admitFromDoctor,
   allocateBed,
   bedBoardQuery,
   buildInvoice,
@@ -45,10 +47,10 @@ export type HandoffRole =
 const CHAIN: Record<HandoffRole, { from: string; to: string; title: string }> = {
   reception: { from: "Patient arrival", to: "Nurse Triage", title: "Front Desk Handoff Queue" },
   nurse: { from: "Reception", to: "Attending Doctor", title: "Triage Handoff Queue" },
-  doctor: { from: "Nurse Triage", to: "Laboratory & Radiology", title: "Consultation Handoff Queue" },
+  doctor: { from: "Nurse Triage / Results", to: "Diagnostics · Pharmacy · Billing", title: "Consultation Handoff Queue" },
   laboratory: { from: "Doctor orders", to: "Ordering Doctor", title: "Inbound Laboratory Orders" },
   radiology: { from: "Doctor orders", to: "Ordering Doctor", title: "Inbound Imaging Orders" },
-  ward: { from: "Diagnostics", to: "Pharmacy", title: "Bed Allocation Handoff Queue" },
+  ward: { from: "Doctor admission", to: "Pharmacy", title: "Bed Allocation Handoff Queue" },
   pharmacy: { from: "Ward / Doctor", to: "Billing", title: "Inbound Prescriptions" },
   billing: { from: "Pharmacy", to: "Discharge", title: "Financial Clearance Queue" },
 };
@@ -124,6 +126,8 @@ export function HandoffBoard({ role }: { role: HandoffRole }) {
   useWorkflowSync();
   const queryClient = useQueryClient();
   const chain = CHAIN[role];
+  const [entryFor, setEntryFor] = useState<string | null>(null);
+  const [bedChoice, setBedChoice] = useState<Record<string, string>>({});
 
   const journey = useQuery({ ...journeyQuery, refetchInterval: 20000 });
   const me = useQuery(myProfileQuery);
@@ -263,22 +267,45 @@ export function HandoffBoard({ role }: { role: HandoffRole }) {
         {rows.length ? (
           rows.map((row) => {
             const orders = (openOrders.data ?? []).filter((o) => o.encounter_id === row.id);
+            const open = orders.filter((o) => o.status === "requested" || o.status === "in_progress");
+            const pendingDx = open.filter((o) => o.category === "laboratory" || o.category === "imaging").length;
+            const pendingRx = open.filter((o) => o.category === "medication").length;
+            const resulted = orders.filter((o) => o.status === "resulted").length;
+            const nextLabel = pendingDx ? "Sign off → Diagnostics" : pendingRx ? "Sign off → Pharmacy" : "Sign off → Billing";
             return (
               <Row
                 key={row.id}
                 title={name(row)}
-                meta={`${row.chief_complaint ?? "No complaint"} · eGFR ${row.patients?.egfr ?? "—"} · ${orders.length} order(s) placed`}
-                badge={<StatusPill status={row.priority === "critical" ? "critical" : "busy"} label={row.priority} />}
+                meta={`${row.chief_complaint ?? "No complaint"} · eGFR ${row.patients?.egfr ?? "—"} · ${pendingDx} diagnostic · ${pendingRx} Rx pending${resulted ? ` · ${resulted} result(s) ready for review` : ""}`}
+                badge={
+                  <StatusPill
+                    status={row.priority === "critical" ? "critical" : resulted ? "healthy" : "busy"}
+                    label={resulted ? "results ready" : row.priority}
+                  />
+                }
               >
                 <Action
-                  label={orders.length ? "Sign off → Diagnostics" : "Sign off → Pharmacy"}
+                  label={nextLabel}
                   pending={pending}
                   onClick={() =>
                     act(async () => {
-                      await doctorHandoff(row.id, orders.length);
-                      return orders.length
-                        ? `${orders.length} order(s) released to the lab & imaging queues`
-                        : "Patient handed to pharmacy";
+                      const next = await doctorHandoff(row.id);
+                      return next === "laboratory"
+                        ? `${pendingDx} order(s) released to the lab & imaging queues`
+                        : next === "pharmacy"
+                          ? "Prescription handed to pharmacy"
+                          : "Consultation closed · patient handed to billing";
+                    })
+                  }
+                />
+                <Action
+                  label="Admit / observe"
+                  tone="light"
+                  pending={pending}
+                  onClick={() =>
+                    act(async () => {
+                      await admitFromDoctor(row.id);
+                      return "Admission requested · ward team notified";
                     })
                   }
                 />
@@ -316,50 +343,54 @@ export function HandoffBoard({ role }: { role: HandoffRole }) {
               }
             />
           ) : (
-            <>
-              <Action
-                label="Verify & release result"
-                pending={pending}
-                onClick={() =>
-                  act(async () => {
-                    await publishResult({
-                      order,
-                      summary:
-                        role === "laboratory"
-                          ? "All analytes within reference range; no action required."
-                          : "No acute intracranial abnormality. Impression within normal limits.",
-                      values: { analyzer, reviewed: true },
-                      isCritical: false,
-                      verifiedBy: actor,
-                    });
-                    return `Result released to ${order.requested_by_label ?? "the ordering doctor"}`;
-                  })
-                }
-              />
-              <Action
-                label="Release as CRITICAL"
-                tone="crit"
-                pending={pending}
-                onClick={() =>
-                  act(async () => {
-                    await publishResult({
-                      order,
-                      summary:
-                        role === "laboratory"
-                          ? "Leukocytosis with marked inflammatory markers — critical value."
-                          : "Acute finding on imaging — immediate physician review required.",
-                      values: { analyzer, critical: true },
-                      isCritical: true,
-                      verifiedBy: actor,
-                    });
-                    return `Critical value broadcast to ${order.requested_by_label ?? "the ordering doctor"}`;
-                  })
-                }
-              />
-            </>
+            <Action
+              label={entryFor === order.id ? "Close entry" : role === "laboratory" ? "Enter results" : "Write report"}
+              tone={entryFor === order.id ? "light" : "dark"}
+              pending={pending}
+              onClick={() => setEntryFor(entryFor === order.id ? null : order.id)}
+            />
           )}
         </Row>
-      ))
+      )).flatMap((rowEl, index) => {
+        const order = rows[index]!;
+        if (entryFor !== order.id) return [rowEl];
+        const submit = (result: { summary: string; values: object; isCritical: boolean }) =>
+          act(async () => {
+            await publishResult({
+              order,
+              summary: result.summary,
+              values: result.values as Record<string, unknown>,
+              isCritical: result.isCritical,
+              verifiedBy: actor,
+            });
+            setEntryFor(null);
+            return result.isCritical
+              ? `Critical value broadcast to ${order.requested_by_label ?? "the ordering doctor"}`
+              : `Result released to ${order.requested_by_label ?? "the ordering doctor"}`;
+          });
+        return [
+          rowEl,
+          role === "laboratory" ? (
+            <LabResultEntry
+              key={`${order.id}-entry`}
+              orderName={order.name}
+              analyzer={analyzer}
+              pending={pending}
+              onSubmit={submit}
+              onCancel={() => setEntryFor(null)}
+            />
+          ) : (
+            <ImagingReportEntry
+              key={`${order.id}-entry`}
+              orderName={order.name}
+              modality={analyzer}
+              pending={pending}
+              onSubmit={submit}
+              onCancel={() => setEntryFor(null)}
+            />
+          ),
+        ];
+      })
     ) : (
       <Empty text="No inbound orders. Doctor-placed orders land here the moment they are signed." />
     );
@@ -393,12 +424,28 @@ export function HandoffBoard({ role }: { role: HandoffRole }) {
             />
           ) : (
             <>
+              <select
+                value={bedChoice[row.id] ?? free[0]?.id ?? ""}
+                onChange={(e) => setBedChoice((prev) => ({ ...prev, [row.id]: e.target.value }))}
+                className="rounded-full border border-black/10 bg-white px-3 py-2 text-[11px] font-bold text-black"
+                disabled={!free.length}
+              >
+                {free.length ? (
+                  free.map((bed) => (
+                    <option key={bed.id} value={bed.id}>
+                      {bed.label} · {bed.rooms?.wards?.name ?? "ward"}
+                    </option>
+                  ))
+                ) : (
+                  <option value="">No bed free</option>
+                )}
+              </select>
               <Action
-                label={free[0] ? `Allocate ${free[0].label}` : "No bed free"}
-                pending={pending || !free[0]}
+                label="Allocate bed"
+                pending={pending || !free.length}
                 onClick={() =>
                   act(async () => {
-                    const bed = free[0];
+                    const bed = free.find((b) => b.id === bedChoice[row.id]) ?? free[0];
                     if (!bed) throw new Error("No available bed");
                     await allocateBed({ encounterId: row.id, patientId: row.patient_id, bedId: bed.id, isolation: false });
                     return `Allocated ${bed.label} (${bed.rooms?.wards?.name ?? "ward"})`;
@@ -406,12 +453,12 @@ export function HandoffBoard({ role }: { role: HandoffRole }) {
                 }
               />
               <Action
-                label="Isolation bed"
+                label="Isolation"
                 tone="light"
-                pending={pending || !free[0]}
+                pending={pending || !free.length}
                 onClick={() =>
                   act(async () => {
-                    const bed = free[0];
+                    const bed = free.find((b) => b.id === bedChoice[row.id]) ?? free[0];
                     if (!bed) throw new Error("No available bed");
                     await allocateBed({ encounterId: row.id, patientId: row.patient_id, bedId: bed.id, isolation: true });
                     return `Negative-pressure isolation set on ${bed.label}`;

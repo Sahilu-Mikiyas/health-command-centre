@@ -132,6 +132,7 @@ export async function checkInAppointment(appointment: {
     .eq("id", appointment.id);
   if (updateError) throw new Error(updateError.message);
 
+  const queueTicket = await nextQueueTicket();
   const { data, error } = await supabase
     .from("encounters")
     .insert({
@@ -140,8 +141,9 @@ export async function checkInAppointment(appointment: {
       department_id: appointment.department_id,
       stage: "waiting",
       chief_complaint: appointment.reason,
+      queue_ticket: queueTicket,
     })
-    .select("id")
+    .select("id,queue_ticket")
     .single();
   if (error) throw new Error(error.message);
 
@@ -150,9 +152,78 @@ export async function checkInAppointment(appointment: {
     departmentCode: "RECEPTION",
     entityType: "encounter",
     entityId: data.id,
-    payload: { appointment_id: appointment.id },
+    payload: { appointment_id: appointment.id, queue_ticket: data.queue_ticket },
   });
   return data;
+}
+
+/** Sequential daily queue ticket (Q-001, Q-002, …) based on today's encounters. */
+async function nextQueueTicket() {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const { count } = await supabase
+    .from("encounters")
+    .select("id", { count: "exact", head: true })
+    .gte("started_at", start.toISOString());
+  return `Q-${String((count ?? 0) + 1).padStart(3, "0")}`;
+}
+
+/** Walk-in: create a real appointment for "now" so it can be checked in like any booking. */
+export async function createWalkInAppointment(input: {
+  patientId: string;
+  departmentId: string | null;
+  reason?: string;
+}) {
+  const hid = await hospitalId();
+  const actor = await currentActorLabel();
+  const { data, error } = await supabase
+    .from("appointments")
+    .insert({
+      hospital_id: hid,
+      patient_id: input.patientId,
+      department_id: input.departmentId,
+      scheduled_at: new Date().toISOString(),
+      reason: input.reason ?? "Walk-in",
+      booked_by_label: actor,
+    })
+    .select("id,patient_id,department_id,reason")
+    .single();
+  if (error) throw new Error(error.message);
+  await emitEvent({
+    eventType: "appointment.walk_in",
+    departmentCode: "RECEPTION",
+    entityType: "appointment",
+    entityId: data.id,
+    payload: { patient_id: input.patientId },
+  });
+  return data;
+}
+
+/** Walk-in arrival: real appointment row, then the standard check-in (encounter + queue ticket). */
+export async function checkInWalkIn(input: {
+  patientId: string;
+  departmentId: string | null;
+  reason?: string;
+}) {
+  const appointment = await createWalkInAppointment(input);
+  return checkInAppointment(appointment);
+}
+
+/** Read back the persisted check-in slip data (ticket + MRN) for an encounter. */
+export async function getEncounterSlip(encounterId: string) {
+  const { data, error } = await supabase
+    .from("encounters")
+    .select("id,queue_ticket,started_at,patients(full_name,mrn),departments(name)")
+    .eq("id", encounterId)
+    .single();
+  if (error) throw new Error(error.message);
+  return data as unknown as {
+    id: string;
+    queue_ticket: string | null;
+    started_at: string;
+    patients: { full_name: string; mrn: string } | null;
+    departments: { name: string } | null;
+  };
 }
 
 export async function updateAppointmentStatus(id: string, status: string) {
@@ -317,4 +388,53 @@ export async function recordVitals(input: {
     payload: { news2 },
   });
   return { id: data.id, news2 };
+}
+
+/**
+ * Bedside observations with a NEWS2 score computed by the caller
+ * (see `computeNews2` in news2.ts), so the stored score matches what the nurse saw.
+ */
+export async function recordScoredVitals(input: {
+  patientId: string;
+  temperatureC?: number | null;
+  heartRate?: number | null;
+  systolic?: number | null;
+  diastolic?: number | null;
+  respiratoryRate?: number | null;
+  spo2?: number | null;
+  news2: number;
+  band: string;
+  consciousness?: string;
+  supplementalO2?: boolean;
+  departmentCode?: string | null;
+}) {
+  const { data, error } = await supabase
+    .from("vitals")
+    .insert({
+      patient_id: input.patientId,
+      temperature_c: input.temperatureC ?? null,
+      heart_rate: input.heartRate ?? null,
+      systolic: input.systolic ?? null,
+      diastolic: input.diastolic ?? null,
+      respiratory_rate: input.respiratoryRate ?? null,
+      spo2: input.spo2 ?? null,
+      news2: input.news2,
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  await emitEvent({
+    eventType: "vitals.recorded",
+    severity: input.band === "high" ? "critical" : input.band === "low" ? "info" : "warning",
+    departmentCode: input.departmentCode ?? null,
+    entityType: "patient",
+    entityId: input.patientId,
+    payload: {
+      news2: input.news2,
+      band: input.band,
+      consciousness: input.consciousness ?? "A",
+      supplemental_o2: input.supplementalO2 ?? false,
+    },
+  });
+  return { id: data.id, news2: input.news2 };
 }

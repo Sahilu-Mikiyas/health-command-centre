@@ -1,6 +1,8 @@
 import { useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
+import { useFacility } from "@/lib/hip/facility";
+
 export type SplashScreenProps = {
   staffName: string;
   roleLabel: string;
@@ -15,6 +17,7 @@ export function SplashScreen({
   onComplete,
 }: SplashScreenProps) {
   const router = useRouter();
+  const facility = useFacility();
   const [timeStr, setTimeStr] = useState("");
   const [dateStr, setDateStr] = useState("");
   const [progress, setProgress] = useState(0);
@@ -71,7 +74,7 @@ export function SplashScreen({
       {/* Top Header & Minimal Live Clock */}
       <div className="w-full max-w-2xl flex items-center justify-between border-b border-black/5 pb-4">
         <span className="text-xs font-bold tracking-wider text-[#86868B] uppercase">
-          Furii Hospital
+          {facility.shortName}
         </span>
 
         {/* Minimalist Live Clock */}

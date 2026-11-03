@@ -1,12 +1,14 @@
 /**
- * Furii Hospital OS — PDF Document Engine
+ * Furii Health — PDF Document Engine
  *
  * Core utility that programmatically generates beautifully designed
  * PDF documents using jsPDF. Each template follows Ethiopian hospital
  * branding with Furii Hospital letterhead, bilingual support, and
  * role-specific document layouts.
  */
-import { jsPDF } from "jspdf";
+import { jsPDF, type jsPDFOptions } from "jspdf";
+
+import { getFacility } from "@/lib/hip/facility";
 
 // ─── Design Tokens ───────────────────────────────────────────────
 const COLORS = {
@@ -23,8 +25,41 @@ const COLORS = {
   blue: [0, 122, 255] as const,        // #007AFF
 };
 
-const HOSPITAL_NAME = "Furii Hospital";
-const HOSPITAL_SUBTITLE = "ፉሪ ሆስፒታል";
+// Letterhead follows the active facility profile. jsPDF's built-in Helvetica has
+// no Ethiopic glyphs, so the subtitle stays Latin until an Ethiopic font is embedded.
+const HOSPITAL_NAME_FALLBACK = "Furii Health";
+
+function hospitalName() {
+  try {
+    return getFacility().name;
+  } catch {
+    return HOSPITAL_NAME_FALLBACK;
+  }
+}
+
+const ETHIOPIC = /[\u1200-\u139F\u2D80-\u2DDF\uAB00-\uAB2F]+/g;
+
+/** Strips Ethiopic runs (unrenderable in Helvetica) and tidies leftover separators. */
+function latinOnly(text: string): string {
+  if (!ETHIOPIC.test(text)) return text;
+  ETHIOPIC.lastIndex = 0;
+  return text
+    .replace(ETHIOPIC, "")
+    .replace(/\(\s*\)/g, "")
+    .replace(/\s*[·|/]\s*(?=[·|/]|$)/g, "")
+    .replace(/^\s*[·|/:-]\s*/, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+/** jsPDF whose `text()` drops glyphs the built-in fonts cannot draw. */
+function makeDoc(options: jsPDFOptions): jsPDF {
+  const doc = new jsPDF(options);
+  const original = doc.text.bind(doc) as (...args: unknown[]) => jsPDF;
+  (doc as unknown as { text: (...args: unknown[]) => jsPDF }).text = (text: unknown, ...rest: unknown[]) =>
+    original(Array.isArray(text) ? text.map((t) => latinOnly(String(t))) : latinOnly(String(text)), ...rest);
+  return doc;
+}
 const HOSPITAL_ADDRESS = "Addis Ababa, Ethiopia · +251 11 551 7700";
 const HOSPITAL_TIN = "TIN-00982711";
 
@@ -34,7 +69,7 @@ function createBasePDF(options: {
   subtitle?: string;
   orientation?: "portrait" | "landscape";
 }): { doc: jsPDF; y: number } {
-  const doc = new jsPDF({
+  const doc = makeDoc({
     orientation: options.orientation ?? "portrait",
     unit: "mm",
     format: "a4",
@@ -58,7 +93,7 @@ function createBasePDF(options: {
   doc.setTextColor(...COLORS.black);
   doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
-  doc.text(HOSPITAL_NAME, 28, 12);
+  doc.text(hospitalName(), 28, 12);
 
   doc.setTextColor(...COLORS.lightGray);
   doc.setFontSize(7);
@@ -182,7 +217,7 @@ function addFooter(doc: jsPDF, options?: { signatureLabel?: string; signatureNam
   doc.setTextColor(...COLORS.lightGray);
   doc.setFontSize(6);
   doc.setFont("helvetica", "normal");
-  doc.text(`${HOSPITAL_NAME} · ${HOSPITAL_SUBTITLE} · ${HOSPITAL_TIN}`, 15, pageH - 10);
+  doc.text(`${hospitalName()} · ${getFacility().pdfSubtitle} · ${HOSPITAL_TIN}`, 15, pageH - 10);
   doc.text("This document is system-generated. Unauthorized reproduction is prohibited.", 15, pageH - 6);
 
   const now = new Date();
@@ -214,7 +249,7 @@ export function generateQueueTicket(data: {
   mrn: string;
   department: string;
 }) {
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: [80, 120] });
+  const doc = makeDoc({ orientation: "portrait", unit: "mm", format: [80, 120] });
 
   doc.setFillColor(...COLORS.black);
   doc.rect(0, 0, 80, 2, "F");
@@ -222,7 +257,7 @@ export function generateQueueTicket(data: {
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(...COLORS.black);
-  doc.text(HOSPITAL_NAME, 40, 10, { align: "center" });
+  doc.text(hospitalName(), 40, 10, { align: "center" });
 
   doc.setFontSize(6);
   doc.setTextColor(...COLORS.lightGray);

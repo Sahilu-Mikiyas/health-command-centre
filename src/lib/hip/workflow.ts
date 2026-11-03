@@ -257,14 +257,47 @@ export async function nurseHandoff(encounterId: string, news2: number) {
   });
 }
 
-/** Step 3 — Doctor: orders placed, patient handed to Diagnostics. */
-export async function doctorHandoff(encounterId: string, orderCount: number) {
-  await setStage(encounterId, orderCount > 0 ? "laboratory" : "pharmacy");
+/** Where a patient goes after the doctor signs off, based on what is still outstanding. */
+export async function nextStageAfterDoctor(encounterId: string): Promise<"laboratory" | "pharmacy" | "billing"> {
+  const { data, error } = await supabase
+    .from("orders")
+    .select("category,status")
+    .eq("encounter_id", encounterId)
+    .in("status", ["requested", "in_progress"]);
+  if (error) throw new Error(error.message);
+  const open = data ?? [];
+  if (open.some((o) => o.category === "laboratory" || o.category === "imaging")) return "laboratory";
+  if (open.some((o) => o.category === "medication")) return "pharmacy";
+  return "billing";
+}
+
+/**
+ * Step 3 — Doctor sign-off. Pending lab/imaging → Diagnostics; otherwise
+ * undispensed prescriptions → Pharmacy; otherwise straight to Billing.
+ * Referrals and procedures never hold the patient in a queue.
+ */
+export async function doctorHandoff(encounterId: string) {
+  const next = await nextStageAfterDoctor(encounterId);
+  await setStage(encounterId, next);
   await emitEvent({
     eventType: "doctor.consultation_complete",
     entityType: "encounter",
     entityId: encounterId,
-    payload: { orders: orderCount, next: orderCount > 0 ? "laboratory" : "pharmacy" },
+    payload: { next },
+  });
+  return next;
+}
+
+/** Doctor decides the patient needs a bed — hands them to the ward / observation team. */
+export async function admitFromDoctor(encounterId: string) {
+  await setStage(encounterId, "ward");
+  await emitEvent({
+    eventType: "doctor.admission_requested",
+    severity: "warning",
+    departmentCode: "WARD",
+    entityType: "encounter",
+    entityId: encounterId,
+    payload: { next: "ward" },
   });
 }
 
@@ -328,16 +361,25 @@ export async function publishResult(input: {
       .from("orders")
       .select("id,status")
       .eq("encounter_id", input.order.encounter_id)
-      .in("category", ["laboratory", "imaging", "procedure"]);
+      .in("category", ["laboratory", "imaging"]);
     const pending = (data ?? []).filter((o) => o.status === "requested" || o.status === "in_progress");
     if (pending.length === 0) {
-      await setStage(input.order.encounter_id, "ward");
-      await emitEvent({
-        eventType: "diagnostics.complete",
-        entityType: "encounter",
-        entityId: input.order.encounter_id,
-        payload: { next: "ward" },
-      });
+      // Outpatient model: results go back to the ordering doctor for review, who
+      // then prescribes, admits or discharges — nobody is auto-admitted.
+      const { data: encounter } = await supabase
+        .from("encounters")
+        .select("stage")
+        .eq("id", input.order.encounter_id)
+        .maybeSingle();
+      if (encounter?.stage === "laboratory") {
+        await setStage(input.order.encounter_id, "doctor");
+        await emitEvent({
+          eventType: "diagnostics.complete",
+          entityType: "encounter",
+          entityId: input.order.encounter_id,
+          payload: { next: "doctor", reason: "results review" },
+        });
+      }
     }
   }
 }
