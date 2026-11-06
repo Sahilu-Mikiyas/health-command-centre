@@ -27,6 +27,7 @@ import { patientRecordQuery } from "@/lib/hip/queries";
 import { STAGE_LABELS } from "@/lib/hip/workflow";
 import { useChartViewLog } from "@/hooks/use-chart-view-log";
 import { formatEthiopian } from "@/lib/hip/ethiopian-calendar";
+import { RouteGuard } from "@/components/hip/route-guard";
 
 export const Route = createFileRoute("/_authenticated/patients/$patientId")({
   head: () => ({
@@ -38,7 +39,7 @@ export const Route = createFileRoute("/_authenticated/patients/$patientId")({
       },
     ],
   }),
-  component: PatientRecordCV,
+  component: GuardedPatientRecordCV,
 });
 
 const BACK_LINK_CLASS =
@@ -570,5 +571,13 @@ function PatientRecordCV() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+function GuardedPatientRecordCV() {
+  return (
+    <RouteGuard route="/patients">
+      <PatientRecordCV />
+    </RouteGuard>
   );
 }

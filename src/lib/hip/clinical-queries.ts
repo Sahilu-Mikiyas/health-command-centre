@@ -2,6 +2,7 @@ import { queryOptions } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
 import { toEthiopianName } from "@/lib/hip/ethiopian-names";
+import { fetchAll } from "@/lib/hip/paginate";
 
 export type AppointmentRow = {
   id: string;
@@ -23,7 +24,12 @@ export type EncounterRow = {
   priority: string;
   chief_complaint: string | null;
   started_at: string;
-  patients: { full_name: string; mrn: string; date_of_birth: string; blood_group: string | null } | null;
+  patients: {
+    full_name: string;
+    mrn: string;
+    date_of_birth: string;
+    blood_group: string | null;
+  } | null;
   departments: { name: string; code: string } | null;
 };
 
@@ -77,7 +83,7 @@ export const appointmentsQuery = (dayISO: string) =>
         .lt("scheduled_at", end.toISOString())
         .order("scheduled_at");
       if (error) throw new Error(error.message);
-      
+
       const mapped = ((data ?? []) as any[]).map((row) => ({
         ...row,
         patients: row.patients
@@ -102,7 +108,7 @@ export const activeEncountersQuery = queryOptions({
       .is("ended_at", null)
       .order("started_at");
     if (error) throw new Error(error.message);
-    
+
     const mapped = ((data ?? []) as any[]).map((row) => ({
       ...row,
       patients: row.patients
@@ -248,11 +254,14 @@ export const wardOccupancyQuery = queryOptions({
   queryKey: ["beds", "by-ward"],
   queryFn: async () => {
     const [bedsRes, encountersRes] = await Promise.all([
-      supabase
-        .from("beds")
-        .select("id,label,status,patient_id,rooms(name,wards(id,name,floor))")
-        .order("label")
-        .range(0, 4999),
+      fetchAll((from, to) =>
+        supabase
+          .from("beds")
+          .select("id,label,status,patient_id,rooms(name,wards(id,name,floor))")
+          .order("label")
+          .order("id")
+          .range(from, to),
+      ),
       supabase
         .from("encounters")
         .select("bed_id,patient_id,chief_complaint,started_at")

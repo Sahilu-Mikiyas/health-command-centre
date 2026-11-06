@@ -7,6 +7,7 @@ import { Panel } from "@/components/hip/panel";
 import { Timeline } from "@/components/hip/timeline";
 import { Input } from "@/components/ui/input";
 import { recentEventsQuery } from "@/lib/hip/queries";
+import { RouteGuard } from "@/components/hip/route-guard";
 
 const severities = ["all", "info", "warning", "critical"] as const;
 
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/_authenticated/events")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: EventMonitor,
+  component: GuardedEventMonitor,
 });
 
 function EventMonitor() {
@@ -100,5 +101,13 @@ function EventMonitor() {
         />
       </Panel>
     </AppShell>
+  );
+}
+
+function GuardedEventMonitor() {
+  return (
+    <RouteGuard route="/events">
+      <EventMonitor />
+    </RouteGuard>
   );
 }

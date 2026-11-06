@@ -1010,6 +1010,15 @@ async function insertCase(c: DemoCase, ctx: Ctx): Promise<void> {
     .single();
   fail(`${c.mrn} patient`, patientError);
   const patientId = patient.id;
+  try {
+    await insertChildren(c, patientId, ctx);
+  } catch (err) {
+    // Roll back the half-built case so the next run re-creates it cleanly.
+    await supabase.from("patients").delete().eq("id", patientId);
+    throw err;
+  }
+  // Recorded only once the case is complete: the event ledger is append-only, so a
+  // consent event for a rolled-back patient could never be cleaned up.
   if (c.nationalId) {
     // Best effort: a missing consent event only means the case shows no national ID.
     await emitEvent({
@@ -1026,14 +1035,6 @@ async function insertCase(c: DemoCase, ctx: Ctx): Promise<void> {
         recorded_at: new Date().toISOString(),
       },
     }).catch(() => undefined);
-  }
-
-  try {
-    await insertChildren(c, patientId, ctx);
-  } catch (err) {
-    // Roll back the half-built case so the next run re-creates it cleanly.
-    await supabase.from("patients").delete().eq("id", patientId);
-    throw err;
   }
 }
 
@@ -1365,13 +1366,24 @@ async function insertChildren(c: DemoCase, patientId: string, ctx: Ctx): Promise
     labels.push(label);
     writes.push(p);
   };
-  if (conditions.length) queue("conditions", supabase.from("conditions").insert(conditions));
-  if (allergies.length) queue("allergies", supabase.from("allergies").insert(allergies));
-  if (vitals.length) queue("vitals", supabase.from("vitals").insert(vitals));
-  if (orders.length) queue("orders", supabase.from("orders").insert(orders));
-  if (notes.length) queue("clinical notes", supabase.from("clinical_notes").insert(notes));
+  if (conditions.length)
+    queue("conditions", supabase.from("conditions").insert(conditions, { defaultToNull: false }));
+  if (allergies.length)
+    queue("allergies", supabase.from("allergies").insert(allergies, { defaultToNull: false }));
+  if (vitals.length)
+    queue("vitals", supabase.from("vitals").insert(vitals, { defaultToNull: false }));
+  if (orders.length)
+    queue("orders", supabase.from("orders").insert(orders, { defaultToNull: false }));
+  if (notes.length)
+    queue(
+      "clinical notes",
+      supabase.from("clinical_notes").insert(notes, { defaultToNull: false }),
+    );
   if (appointments.length)
-    queue("appointments", supabase.from("appointments").insert(appointments));
+    queue(
+      "appointments",
+      supabase.from("appointments").insert(appointments, { defaultToNull: false }),
+    );
 
   const results = await Promise.all(writes);
   results.forEach((r, i) => fail(`${c.mrn} ${labels[i]}`, r.error));

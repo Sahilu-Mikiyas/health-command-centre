@@ -11,6 +11,7 @@ import { AppShell } from "@/components/hip/app-shell";
 import { Panel, Stat } from "@/components/hip/panel";
 import { RouteGuard } from "@/components/hip/route-guard";
 import { StatusPill, type OpStatus } from "@/components/hip/status-pill";
+import { fetchAll } from "@/lib/hip/paginate";
 
 export const Route = createFileRoute("/_authenticated/executive")({
   head: () => ({
@@ -60,13 +61,22 @@ const executiveKpisQuery = queryOptions({
     const tomorrowStart = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
     const [invoices, encounters, patients, appointments, notes, signedNotes] = await Promise.all([
-      supabase
-        .from("invoices")
-        .select(
-          "status,subtotal,insurance_covered,patient_due,paid_amount,encounters(department_id)",
-        )
-        .range(0, 9999),
-      supabase.from("encounters").select("department_id,started_at,ended_at").range(0, 9999),
+      fetchAll((from, to) =>
+        supabase
+          .from("invoices")
+          .select(
+            "status,subtotal,insurance_covered,patient_due,paid_amount,encounters(department_id)",
+          )
+          .order("id")
+          .range(from, to),
+      ),
+      fetchAll((from, to) =>
+        supabase
+          .from("encounters")
+          .select("department_id,started_at,ended_at")
+          .order("id")
+          .range(from, to),
+      ),
       supabase.from("patients").select("id", { count: "exact", head: true }),
       supabase
         .from("appointments")

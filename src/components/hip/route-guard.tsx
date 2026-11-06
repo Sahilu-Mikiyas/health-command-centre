@@ -1,10 +1,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useRouter } from "@tanstack/react-router";
-import { Lock, RefreshCw, ShieldAlert } from "lucide-react";
+import { Lock, LogOut, RefreshCw, ShieldAlert } from "lucide-react";
 import type { ReactNode } from "react";
 import { toast } from "sonner";
 
 import { LicenseLockScreen } from "@/components/hip/license-gate";
+import { supabase } from "@/integrations/supabase/client";
 import { isLockedOut } from "@/lib/hip/license";
 import { notificationSettingsQuery, thresholdsFrom } from "@/lib/hip/notifications";
 import { myProfileQuery } from "@/lib/hip/queries";
@@ -157,8 +158,29 @@ function AccessNotice({
             {body}
           </p>
         </div>
-        {action ? <div className="flex justify-center">{action}</div> : null}
+        <div className="flex flex-wrap justify-center gap-2">
+          {action}
+          <SignOutButton />
+        </div>
       </div>
     </div>
+  );
+}
+
+function SignOutButton() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        await supabase.auth.signOut();
+        queryClient.clear();
+        await router.navigate({ to: "/auth" });
+      }}
+      className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-black/10 bg-[#F5F5F7] px-6 py-3 text-xs font-bold text-black hover:bg-white"
+    >
+      <LogOut className="size-3.5" /> Sign out
+    </button>
   );
 }
