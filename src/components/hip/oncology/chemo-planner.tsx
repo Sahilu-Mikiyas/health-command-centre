@@ -145,6 +145,9 @@ export function ChemoPlanner({ chart }: { chart: OncologyChart }) {
   const blockers = [
     anthropometricsInvalid && "Enter a valid height (100–230 cm) and weight (25–250 kg)",
     usesAuc && egfr === null && "eGFR is required for Calvert carboplatin dosing",
+    !anthropometricsInvalid &&
+      doses.some((d) => !(d.dose > 0)) &&
+      "A calculated dose is zero or invalid — check the inputs",
     !(cycle >= 1) && "Cycle number must be 1 or more",
     alreadyGiven && `${regimen.id} cycle ${cycle} has already been prescribed`,
     !startDate && "Choose a start date",

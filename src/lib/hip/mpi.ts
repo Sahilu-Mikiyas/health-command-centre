@@ -157,6 +157,13 @@ export function scoreMatch(a: IdentityRecord, b: IdentityRecord): MatchResult | 
   if (sameSex) reasons.push("Same sex");
   if (sexKnown && !sameSex) reasons.push("Different sex recorded");
 
+  // Twins and siblings share a birthday, surname and family phone: a clearly different
+  // given name (first token) means "check", never "probably the same person".
+  const givenA = nameTokens(a.name)[0] ?? "";
+  const givenB = nameTokens(b.name)[0] ?? "";
+  const differentGiven = Boolean(givenA && givenB) && jaroWinkler(givenA, givenB) < 0.85;
+  if (differentGiven) reasons.push("Different given name");
+
   let level: MatchLevel | null = null;
   if (sameDob && samePhone && name >= 0.75) level = "probable";
   else if (sameDob && name >= 0.9 && (!sexKnown || sameSex)) level = "probable";
@@ -164,6 +171,7 @@ export function scoreMatch(a: IdentityRecord, b: IdentityRecord): MatchResult | 
   else if (sameDob && name >= 0.75 && (!sexKnown || sameSex)) level = "possible";
   else if (samePhone && name >= 0.7) level = "possible";
   if (!level) return null;
+  if (differentGiven && level === "probable") level = "possible";
 
   const score = Math.round(
     name * 60 + (sameDob ? 20 : 0) + (samePhone ? 15 : 0) + (sameSex ? 5 : 0),

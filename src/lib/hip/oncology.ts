@@ -391,9 +391,15 @@ export function calculateDoses(input: {
       full = drug.amount * input.bsa;
       formula = `${drug.amount} ${drug.unit}/m² × ${input.bsa} m²`;
     } else if (drug.basis === "auc") {
-      const gfr = input.egfr ?? 0;
-      full = calvertDose(drug.amount, gfr);
-      formula = `AUC ${drug.amount} × (GFR ${Math.min(gfr, 125)} + 25)`;
+      if (input.egfr === null || !Number.isFinite(input.egfr)) {
+        // Never guess renal function: without eGFR there is no safe Calvert dose.
+        full = 0;
+        formula = "eGFR required for Calvert dosing";
+      } else {
+        const gfr = input.egfr;
+        full = calvertDose(drug.amount, gfr);
+        formula = `AUC ${drug.amount} × (GFR ${Math.min(Math.max(gfr, 0), 125)} + 25)`;
+      }
     } else {
       full = drug.amount;
       formula = "flat dose";
