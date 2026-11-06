@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
@@ -9,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useFacility } from "@/lib/hip/facility";
+import { myProfileQuery } from "@/lib/hip/queries";
 import { getDefaultRedirect, ROLE_LABELS, type AppRole } from "@/lib/hip/rbac";
 
 export const Route = createFileRoute("/auth")({
@@ -29,6 +31,7 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const facility = useFacility();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -66,46 +69,23 @@ function AuthPage() {
           return;
         }
       } else {
+        // A wrong password is always a failed sign-in: there is no fallback path.
         const { error } = await supabase.auth.signInWithPassword({ email: cleanEmail, password });
-
-        if (error) {
-          // Check if this email is a provisioned staff member in public.staff
-          const { data: staffList } = await supabase
-            .from("staff")
-            .select("*")
-            .ilike("job_title", `%${cleanEmail}%`);
-
-          const staffMember = staffList && staffList.length > 0 ? staffList[0] : null;
-
-          if (staffMember) {
-            localStorage.setItem("furii_logged_in_staff_email", cleanEmail);
-            localStorage.setItem("furii_active_role_override", staffMember.role);
-
-            const roleTitle = ROLE_LABELS[staffMember.role as AppRole] ?? staffMember.role;
-            const redirectPath = getDefaultRedirect([staffMember.role]);
-
-            toast.success(`Welcome ${staffMember.full_name}! Signed in as ${roleTitle}`);
-
-            // Trigger Welcome Splash Screen with Live Clock
-            setSplashData({
-              staffName: staffMember.full_name,
-              roleLabel: roleTitle,
-              targetRoute: redirectPath,
-            });
-            return;
-          }
-
-          throw error;
-        }
+        if (error) throw error;
       }
 
-      // Successful auth sign-in
-      const { data: auth } = await supabase.auth.getUser();
-      const meta = (auth.user?.user_metadata ?? {}) as Record<string, unknown>;
-      const roles = meta['role'] ? [String(meta['role'])] : [];
-      const userMetaName = (meta['full_name'] as string) || auth.user?.email?.split("@")[0] || "Staff Member";
-      const primaryRole = (roles[0] ?? "super_admin") as AppRole;
-      const roleTitle = ROLE_LABELS[primaryRole] ?? "Super Admin";
+      // Signed in: roles come from the database (user_roles / staff roster), never
+      // from user_metadata, which the account holder can edit themselves.
+      localStorage.removeItem("furii_active_role_override");
+      queryClient.removeQueries({ queryKey: ["me"] });
+      const me = await queryClient.fetchQuery(myProfileQuery);
+      const roles = me?.roles ?? [];
+      const primaryRole = roles[0] as AppRole | undefined;
+      const userMetaName =
+        me?.profile?.full_name || me?.staff?.full_name || me?.email.split("@")[0] || "Staff Member";
+      const roleTitle = primaryRole
+        ? (ROLE_LABELS[primaryRole] ?? primaryRole)
+        : "Awaiting role assignment";
       const redirectPath = getDefaultRedirect(roles);
 
       // Trigger Welcome Splash Screen with Live Clock

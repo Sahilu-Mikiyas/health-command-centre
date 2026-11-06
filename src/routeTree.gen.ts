@@ -30,6 +30,7 @@ import { Route as AuthenticatedReceptionRouteImport } from './routes/_authentica
 import { Route as AuthenticatedWardRouteImport } from './routes/_authenticated/ward'
 import { Route as AuthenticatedPatientsIndexRouteImport } from './routes/_authenticated/patients/index'
 import { Route as AuthenticatedPatientsPatientIdRouteImport } from './routes/_authenticated/patients/$patientId'
+import { Route as ApiFhirSplatRouteImport } from './routes/api/fhir/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -139,6 +140,11 @@ const AuthenticatedPatientsPatientIdRoute =
     path: '/patients/$patientId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiFhirSplatRoute = ApiFhirSplatRouteImport.update({
+  id: '/api/fhir/$',
+  path: '/api/fhir/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -160,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/reception': typeof AuthenticatedReceptionRoute
   '/ward': typeof AuthenticatedWardRoute
   '/patients/$patientId': typeof AuthenticatedPatientsPatientIdRoute
+  '/api/fhir/$': typeof ApiFhirSplatRoute
   '/patients/': typeof AuthenticatedPatientsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -182,6 +189,7 @@ export interface FileRoutesByTo {
   '/reception': typeof AuthenticatedReceptionRoute
   '/ward': typeof AuthenticatedWardRoute
   '/patients/$patientId': typeof AuthenticatedPatientsPatientIdRoute
+  '/api/fhir/$': typeof ApiFhirSplatRoute
   '/patients': typeof AuthenticatedPatientsIndexRoute
 }
 export interface FileRoutesById {
@@ -206,6 +214,7 @@ export interface FileRoutesById {
   '/_authenticated/reception': typeof AuthenticatedReceptionRoute
   '/_authenticated/ward': typeof AuthenticatedWardRoute
   '/_authenticated/patients/$patientId': typeof AuthenticatedPatientsPatientIdRoute
+  '/api/fhir/$': typeof ApiFhirSplatRoute
   '/_authenticated/patients/': typeof AuthenticatedPatientsIndexRoute
 }
 export interface FileRouteTypes {
@@ -230,6 +239,7 @@ export interface FileRouteTypes {
     | '/reception'
     | '/ward'
     | '/patients/$patientId'
+    | '/api/fhir/$'
     | '/patients/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -252,6 +262,7 @@ export interface FileRouteTypes {
     | '/reception'
     | '/ward'
     | '/patients/$patientId'
+    | '/api/fhir/$'
     | '/patients'
   id:
     | '__root__'
@@ -275,6 +286,7 @@ export interface FileRouteTypes {
     | '/_authenticated/reception'
     | '/_authenticated/ward'
     | '/_authenticated/patients/$patientId'
+    | '/api/fhir/$'
     | '/_authenticated/patients/'
   fileRoutesById: FileRoutesById
 }
@@ -282,6 +294,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiFhirSplatRoute: typeof ApiFhirSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -433,6 +446,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPatientsPatientIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/fhir/$': {
+      id: '/api/fhir/$'
+      path: '/api/fhir/$'
+      fullPath: '/api/fhir/$'
+      preLoaderRoute: typeof ApiFhirSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -485,6 +505,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiFhirSplatRoute: ApiFhirSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

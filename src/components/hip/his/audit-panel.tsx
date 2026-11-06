@@ -12,6 +12,7 @@ import {
   eventTypeCountsQuery,
   patientTrailQuery,
   provenanceSummaryQuery,
+  viewersFrom,
   type TrailItem,
 } from "@/lib/hip/his-queries";
 import { recentEventsQuery, type PatientRow } from "@/lib/hip/queries";
@@ -221,57 +222,89 @@ export function AuditPanel({
               />
             ) : (
               <QueryBody query={trail} loadingLabel="Reconstructing trail…">
-                {(items) =>
-                  items.length === 0 ? (
-                    <EmptyState
-                      title="No recorded activity"
-                      hint="No ledger entries reference this patient yet."
-                    />
-                  ) : (
-                    <ol className="max-h-[440px] space-y-2 overflow-y-auto pr-1">
-                      {items.map((item) => (
-                        <li
-                          key={item.id}
-                          className="flex items-start gap-3 rounded-2xl border border-black/5 bg-white px-3 py-2.5"
-                        >
-                          <span className="numeric w-24 shrink-0 pt-0.5 text-[11px] font-semibold text-[#86868B]">
-                            {stamp(item.at)}
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <p
+                {(items) => (
+                  <div className="space-y-3">
+                    <ViewersSummary items={items} />
+                    {items.length === 0 ? (
+                      <EmptyState
+                        title="No recorded activity"
+                        hint="No ledger entries reference this patient yet."
+                      />
+                    ) : (
+                      <ol className="max-h-[440px] space-y-2 overflow-y-auto pr-1">
+                        {items.map((item) => (
+                          <li
+                            key={item.id}
+                            className="flex items-start gap-3 rounded-2xl border border-black/5 bg-white px-3 py-2.5"
+                          >
+                            <span className="numeric w-24 shrink-0 pt-0.5 text-[11px] font-semibold text-[#86868B]">
+                              {stamp(item.at)}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              <p
+                                className={cn(
+                                  "truncate text-xs font-bold capitalize",
+                                  item.severity === "critical"
+                                    ? "text-[#D70015]"
+                                    : item.severity === "warning"
+                                      ? "text-[#B86200]"
+                                      : "text-[#1D1D1F]",
+                                )}
+                              >
+                                {item.title}
+                              </p>
+                              {item.detail ? (
+                                <p className="truncate text-[11px] text-[#86868B]">{item.detail}</p>
+                              ) : null}
+                            </div>
+                            <span
                               className={cn(
-                                "truncate text-xs font-bold capitalize",
-                                item.severity === "critical"
-                                  ? "text-[#D70015]"
-                                  : item.severity === "warning"
-                                    ? "text-[#B86200]"
-                                    : "text-[#1D1D1F]",
+                                "shrink-0 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider",
+                                SOURCE_STYLE[item.source],
                               )}
                             >
-                              {item.title}
-                            </p>
-                            {item.detail ? (
-                              <p className="truncate text-[11px] text-[#86868B]">{item.detail}</p>
-                            ) : null}
-                          </div>
-                          <span
-                            className={cn(
-                              "shrink-0 rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider",
-                              SOURCE_STYLE[item.source],
-                            )}
-                          >
-                            {item.source}
-                          </span>
-                        </li>
-                      ))}
-                    </ol>
-                  )
-                }
+                              {item.source}
+                            </span>
+                          </li>
+                        ))}
+                      </ol>
+                    )}
+                  </div>
+                )}
               </QueryBody>
             )}
           </div>
         </div>
       </Panel>
+    </div>
+  );
+}
+
+function ViewersSummary({ items }: { items: TrailItem[] }) {
+  const viewers = viewersFrom(items);
+  return (
+    <div className="rounded-2xl border border-black/5 bg-[#FAFAFC] p-3">
+      <p className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">
+        Who viewed this record
+      </p>
+      {viewers.length === 0 ? (
+        <p className="mt-1 text-xs font-semibold text-[#86868B]">
+          No chart views recorded yet. Every time someone opens this chart or reads it through the
+          FHIR API, it is logged here.
+        </p>
+      ) : (
+        <ul className="mt-2 flex flex-wrap gap-1.5">
+          {viewers.map((v) => (
+            <li
+              key={v.actor}
+              className="rounded-full border border-black/10 bg-white px-2.5 py-1 text-[11px] font-bold text-[#1D1D1F]"
+              title={`Last viewed ${stamp(v.lastAt)}`}
+            >
+              {v.actor} · {v.views}×{v.viaApi ? " · API" : ""}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

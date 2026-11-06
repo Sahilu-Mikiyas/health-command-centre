@@ -154,7 +154,8 @@ export function navGroupsForRoles(
   roles: string[] | undefined,
   facility: FacilityProfile = FACILITIES.internal_medicine,
 ): NavGroup[] {
-  const list = (roles && roles.length > 0 ? roles : ["super_admin"]) as AppRole[];
+  const list = (roles ?? []) as AppRole[];
+  if (list.length === 0) return []; // no role, no navigation
   const primary = primaryRoleOf(list);
   const allowed = (item: NavItem | undefined): item is NavItem => Boolean(item) && hasRouteAccess(list, item!.to);
   const relabel = (item: NavItem): NavItem =>

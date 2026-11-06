@@ -6,9 +6,11 @@
  * stream rather than the patients table. Duplicate detection is deterministic
  * and explainable: every candidate pair lists the evidence that matched.
  */
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { queryOptions } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { toEthiopianName } from "@/lib/hip/ethiopian-names";
 
 const PATIENT_LIMIT = 5000;
@@ -225,8 +227,11 @@ function nationalIdsFrom(rows: ConsentRow[]): Map<string, string> {
 }
 
 /** Current national ID for one patient, or null. */
-export async function nationalIdFor(patientId: string): Promise<string | null> {
-  const { data, error } = await supabase
+export async function nationalIdFor(
+  patientId: string,
+  client: SupabaseClient<Database> = supabase,
+): Promise<string | null> {
+  const { data, error } = await client
     .from("events")
     .select("entity_id,payload,occurred_at")
     .eq("event_type", "patient.consent_recorded")
@@ -235,6 +240,29 @@ export async function nationalIdFor(patientId: string): Promise<string | null> {
     .limit(5);
   if (error) return null;
   return nationalIdsFrom((data ?? []) as ConsentRow[]).get(patientId) ?? null;
+}
+
+/** Current national IDs for many patients at once (chunked to keep URLs short). */
+export async function nationalIdsForPatients(
+  patientIds: string[],
+  client: SupabaseClient<Database> = supabase,
+): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  const unique = [...new Set(patientIds)];
+  for (let i = 0; i < unique.length; i += 100) {
+    const { data, error } = await client
+      .from("events")
+      .select("entity_id,payload,occurred_at")
+      .eq("event_type", "patient.consent_recorded")
+      .in("entity_id", unique.slice(i, i + 100))
+      .order("occurred_at", { ascending: false })
+      .limit(1000);
+    if (error) throw new Error(`Consent records: ${error.message}`);
+    for (const [k, v] of nationalIdsFrom((data ?? []) as ConsentRow[])) {
+      if (!out.has(k)) out.set(k, v);
+    }
+  }
+  return out;
 }
 
 export type MpiSummary = {

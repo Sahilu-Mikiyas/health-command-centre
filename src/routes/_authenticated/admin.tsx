@@ -21,6 +21,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/hip/app-shell";
+import { BackupPanel } from "@/components/hip/backup-panel";
 import { DemoDataPanel } from "@/components/hip/demo-data-panel";
 import { FacilitySwitcher } from "@/components/hip/facility-switcher";
 import { Panel, Stat } from "@/components/hip/panel";
@@ -383,6 +384,7 @@ function AdminWorkspace() {
       <div className="mb-6 grid gap-4 xl:grid-cols-2">
         <FacilitySwitcher />
         <DemoDataPanel />
+        <BackupPanel />
       </div>
 
       <PlatformCoverage staff={staffList ?? []} />

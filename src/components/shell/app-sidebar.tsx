@@ -4,6 +4,7 @@ import { Activity, ShieldCheck } from "lucide-react";
 
 import { navGroupsForRoles } from "@/components/shell/nav-config";
 import { useFacility } from "@/lib/hip/facility";
+import { setLanguage, useLanguage, useT } from "@/lib/hip/i18n";
 import { classifyLicense, formatExpiry, LICENSE_LABEL } from "@/lib/hip/license";
 import { myProfileQuery } from "@/lib/hip/queries";
 import { ROLE_LABELS, type AppRole } from "@/lib/hip/rbac";
@@ -12,11 +13,13 @@ import { cn } from "@/lib/utils";
 export function AppSidebar() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const { data: me } = useQuery(myProfileQuery);
-  const roles = me?.roles ?? ["super_admin"];
-  const primaryRole = (roles[0] ?? "super_admin") as AppRole;
+  const roles = me?.roles ?? [];
+  const primaryRole = (roles[0] ?? "") as AppRole;
   const facility = useFacility();
   const groups = navGroupsForRoles(roles, facility);
   const license = classifyLicense(me?.staff?.license_expiry);
+  const t = useT();
+  const lang = useLanguage();
 
   return (
     <aside className="hidden w-64 shrink-0 flex-col border-r border-black/5 bg-[#F5F5F7] lg:flex">
@@ -30,7 +33,7 @@ export function AppSidebar() {
             {facility.shortName}
           </h2>
           <p className="truncate text-[10px] font-bold uppercase tracking-widest text-[#86868B]">
-            {ROLE_LABELS[primaryRole] ?? "Hospital OS"}
+            {ROLE_LABELS[primaryRole] ? t(ROLE_LABELS[primaryRole]) : "Hospital OS"}
           </p>
         </div>
       </div>
@@ -39,7 +42,7 @@ export function AppSidebar() {
         {groups.map((group) => (
           <div key={group.label}>
             <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-widest text-[#86868B]">
-              {group.label}
+              {t(group.label)}
             </p>
             <ul className="space-y-1">
               {group.items.map((item) => {
@@ -56,7 +59,7 @@ export function AppSidebar() {
                       )}
                     >
                       <item.icon className={cn("size-4 shrink-0", active ? "text-black" : "text-[#515154]")} />
-                      <span className="flex-1 truncate">{item.label}</span>
+                      <span className="flex-1 truncate">{t(item.label)}</span>
                     </Link>
                   </li>
                 );
@@ -66,7 +69,33 @@ export function AppSidebar() {
         ))}
       </nav>
 
-      <div className="border-t border-black/5 p-4">
+      <div className="space-y-3 border-t border-black/5 p-4">
+        <div
+          role="group"
+          aria-label="Language"
+          className="flex rounded-2xl border border-black/10 bg-white p-1 text-[11px] font-bold"
+        >
+          {(
+            [
+              ["en", "English"],
+              ["am", "አማርኛ"],
+            ] as const
+          ).map(([code, label]) => (
+            <button
+              key={code}
+              type="button"
+              lang={code}
+              aria-pressed={lang === code}
+              onClick={() => setLanguage(code)}
+              className={cn(
+                "flex-1 cursor-pointer rounded-xl px-2 py-1.5",
+                lang === code ? "bg-black text-white" : "text-[#1D1D1F] hover:bg-[#F5F5F7]",
+              )}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <div className="shadow-2xs rounded-2xl border border-black/5 bg-white p-4 text-xs">
           <div className="mb-1 flex items-center gap-2 font-extrabold text-black">
             <ShieldCheck
@@ -79,7 +108,7 @@ export function AppSidebar() {
                     : "text-[#FF9500]",
               )}
             />
-            <span>{ROLE_LABELS[primaryRole] ?? "Staff"}</span>
+            <span>{t(ROLE_LABELS[primaryRole] ?? "No role assigned")}</span>
           </div>
           {me?.staff?.license_expiry ? (
             <p className="text-[11px] font-medium leading-relaxed text-[#86868B]">

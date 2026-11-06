@@ -82,7 +82,7 @@ export function FhirExportPanel({
     mutationFn: (patientId: string) => buildPatientBundle(patientId),
     onSuccess: (result) =>
       toast.success(
-        `FHIR R4 Bundle generated — ${result.bundle.total} resources for ${result.mrn}`,
+        `FHIR R4 Bundle generated — ${result.bundle.entry.length} resources for ${result.mrn}`,
       ),
     onError: (error) => toast.error(error instanceof Error ? error.message : "FHIR export failed"),
   });
@@ -201,7 +201,7 @@ function BundleResultView({ result }: { result: BundleResult }) {
             Bundle · {result.patientName} · {result.mrn}
           </p>
           <p className="text-xs font-semibold text-[#86868B]">
-            {result.bundle.total} resources · {sizeKb} KB · type collection ·{" "}
+            {result.bundle.entry.length} resources · {sizeKb} KB · type collection ·{" "}
             {new Date(result.bundle.timestamp).toLocaleString()}
           </p>
         </div>
