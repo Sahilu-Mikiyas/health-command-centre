@@ -5,6 +5,7 @@ import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { CommandPalette } from "@/components/hip/command-palette";
+import { ConnectionBanner } from "@/components/hip/connection-banner";
 import { LicenseWarningBanner } from "@/components/hip/license-gate";
 import { NotificationCenter } from "@/components/hip/notification-center";
 import { AppSidebar } from "@/components/shell/app-sidebar";
@@ -12,6 +13,7 @@ import { navGroupsForRoles } from "@/components/shell/nav-config";
 import { useHospitalRealtime } from "@/hooks/use-hospital-realtime";
 import { supabase } from "@/integrations/supabase/client";
 import { useFacility } from "@/lib/hip/facility";
+import { useT } from "@/lib/hip/i18n";
 import { myProfileQuery } from "@/lib/hip/queries";
 import { ROLE_LABELS, type AppRole } from "@/lib/hip/rbac";
 
@@ -32,6 +34,7 @@ export function AppShell({
   const [searchOpen, setSearchOpen] = useState(false);
   const { data: me } = useQuery(myProfileQuery);
   const facility = useFacility();
+  const t = useT();
 
   // Hospital-wide realtime: every role sees every state change instantly.
   useHospitalRealtime();
@@ -40,8 +43,8 @@ export function AppShell({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [updatingPass, setUpdatingPass] = useState(false);
 
-  const primaryRole = (me?.roles?.[0] ?? "super_admin") as AppRole;
-  const roleDisplay = ROLE_LABELS[primaryRole] ?? "Super Admin";
+  const primaryRole = (me?.roles?.[0] ?? "") as AppRole;
+  const roleDisplay = ROLE_LABELS[primaryRole] ?? "No role assigned";
 
   const activeOverride = typeof window !== "undefined" ? localStorage.getItem("furii_active_role_override") : null;
 
@@ -171,7 +174,7 @@ export function AppShell({
             {navGroupsForRoles(me?.roles, facility).map((group) => (
               <div key={group.label}>
                 <p className="pb-2 text-[10px] uppercase font-bold tracking-widest text-[#86868B]">
-                  {group.label}
+                  {t(group.label)}
                 </p>
                 <ul className="space-y-1">
                   {group.items.map((item) => (
@@ -182,7 +185,7 @@ export function AppShell({
                         className="flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold text-black hover:bg-white transition-all"
                       >
                         <item.icon className="size-4 text-black" />
-                        {item.label}
+                        {t(item.label)}
                       </Link>
                     </li>
                   ))}
@@ -268,6 +271,7 @@ export function AppShell({
         </header>
 
         <main className="flex-1 space-y-6 p-6 lg:p-8">
+          <ConnectionBanner />
           <LicenseWarningBanner />
           {children}
         </main>

@@ -12,6 +12,7 @@ import { queryOptions } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
 import { isCancerCode, parseChemoCode } from "@/lib/hip/oncology";
+import { csvCell } from "@/lib/hip/csv";
 
 const ROW_LIMIT = 10000;
 
@@ -358,24 +359,22 @@ export const dhis2ReportQuery = (period: string, orgUnit: string) =>
 
 /* --------------------------------- serialising -------------------------------- */
 
-/** JSON body for DHIS2 `POST /api/dataValueSets` (import with CODE id schemes). */
-export function toDataValueSetJson(report: Dhis2Report): string {
-  return JSON.stringify(
-    {
-      dataSet: "FURII_MONTHLY",
-      period: report.period,
-      orgUnit: report.orgUnit,
-      completeDate: report.generatedAt.slice(0, 10),
-      dataValues: report.dataValues.map(({ comment, ...v }) => (comment ? { ...v, comment } : v)),
-    },
-    null,
-    2,
-  );
+/** The dataValueSet object DHIS2 imports (also what the server sends on a direct push). */
+export function toDataValueSet(report: Dhis2Report) {
+  return {
+    dataSet: "FURII_MONTHLY",
+    period: report.period,
+    orgUnit: report.orgUnit,
+    completeDate: report.generatedAt.slice(0, 10),
+    dataValues: report.dataValues.map(({ comment, ...v }) => (comment ? { ...v, comment } : v)),
+  };
 }
 
-function csvCell(value: string): string {
-  return /[",\n\r]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+/** JSON body for DHIS2 `POST /api/dataValueSets` (import with CODE id schemes). */
+export function toDataValueSetJson(report: Dhis2Report): string {
+  return JSON.stringify(toDataValueSet(report), null, 2);
 }
+
 
 /** DHIS2 CSV data value format (dataelement, period, orgunit, catoptcombo, attroptcombo, value, …). */
 export function toDataValueCsv(report: Dhis2Report): string {

@@ -86,9 +86,13 @@ export const ROUTE_PERMISSIONS: Record<string, AppRole[]> = {
   "/his": ["super_admin", "ceo", "medical_director", "doctor", "hr_manager"],
 };
 
-/** Checks if the given roles list grants access to a route path. Default: super_admin. */
+/**
+ * Checks if the given roles list grants access to a route path.
+ * Fails closed: no roles (unknown user, failed lookup, unassigned account) means no access.
+ */
 export function hasRouteAccess(roles: string[] | undefined, routePath: string): boolean {
-  const effectiveRoles = !roles || roles.length === 0 ? ["super_admin"] : roles;
+  if (!roles || roles.length === 0) return false;
+  const effectiveRoles = roles;
 
   // Super admin always has access to everything
   if (effectiveRoles.includes("super_admin")) {
@@ -97,14 +101,15 @@ export function hasRouteAccess(roles: string[] | undefined, routePath: string): 
 
   // Check path permissions
   const allowed = Object.entries(ROUTE_PERMISSIONS).find(([path]) => routePath.startsWith(path));
-  if (!allowed) return true; // Unrestricted path
+  if (!allowed) return true; // Unrestricted path (a role is still required above)
 
   return effectiveRoles.some((role) => allowed[1].includes(role as AppRole));
 }
 
 /** Determines default landing page based on staff role. */
 export function getDefaultRedirect(roles: string[] | undefined): string {
-  const effectiveRoles = !roles || roles.length === 0 ? ["super_admin"] : roles;
+  // An account without a role lands on the command centre, whose guard explains why.
+  const effectiveRoles = roles ?? [];
 
   if (effectiveRoles.includes("super_admin")) return "/admin";
   if (effectiveRoles.includes("ceo") || effectiveRoles.includes("medical_director")) return "/executive";

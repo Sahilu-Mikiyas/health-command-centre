@@ -6,6 +6,7 @@ import { AppShell } from "@/components/hip/app-shell";
 import { Panel } from "@/components/hip/panel";
 import { Input } from "@/components/ui/input";
 import { patientsQuery } from "@/lib/hip/queries";
+import { RouteGuard } from "@/components/hip/route-guard";
 
 function age(dob: string) {
   const diff = Date.now() - new Date(dob).getTime();
@@ -30,7 +31,7 @@ export const Route = createFileRoute("/_authenticated/patients/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: PatientsPage,
+  component: GuardedPatientsPage,
 });
 
 function PatientsPage() {
@@ -78,5 +79,13 @@ function PatientsPage() {
         </div>
       </Panel>
     </AppShell>
+  );
+}
+
+function GuardedPatientsPage() {
+  return (
+    <RouteGuard route="/patients">
+      <PatientsPage />
+    </RouteGuard>
   );
 }

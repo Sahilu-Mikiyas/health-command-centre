@@ -9,6 +9,7 @@
 import { jsPDF, type jsPDFOptions } from "jspdf";
 
 import { getFacility } from "@/lib/hip/facility";
+import { formatEthiopian } from "@/lib/hip/ethiopian-calendar";
 
 // ─── Design Tokens ───────────────────────────────────────────────
 const COLORS = {
@@ -222,7 +223,8 @@ function addFooter(doc: jsPDF, options?: { signatureLabel?: string; signatureNam
 
   const now = new Date();
   const ts = now.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
-  doc.text(`Generated: ${ts}`, pageW - 15, pageH - 10, { align: "right" });
+  // Latin-script Ethiopian date: the PDF's built-in font has no Ge'ez glyphs.
+  doc.text(`Generated: ${ts} · ${formatEthiopian(now)}`, pageW - 15, pageH - 10, { align: "right" });
   doc.text(`Page 1 of 1`, pageW - 15, pageH - 6, { align: "right" });
 }
 
@@ -237,7 +239,9 @@ function nowStr(): string {
 }
 
 function todayStr(): string {
-  return new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const now = new Date();
+  const gregorian = now.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  return `${gregorian} (${formatEthiopian(now)})`;
 }
 
 // ═══════════════════════════════════════════════════════════════════

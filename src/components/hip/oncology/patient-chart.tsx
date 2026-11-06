@@ -30,6 +30,7 @@ import {
 import { StagingTab } from "./staging-tab";
 import { SummaryTab } from "./summary-tab";
 import { TumourBoardTab } from "./tumour-board-tab";
+import { useChartViewLog } from "@/hooks/use-chart-view-log";
 
 export type ChartTab = "summary" | "staging" | "chemo" | "labs" | "board";
 
@@ -60,6 +61,7 @@ export function PatientChart({
     ...oncologyChartQuery(patientId ?? ""),
     enabled: Boolean(patientId),
   });
+  useChartViewLog(patientId, "oncology chart");
 
   if (!patientId) {
     return (

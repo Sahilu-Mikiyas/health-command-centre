@@ -17,6 +17,7 @@ import {
   recentEventsQuery,
   staffSummaryQuery,
 } from "@/lib/hip/queries";
+import { RouteGuard } from "@/components/hip/route-guard";
 
 export const Route = createFileRoute("/_authenticated/command-centre")({
   head: () => ({
@@ -29,7 +30,7 @@ export const Route = createFileRoute("/_authenticated/command-centre")({
       },
     ],
   }),
-  component: CommandCentre,
+  component: GuardedCommandCentre,
 });
 
 function CommandCentre() {
@@ -44,10 +45,7 @@ function CommandCentre() {
   const criticalDepartments = (departments.data ?? []).filter((d) => d.status === "critical");
 
   return (
-    <AppShell
-      title="Hospital Command Centre"
-      subtitle={`${facility.name} · live operations`}
-    >
+    <AppShell title="Hospital Command Centre" subtitle={`${facility.name} · live operations`}>
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
         <div className="space-y-6 min-w-0">
           {/* Top Stats Row */}
@@ -55,11 +53,23 @@ function CommandCentre() {
             {/* Occupancy Card — ring stacked vertically with stats beside it */}
             <Panel className="min-w-0">
               <div className="flex items-center gap-4 min-w-0">
-                <MetricRing value={Math.round(occupancy * 100)} label="Occupancy" size={72} thickness={6} />
+                <MetricRing
+                  value={Math.round(occupancy * 100)}
+                  label="Occupancy"
+                  size={72}
+                  thickness={6}
+                />
                 <div className="space-y-0.5 min-w-0 flex-1">
-                  <p className="numeric text-sm font-black text-black">{beds.data?.occupied ?? 0} <span className="text-[#86868B] font-semibold text-xs">occupied</span></p>
-                  <p className="numeric text-xs font-bold text-[#34C759]">{beds.data?.available ?? 0} <span className="font-semibold">available</span></p>
-                  <p className="numeric text-xs font-semibold text-[#86868B]">{beds.data?.cleaning ?? 0} cleaning</p>
+                  <p className="numeric text-sm font-black text-black">
+                    {beds.data?.occupied ?? 0}{" "}
+                    <span className="text-[#86868B] font-semibold text-xs">occupied</span>
+                  </p>
+                  <p className="numeric text-xs font-bold text-[#34C759]">
+                    {beds.data?.available ?? 0} <span className="font-semibold">available</span>
+                  </p>
+                  <p className="numeric text-xs font-semibold text-[#86868B]">
+                    {beds.data?.cleaning ?? 0} cleaning
+                  </p>
                 </div>
               </div>
             </Panel>
@@ -92,7 +102,10 @@ function CommandCentre() {
           <Panel title="Patient flow" subtitle="Live stage distribution">
             <div className="grid gap-2 grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
               {(flow.data?.stages ?? []).map((stage) => (
-                <div key={stage.stage} className="rounded-2xl border border-black/5 bg-[#F5F5F7] p-3 text-center min-w-0 overflow-hidden">
+                <div
+                  key={stage.stage}
+                  className="rounded-2xl border border-black/5 bg-[#F5F5F7] p-3 text-center min-w-0 overflow-hidden"
+                >
                   <p className="numeric text-xl font-black text-black">{stage.count}</p>
                   <p
                     className="mt-0.5 text-[9px] font-bold uppercase tracking-tight text-[#86868B] truncate"
@@ -171,10 +184,21 @@ function CommandCentre() {
           </Panel>
 
           <Panel title="Capacity signal">
-            <StatusPill status={statusFromRatio(occupancy)} label={`${Math.round(occupancy * 100)}% beds in use`} />
+            <StatusPill
+              status={statusFromRatio(occupancy)}
+              label={`${Math.round(occupancy * 100)}% beds in use`}
+            />
           </Panel>
         </div>
       </div>
     </AppShell>
+  );
+}
+
+function GuardedCommandCentre() {
+  return (
+    <RouteGuard route="/command-centre">
+      <CommandCentre />
+    </RouteGuard>
   );
 }

@@ -6,6 +6,7 @@ import { queryOptions } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
 import { toEthiopianName } from "@/lib/hip/ethiopian-names";
+import { atcFor } from "@/lib/hip/atc";
 import { resolveIcdo3 } from "@/lib/hip/icdo3";
 import { readLabValues } from "@/lib/hip/lab-panels";
 import {
@@ -14,6 +15,7 @@ import {
   regimenById,
   type OncologyListRow,
 } from "@/lib/hip/oncology";
+import { csvCell } from "@/lib/hip/csv";
 
 const ROW_LIMIT = 1000;
 const DAY_MS = 86_400_000;
@@ -149,10 +151,10 @@ export type DataQuality = {
 export const dataQualityQuery = queryOptions({
   queryKey: ["his", "data-quality"],
   queryFn: async (): Promise<DataQuality> => {
-    const [patientsRes, conditionsRes, labsRes] = await Promise.all([
+    const [patientsRes, conditionsRes, labsRes, medsRes, consentRes] = await Promise.all([
       supabase
         .from("patients")
-        .select("date_of_birth,sex,phone,blood_group,insurance_provider")
+        .select("id,date_of_birth,sex,phone,blood_group,insurance_provider")
         .limit(ROW_LIMIT),
       supabase.from("conditions").select("name,icd10").limit(ROW_LIMIT),
       supabase
@@ -162,8 +164,28 @@ export const dataQualityQuery = queryOptions({
         .in("status", ["resulted", "completed"])
         .order("requested_at", { ascending: false })
         .limit(ROW_LIMIT),
+      supabase
+        .from("orders")
+        .select("name")
+        .eq("category", "medication")
+        .order("requested_at", { ascending: false })
+        .limit(ROW_LIMIT),
+      supabase
+        .from("events")
+        .select("entity_id,payload")
+        .eq("event_type", "patient.consent_recorded")
+        .limit(ROW_LIMIT * 5),
     ]);
     const patients = rowsOf(patientsRes, "Patients");
+    const meds = rowsOf(medsRes, "Medication orders");
+    const withNationalId = new Set(
+      rowsOf(consentRes, "Consent records")
+        .filter((e) => {
+          const nid = (e.payload as Record<string, unknown> | null)?.["national_id"];
+          return typeof nid === "string" && nid.trim() !== "";
+        })
+        .map((e) => e.entity_id),
+    );
     const conditions = rowsOf(conditionsRes, "Conditions");
     const labs = rowsOf(labsRes, "Lab orders");
 
@@ -213,7 +235,19 @@ export const dataQualityQuery = queryOptions({
         patients.filter((p) => filled(p.insurance_provider)).length,
         patients.length,
       ),
+      metric(
+        "nid",
+        "National ID recorded",
+        patients.filter((p) => withNationalId.has(p.id)).length,
+        patients.length,
+      ),
       metric("icd10", "Diagnoses ICD-10 coded", codedConditions.length, conditions.length),
+      metric(
+        "atc",
+        "Medications ATC-coded",
+        meds.filter((m) => atcFor(m.name) !== null).length,
+        meds.length,
+      ),
       metric(
         "labs",
         "Lab results structured",
@@ -377,10 +411,6 @@ export function buildRegistry(
   });
 }
 
-function csvCell(value: string | number | null | undefined): string {
-  const text = value === null || value === undefined ? "" : String(value);
-  return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-}
 
 export function registryCsv(rows: RegistryRow[]): string {
   const header = [
@@ -461,9 +491,35 @@ export type TrailItem = {
   title: string;
   detail: string;
   severity: string;
+  /** Set for read-only access (chart opened, FHIR API read). */
+  view?: { actor: string; via: string };
 };
 
 /** Every event, audit entry and provenance record touching a patient or their encounters/orders. */
+/** Read-only access to a chart: opening it in the app, or reading it through the FHIR API. */
+export const VIEW_EVENTS = new Set(["patient.chart_viewed", "fhir.api_read"]);
+
+export type ChartViewer = { actor: string; views: number; lastAt: string; viaApi: boolean };
+
+/** Who looked at this record, most recent first. */
+export function viewersFrom(items: TrailItem[]): ChartViewer[] {
+  const byActor = new Map<string, ChartViewer>();
+  for (const item of items) {
+    if (!item.view) continue;
+    const v = byActor.get(item.view.actor) ?? {
+      actor: item.view.actor,
+      views: 0,
+      lastAt: item.at,
+      viaApi: false,
+    };
+    v.views += 1;
+    if (item.at > v.lastAt) v.lastAt = item.at;
+    if (item.view.via === "fhir.api_read") v.viaApi = true;
+    byActor.set(item.view.actor, v);
+  }
+  return [...byActor.values()].sort((a, b) => b.lastAt.localeCompare(a.lastAt));
+}
+
 export const patientTrailQuery = (patientId: string) =>
   queryOptions({
     queryKey: ["his", "trail", patientId],
@@ -514,6 +570,9 @@ export const patientTrailQuery = (patientId: string) =>
           title: e.event_type.replace(/[._]/g, " "),
           detail: [e.actor_label, e.department_code, e.entity_type].filter(Boolean).join(" · "),
           severity: e.severity,
+          ...(VIEW_EVENTS.has(e.event_type)
+            ? { view: { actor: e.actor_label ?? "Unknown user", via: e.event_type } }
+            : {}),
         });
       }
       // audit_log / provenance are best-effort: a restricted role simply sees fewer rows.

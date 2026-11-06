@@ -237,7 +237,8 @@ export const myProfileQuery = queryOptions({
       email: user.email ?? "",
       profile: profile.data,
       staff: staff.data,
-      roles: override ? [override] : baseRoles.length > 0 ? baseRoles : ["receptionist"],
+      // No granted role means no access: the account waits for an administrator.
+      roles: override ? [override] : baseRoles,
       baseRoles,
       mustChangePassword: !!user.user_metadata?.['must_change_password'],
     };

@@ -4,12 +4,19 @@
  * resource shapes below follow the R4 base specification (4.0.1) and every bundle
  * is checked by `validateBundle` before it is offered for download.
  */
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
+import { ATC_SYSTEM, atcFor } from "@/lib/hip/atc";
 import { toEthiopianName } from "@/lib/hip/ethiopian-names";
 import { ICDO3_SYSTEM, resolveIcdo3 } from "@/lib/hip/icdo3";
 import { readLabValues, type ImagingResultValues, type ResultFlag } from "@/lib/hip/lab-panels";
 import { NATIONAL_ID_SYSTEM, nationalIdFor } from "@/lib/hip/mpi";
 import { isCancerCode, parseStaging } from "@/lib/hip/oncology";
+
+/** Any Supabase client: the browser session, or a per-request client on the FHIR API. */
+export type DbClient = SupabaseClient<Database>;
 
 /* ----------------------------------- types ---------------------------------- */
 
@@ -147,10 +154,16 @@ export type FhirBundle = {
   id: string;
   meta: { lastUpdated: string; source: string };
   identifier: { system: string; value: string };
-  type: "collection";
+  type: "collection" | "searchset";
   timestamp: string;
-  total: number;
-  entry: { fullUrl: string; resource: FhirResource }[];
+  /** Only allowed on search results (FHIR R4 invariant bdl-1). */
+  total?: number;
+  link?: { relation: string; url: string }[];
+  entry: {
+    fullUrl: string;
+    resource: FhirResource;
+    search?: { mode: "match" | "include" };
+  }[];
 };
 
 /* --------------------------------- systems ---------------------------------- */
@@ -431,7 +444,18 @@ function check<T>(result: { data: T | null; error: { message: string } | null },
 }
 
 /** Queries the patient's record and returns a validated FHIR R4 collection Bundle. */
-export async function buildPatientBundle(patientId: string): Promise<BundleResult> {
+function medicationConcept(name: string, code: string | null): CodeableConcept {
+  const coding: Coding[] = [];
+  const atc = atcFor(name);
+  if (atc) coding.push({ system: ATC_SYSTEM, code: atc.code, display: atc.display });
+  if (code) coding.push({ system: SYSTEMS.localOrder, code });
+  return coding.length ? { coding, text: name } : { text: name };
+}
+
+export async function buildPatientBundle(
+  patientId: string,
+  client: DbClient = supabase,
+): Promise<BundleResult> {
   const [
     patientRes,
     conditionsRes,
@@ -442,36 +466,36 @@ export async function buildPatientBundle(patientId: string): Promise<BundleResul
     stagingRes,
     nationalId,
   ] = await Promise.all([
-    supabase
+    client
       .from("patients")
       .select(
         "id,mrn,full_name,date_of_birth,sex,phone,blood_group,insurance_provider,insurance_number,created_at",
       )
       .eq("id", patientId)
       .maybeSingle(),
-    supabase
+    client
       .from("conditions")
       .select("id,name,icd10,status,onset_date,created_at")
       .eq("patient_id", patientId)
       .limit(200),
-    supabase
+    client
       .from("allergies")
       .select("id,substance,reaction,severity,created_at")
       .eq("patient_id", patientId)
       .limit(100),
-    supabase
+    client
       .from("vitals")
       .select("id,recorded_at,heart_rate,systolic,diastolic,respiratory_rate,spo2,temperature_c")
       .eq("patient_id", patientId)
       .order("recorded_at", { ascending: false })
       .limit(50),
-    supabase
+    client
       .from("encounters")
       .select("id,stage,priority,chief_complaint,bed_id,started_at,ended_at")
       .eq("patient_id", patientId)
       .order("started_at", { ascending: false })
       .limit(100),
-    supabase
+    client
       .from("orders")
       .select(
         "id,category,code,name,status,priority,instructions,result_summary,result_values,encounter_id,requested_at,verified_at,verified_by_label,requested_by_label",
@@ -479,14 +503,14 @@ export async function buildPatientBundle(patientId: string): Promise<BundleResul
       .eq("patient_id", patientId)
       .order("requested_at", { ascending: false })
       .limit(300),
-    supabase
+    client
       .from("clinical_notes")
       .select("objective,signed_at,created_at")
       .eq("patient_id", patientId)
       .eq("note_type", "oncology_staging")
       .order("created_at", { ascending: false })
       .limit(1),
-    nationalIdFor(patientId),
+    nationalIdFor(patientId, client),
   ]);
 
   if (patientRes.error) throw new Error(`Patient: ${patientRes.error.message}`);
@@ -723,10 +747,7 @@ export async function buildPatientBundle(patientId: string): Promise<BundleResul
                 ],
               },
             ],
-        medicationCodeableConcept: {
-          text: o.name,
-          ...(o.code ? { coding: [{ system: SYSTEMS.localOrder, code: o.code }] } : {}),
-        },
+        medicationCodeableConcept: medicationConcept(o.name, o.code),
         subject,
         encounter: encounterRef(o.encounter_id),
         authoredOn: fhirDateTime(o.requested_at),
@@ -814,7 +835,6 @@ export async function buildPatientBundle(patientId: string): Promise<BundleResul
     identifier: { system: "urn:furii:fhir-export", value: `${p.mrn}-${now.slice(0, 10)}` },
     type: "collection",
     timestamp: now,
-    total: clean.length,
     entry: clean.map((resource) => ({ fullUrl: urn(resource.id), resource })),
   };
 

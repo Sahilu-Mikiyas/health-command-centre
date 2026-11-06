@@ -31,6 +31,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/hip/app-shell";
+import { EthiopianDateInput } from "@/components/hip/ethiopian-date-input";
 import { HandoffBoard } from "@/components/hip/handoff-board";
 import { Panel, Stat } from "@/components/hip/panel";
 import { RouteGuard } from "@/components/hip/route-guard";
@@ -38,6 +39,7 @@ import { StatusPill } from "@/components/hip/status-pill";
 import { supabase } from "@/integrations/supabase/client";
 import { activeEncountersQuery, appointmentsQuery } from "@/lib/hip/clinical-queries";
 import { toEthiopianName } from "@/lib/hip/ethiopian-names";
+import { useT } from "@/lib/hip/i18n";
 import { staffDirectoryQuery } from "@/lib/hip/hr-queries";
 import {
   bookAppointment,
@@ -120,6 +122,7 @@ type CheckInSlip = Awaited<ReturnType<typeof getEncounterSlip>>;
 
 function ReceptionContent() {
   const queryClient = useQueryClient();
+  const t = useT();
   const [activeTab, setActiveTab] = useState<SubTab>("overview");
   const [day, setDay] = useState(todayISO());
   const [patientSearch, setPatientSearch] = useState("");
@@ -751,7 +754,7 @@ function ReceptionContent() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1">
                   <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">
-                    Full Legal Name *
+                    {t("Full Legal Name *")}
                   </label>
                   <input
                     name="fullName"
@@ -764,33 +767,32 @@ function ReceptionContent() {
 
                 <div className="space-y-1">
                   <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">
-                    Date of Birth *
+                    {t("Date of Birth *")}
                   </label>
-                  <input
+                  <EthiopianDateInput
                     name="dateOfBirth"
-                    type="date"
                     required
-                    defaultValue="1988-04-12"
-                    className="w-full rounded-2xl border border-black/10 bg-[#F5F5F7] p-3 text-xs font-bold text-black focus:bg-white focus:outline-none focus:ring-2 focus:ring-black"
+                    max={new Date().toISOString().slice(0, 10)}
+                    inputClassName="w-full rounded-2xl border border-black/10 bg-[#F5F5F7] p-3 text-xs font-bold text-black focus:bg-white focus:outline-none focus:ring-2 focus:ring-black"
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">
-                    Sex at Birth *
+                    {t("Sex at Birth *")}
                   </label>
                   <select
                     name="sex"
                     className="w-full rounded-2xl border border-black/10 bg-[#F5F5F7] p-3 text-xs font-bold text-black focus:bg-white focus:outline-none focus:ring-2 focus:ring-black"
                   >
-                    <option value="female">Female</option>
-                    <option value="male">Male</option>
+                    <option value="female">{t("Female")}</option>
+                    <option value="male">{t("Male")}</option>
                   </select>
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">
-                    Phone Number
+                    {t("Phone Number")}
                   </label>
                   <input
                     name="phone"
@@ -802,7 +804,7 @@ function ReceptionContent() {
 
                 <div className="space-y-1">
                   <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">
-                    National ID / Passport Number
+                    {t("National ID / Passport Number")}
                   </label>
                   <input
                     name="nationalId"
@@ -814,7 +816,7 @@ function ReceptionContent() {
 
                 <div className="space-y-1">
                   <label className="text-[10px] font-extrabold uppercase tracking-wider text-[#86868B]">
-                    Insurance Provider
+                    {t("Insurance Provider")}
                   </label>
                   <input
                     name="insurance"
@@ -827,7 +829,7 @@ function ReceptionContent() {
 
               <div className="rounded-2xl border border-black/5 bg-[#FAFAFC] p-4 space-y-2">
                 <span className="text-xs font-bold text-black flex items-center gap-2">
-                  <FileText className="size-4 text-black" /> Patient Consent & Privacy Agreement
+                  <FileText className="size-4 text-black" /> {t("Patient Consent & Privacy Agreement")}
                 </span>
                 <label className="flex items-center gap-2 text-xs font-semibold text-[#515154] cursor-pointer">
                   <input
@@ -837,8 +839,9 @@ function ReceptionContent() {
                     defaultChecked
                     className="rounded border-black/20"
                   />
-                  Patient consents to digital health data recording under hospital privacy
-                  guidelines.
+                  {t(
+                    "Patient consents to digital health data recording under hospital privacy guidelines.",
+                  )}
                 </label>
               </div>
 
@@ -923,7 +926,7 @@ function ReceptionContent() {
                 disabled={registerMut.isPending || checkingDuplicates}
                 className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-black py-3.5 text-xs font-bold text-white shadow-md hover:bg-slate-800 transition-all scale-105 cursor-pointer"
               >
-                <UserPlus className="size-4" /> Save Registration & Generate MRN
+                <UserPlus className="size-4" /> {t("Save Registration & Generate MRN")}
               </button>
             </form>
           </Panel>

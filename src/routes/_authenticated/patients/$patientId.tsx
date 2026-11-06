@@ -25,6 +25,9 @@ import { Timeline } from "@/components/hip/timeline";
 import { notesQuery, ordersQuery, type NoteRow, type OrderRow } from "@/lib/hip/clinical-queries";
 import { patientRecordQuery } from "@/lib/hip/queries";
 import { STAGE_LABELS } from "@/lib/hip/workflow";
+import { useChartViewLog } from "@/hooks/use-chart-view-log";
+import { formatEthiopian } from "@/lib/hip/ethiopian-calendar";
+import { RouteGuard } from "@/components/hip/route-guard";
 
 export const Route = createFileRoute("/_authenticated/patients/$patientId")({
   head: () => ({
@@ -36,7 +39,7 @@ export const Route = createFileRoute("/_authenticated/patients/$patientId")({
       },
     ],
   }),
-  component: PatientRecordCV,
+  component: GuardedPatientRecordCV,
 });
 
 const BACK_LINK_CLASS =
@@ -124,6 +127,7 @@ function EmptyState({ children }: { children: ReactNode }) {
 
 function PatientRecordCV() {
   const { patientId } = Route.useParams();
+  useChartViewLog(patientId, "patient record");
   const record = useQuery(patientRecordQuery(patientId));
   const orders = useQuery(ordersQuery(patientId));
   const notes = useQuery(notesQuery(patientId));
@@ -245,6 +249,7 @@ function PatientRecordCV() {
                 <p className="text-sm font-semibold text-[#1D1D1F] flex flex-wrap items-center gap-3">
                   <span>
                     {sexLabel(patient.sex)} · Born {patient.date_of_birth}
+                    {patient.date_of_birth ? ` (${formatEthiopian(patient.date_of_birth)})` : ""}
                     {age !== null ? ` (Age ${age})` : ""}
                   </span>
                   <span className="text-[#86868B]">•</span>
@@ -566,5 +571,13 @@ function PatientRecordCV() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+function GuardedPatientRecordCV() {
+  return (
+    <RouteGuard route="/patients">
+      <PatientRecordCV />
+    </RouteGuard>
   );
 }

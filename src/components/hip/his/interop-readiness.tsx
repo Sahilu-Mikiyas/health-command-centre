@@ -12,60 +12,81 @@ type Item = {
 
 const ITEMS: Item[] = [
   {
-    standard: "HL7 FHIR R4",
-    scope: "Patient data exchange",
+    standard: "HL7 FHIR R4 API",
+    scope: "Live data exchange",
     status: "live",
     detail:
-      "Per-patient Bundle export: Patient, Encounter, Condition, AllergyIntolerance, Observation, DiagnosticReport, MedicationRequest, Coverage.",
+      "Read-only REST API: metadata, Patient search by MRN or national ID, Patient read and $everything. Staff token required; row-level security and audit logging on every read.",
+  },
+  {
+    standard: "HL7 FHIR R4 export",
+    scope: "Patient record download",
+    status: "live",
+    detail:
+      "Per-patient Bundle: Patient, Encounter, Condition, AllergyIntolerance, Observation, DiagnosticReport, MedicationRequest, Coverage.",
+  },
+  {
+    standard: "HL7 v2.5.1 ADT",
+    scope: "Admission / discharge feeds",
+    status: "live",
+    detail:
+      "A04 / A01 / A03 messages generated from encounters for legacy systems; downloadable batch. A live network (MLLP) interface is configured per site.",
+  },
+  {
+    standard: "DHIS2",
+    scope: "National aggregate reporting",
+    status: "live",
+    detail:
+      "Monthly dataValueSet by sex and age with ICD-10 morbidity. Download, or send directly (dry run first) once the facility's DHIS2 server and token are configured.",
   },
   {
     standard: "ICD-10",
     scope: "Diagnosis coding",
     status: "live",
     detail:
-      "Problem list and cancer diagnoses coded at point of care; coverage measured on the Data Quality tab.",
-  },
-  {
-    standard: "LOINC",
-    scope: "Laboratory & vital signs",
-    status: "live",
-    detail:
-      "Structured lab panels carry LOINC per analyte; vitals mapped to LOINC with UCUM units.",
+      "Problem list and cancer diagnoses coded at point of care; coverage on the Data Quality tab.",
   },
   {
     standard: "ICD-O-3",
     scope: "Cancer registry coding",
     status: "live",
     detail:
-      "Topography, morphology, behaviour and basis of diagnosis recorded at staging; registry export and FHIR Condition carry the codes; MV% tracked.",
+      "Topography, morphology, behaviour and basis of diagnosis at staging; registry export and FHIR Condition carry the codes; MV% tracked.",
   },
   {
-    standard: "DHIS2",
-    scope: "Aggregate national reporting",
+    standard: "LOINC + UCUM",
+    scope: "Laboratory & vital signs",
     status: "live",
     detail:
-      "Monthly dataValueSet (JSON / CSV) generated from coded data, disaggregated by sex and age, with ICD-10 morbidity. Import via the DHIS2 Import/Export app; direct API push is next.",
+      "Structured lab panels carry LOINC per analyte; vitals mapped to LOINC with UCUM units.",
+  },
+  {
+    standard: "WHO ATC",
+    scope: "Medication coding",
+    status: "live",
+    detail:
+      "Medication orders coded to ATC (essential-medicines subset, incl. oncology) in the FHIR export; coverage on the Data Quality tab.",
   },
   {
     standard: "Master Patient Index",
     scope: "Patient identity",
     status: "live",
     detail:
-      "National ID (Fayda) captured at registration and exported as a FHIR identifier; duplicate check at registration plus a review queue for suspected duplicates.",
+      "National ID (Fayda) at registration and as a FHIR identifier; duplicate check at registration plus a review queue.",
+  },
+  {
+    standard: "Ethiopian calendar · Amharic",
+    scope: "Local fit",
+    status: "live",
+    detail:
+      "Dates of birth entered and shown in the Ethiopian calendar, Ethiopian dates on reports, Amharic navigation and registration.",
   },
   {
     standard: "PACS / DICOM",
     scope: "Imaging archive",
     status: "roadmap",
     detail:
-      "Radiology reports are structured today; DICOM image storage & viewer integration planned.",
-  },
-  {
-    standard: "HL7 v2 ADT",
-    scope: "Admission / discharge feeds",
-    status: "roadmap",
-    detail:
-      "A01/A03/A08 messages to legacy systems, derived from encounter events already in the ledger.",
+      "Radiology reports are structured today; DICOM image storage and viewer integration planned.",
   },
 ];
 

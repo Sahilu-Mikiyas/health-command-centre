@@ -17,7 +17,9 @@ import { CancerRegistryPanel } from "@/components/hip/his/cancer-registry-panel"
 import { DataQualityPanel } from "@/components/hip/his/data-quality-panel";
 import { Dhis2Panel } from "@/components/hip/his/dhis2-panel";
 import { FacilityAnalyticsPanel } from "@/components/hip/his/facility-analytics-panel";
+import { FhirApiPanel } from "@/components/hip/his/fhir-api-panel";
 import { FhirExportPanel } from "@/components/hip/his/fhir-export-panel";
+import { Hl7v2Panel } from "@/components/hip/his/hl7v2-panel";
 import { IdentityPanel } from "@/components/hip/his/identity-panel";
 import { InteropReadiness } from "@/components/hip/his/interop-readiness";
 import { HisKpiStrip } from "@/components/hip/his/kpi-strip";
@@ -83,7 +85,8 @@ function HisContent() {
       subtitle={`${facility.shortName} · Standards-based data exchange, clinical coding, registries & audit`}
       actions={
         <span className="inline-flex items-center gap-1.5 rounded-full border border-[#B6ECC3] bg-[#E8F8EC] px-3.5 py-1 text-xs font-bold text-[#1D8A39]">
-          <ShieldCheck className="size-3.5" /> HL7 FHIR R4 · ICD-10 · ICD-O-3 · LOINC · DHIS2
+          <ShieldCheck className="size-3.5" /> HL7 FHIR R4 · HL7 v2 · ICD-10 · ICD-O-3 · LOINC · ATC
+          · DHIS2
         </span>
       }
     >
@@ -118,6 +121,10 @@ function HisContent() {
         {tab === "fhir" ? (
           <div className="space-y-6">
             <FhirExportPanel patient={patient} onPatientChange={setPatient} />
+            <div className="grid gap-6 xl:grid-cols-2">
+              <FhirApiPanel />
+              <Hl7v2Panel />
+            </div>
             <InteropReadiness />
           </div>
         ) : null}
